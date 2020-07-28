@@ -470,8 +470,8 @@ typedef struct{
 typedef struct{
 	uint8_t measurement_index;
 	uint8_t quality_index;
-	uint8_t fitness_index_value;
-} hr_module_fitness_index_metric_t ;			//@Including FITNESS INDEX
+	uint8_t hr_zone_preference_calc_value;
+} hr_module_hr_zone_preference_calc_metric_t ;			//@Including FITNESS INDEX
 
 
 typedef struct{
@@ -618,7 +618,7 @@ typedef struct{
 	bool time_metric_set;
 	bool body_position_metric_set;
 	bool user_id_metric_set;							//@Including USER ID
-	bool fitness_index_metric_set;						//@Including FITNESS INDEX
+	bool hr_zone_preference_calc_metric_set;						//@Including FITNESS INDEX
 	bool first_name_metric_set;
 	bool last_name_metric_set;
 	bool email_address_metric_set;
@@ -695,7 +695,7 @@ typedef struct{
 //	hr_module_aerobic_threshold_metric_t	aerobic_threshold;			//@Including AEROBIC THRESHOLD
 //	hr_module_anaerobic_threshold_metric_t	anaerobic_threshold;		//@Including ANAEROBIC THRESHOLD
 //	hr_module_name_metric_t					name;						//@Including NAME
-	hr_module_fitness_index_metric_t		fitness_index;				//@Including FITNESS INDEX
+	hr_module_hr_zone_preference_calc_metric_t		hr_zone_preference_calc;				//@Including FITNESS INDEX
 	hr_module_first_name_metric_t						first_name;
 	hr_module_last_name_metric_t						last_name;
 	hr_module_email_address_metric_t					email_address;
@@ -742,7 +742,7 @@ typedef struct{
 	hr_limits_t																																		hr_rhr_zone_limits;
 	hr_zone_calc_select_t																													hr_zone_calc_select;
 	hr_module_user_id_metric_t																										user_id;					//@Including USER ID
-	hr_module_fitness_index_metric_t																							fitness_index;				//@Including FITNESS INDEX
+	hr_module_hr_zone_preference_calc_metric_t																		hr_zone_preference_calc;				//@Including FITNESS INDEX
 	hr_module_first_name_metric_t																									first_name;
 	hr_module_last_name_metric_t																									last_name;
 	hr_module_email_address_metric_t																							email_address;
@@ -818,7 +818,7 @@ typedef struct{
 	bool hr_rhr_zone_limits;
 	bool hr_zone_calc_select;
 	bool user_id;						//@Including USER ID
-	bool fitness_index;					//@Including FITNESS INDEX
+	bool hr_zone_preference_calc;					//@Including FITNESS INDEX
 	bool first_name;
 	bool last_name;
 	bool email_address;
@@ -889,8 +889,8 @@ void set_resting_heart_rate_value_threshold(uint8_t value);
 uint8_t get_user_id(void);
 void set_user_id(uint8_t value);					//@Including USER ID
 
-uint8_t get_fitness_index(void);
-void set_fitness_index(uint8_t value);				//@Including FITNESS INDEX
+uint8_t get_hr_zone_preference_calc(void);
+void set_hr_zone_preference_calc(uint8_t value);				//@Including FITNESS INDEX
 
 uint64_t get_first_name_metric(void);
 void set_first_name_metric(uint64_t value);

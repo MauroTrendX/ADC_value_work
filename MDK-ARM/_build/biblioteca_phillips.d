@@ -71,3 +71,4 @@
 .\_build\biblioteca_phillips.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 .\_build\biblioteca_phillips.o: ..\Inc\Controle_LEDs.h
 .\_build\biblioteca_phillips.o: ..\Inc\biblioteca_phillips.h
+.\_build\biblioteca_phillips.o: ..\Inc\MAX30110_API.h

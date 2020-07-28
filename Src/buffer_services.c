@@ -243,10 +243,10 @@ if(err_code == NRF_SUCCESS){
 //			else
 //				p_metric_info.name.name_value = 0;
 
-//			if(metric_nv_info.metric_settings_nv_buf.fitness_index_metric_set)					//@Including FITNESS INDEX
-//				p_metric_info.fitness_index.fitness_index_value = metric_nv_info.fitness_index.fitness_index_value;
-//			else
-//				p_metric_info.fitness_index.fitness_index_value = 0;
+			if(metric_nv_info.metric_settings_nv_buf.hr_zone_preference_calc_metric_set)					//@Including FITNESS INDEX
+				p_metric_info.hr_zone_preference_calc.hr_zone_preference_calc_value = metric_nv_info.hr_zone_preference_calc.hr_zone_preference_calc_value;
+			else
+				p_metric_info.hr_zone_preference_calc.hr_zone_preference_calc_value = 0;
 
 			if(metric_nv_info.metric_settings_nv_buf.first_name_metric_set)					//
 				p_metric_info.first_name.first_name_value = metric_nv_info.first_name.first_name_value;
@@ -336,7 +336,7 @@ if(err_code == NRF_SUCCESS){
 			if(metric_nv_info.metric_settings_nv_buf.fat_burn_heart_rate_lower_limit_metric_set)					//
 				p_metric_info.fat_burn_heart_rate_lower_limit.fat_burn_heart_rate_lower_limit_value = metric_nv_info.fat_burn_heart_rate_lower_limit.fat_burn_heart_rate_lower_limit_value;
 			else
-				p_metric_info.fitness_index.fitness_index_value = 0;
+				p_metric_info.hr_zone_preference_calc.hr_zone_preference_calc_value = 0;
 
 			if(metric_nv_info.metric_settings_nv_buf.fat_burn_heart_rate_upper_limit_metric_set)					//
 				p_metric_info.fat_burn_heart_rate_upper_limit.fat_burn_heart_rate_upper_limit_value = metric_nv_info.fat_burn_heart_rate_upper_limit.fat_burn_heart_rate_upper_limit_value;
@@ -405,15 +405,15 @@ void set_user_id(uint8_t value){
 }
 
 /******************************@Including FITNESS INDEX*******************************/
-uint8_t get_fitness_index(void){
-	if( metric_nv_info.fitness_index.fitness_index_value == 0 || metric_nv_info.fitness_index.fitness_index_value > 0x63 ){
-		metric_nv_info.fitness_index.fitness_index_value = USER_ID_DEFAULT_VALUE;
+uint8_t get_hr_zone_preference_calc(void){
+	if( metric_nv_info.hr_zone_preference_calc.hr_zone_preference_calc_value >3 ){
+		metric_nv_info.hr_zone_preference_calc.hr_zone_preference_calc_value = 3;
 	}
-	return metric_nv_info.fitness_index.fitness_index_value;
+	return metric_nv_info.hr_zone_preference_calc.hr_zone_preference_calc_value;
 }
 
-void set_fitness_index(uint8_t value){
-	metric_nv_info.fitness_index.fitness_index_value = value;
+void set_hr_zone_preference_calc(uint8_t value){
+	metric_nv_info.hr_zone_preference_calc.hr_zone_preference_calc_value = value;
 }
 
 /******************************************************************************/
@@ -589,7 +589,7 @@ void set_heart_rate_max_metric(uint8_t value){
 /******************************************************************************/
 uint8_t get_resting_heart_rate_metric(void){
 	if( metric_nv_info.resting_heart_rate.resting_heart_rate_value == 0 || metric_nv_info.resting_heart_rate.resting_heart_rate_value == 0xFF ){
-		metric_nv_info.resting_heart_rate.resting_heart_rate_value = 0x00;
+		metric_nv_info.resting_heart_rate.resting_heart_rate_value = 60;
 	}
 
 	return metric_nv_info.resting_heart_rate.resting_heart_rate_value;

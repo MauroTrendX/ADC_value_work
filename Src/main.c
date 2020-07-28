@@ -554,9 +554,7 @@ void usb_pin_callback(void)
 	
 		err_code = nrf_drv_gpiote_in_init(USB, &in_config, usb_pin_callback);
     APP_ERROR_CHECK(err_code);
-
 		nrf_drv_gpiote_in_event_enable(USB, true);
-
 }*/
 
 void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
@@ -779,11 +777,9 @@ static void heart_rate_meas_timeout_handler(void * p_context)
 /*static void rr_interval_timeout_handler(void * p_context)
 {
     UNUSED_PARAMETER(p_context);
-
     if (m_rr_interval_enabled)
     {
         uint16_t rr_interval;
-
         rr_interval = (uint16_t)sensorsim_measure(&m_rr_interval_sim_state,
                                                   &m_rr_interval_sim_cfg);
         ble_hrs_rr_interval_add(&m_hrs, rr_interval);
@@ -818,9 +814,7 @@ static void heart_rate_meas_timeout_handler(void * p_context)
 static void sensor_contact_detected_timeout_handler(void * p_context)
 {
     
-
     UNUSED_PARAMETER(p_context);
-
     ble_hrs_sensor_contact_detected_update(&m_hrs, sensor_contact_detected);
 }*/
 
@@ -869,7 +863,6 @@ static void timers_init(void)
                                 APP_TIMER_MODE_REPEATED,
                                 rr_interval_timeout_handler);
     APP_ERROR_CHECK(err_code);
-
     err_code = app_timer_create(&m_sensor_contact_timer_id,
                                 APP_TIMER_MODE_REPEATED,
                                 sensor_contact_detected_timeout_handler);
@@ -971,7 +964,7 @@ static void user_id_write_handler(ble_rus_t *p_rus, uint32_t new_state){
 
 //@Including FITNESS INDEX
 /******************************************************************************/
-static void fitness_index_write_handler(ble_rus_t *p_rus, uint32_t new_state){
+static void hr_zone_preference_calc_write_handler(ble_rus_t *p_rus, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state & 0xFF;
 
@@ -980,10 +973,10 @@ static void fitness_index_write_handler(ble_rus_t *p_rus, uint32_t new_state){
 		return;
 
 /* Altera valor do coeficiente de condicionamento na variável temporária */
-	temporary_buff.fitness_index.fitness_index_value = temp;
+	temporary_buff.hr_zone_preference_calc.hr_zone_preference_calc_value = temp;
 
 /* Solicita para o programa a atualização do coeficiente de condicionamento na memória NV */
-	hr_module_nv_buf_update_flags.fitness_index = true;
+	hr_module_nv_buf_update_flags.hr_zone_preference_calc = true;
 	update_nv_mem_buf_request = true;
 }
 
@@ -1783,7 +1776,7 @@ static void services_init(void)
 //	rus_init.aerobic_threshold_write_handler	= aerobic_threshold_write_handler;      //@Including AEROBIC THRESHOLD
 //	rus_init.anaerobic_threshold_write_handler	= anaerobic_threshold_write_handler;      //@Including ANAEROBIC THRESHOLD
 //	rus_init.name_write_handler					= name_write_handler;      //@Including NAME
-//	rus_init.fitness_index_write_handler		= fitness_index_write_handler;      //@Including FITNESS INDEX
+		rus_init.hr_zone_preference_calc_write_handler		= hr_zone_preference_calc_write_handler;      //@Including FITNESS INDEX
 
 		err_code = ble_rus_init(&m_rus, &rus_init);
 		APP_ERROR_CHECK(err_code);
@@ -1823,7 +1816,6 @@ void check_nv_update_request (void){
 
 /*			if( hr_module_nv_buf_update_flags.age == true ){
 				hr_module_nv_buf_update_flags.age = false;
-
 				set_age_metric( temporary_buff.age.age_value );
 			}*/
 
@@ -1842,26 +1834,21 @@ void check_nv_update_request (void){
 
 /*			if( hr_module_nv_buf_update_flags.aerobic_threshold == true ){
 				hr_module_nv_buf_update_flags.aerobic_threshold = false;
-
 				set_aerobic_threshold( temporary_buff.aerobic_threshold.aerobic_threshold_value );  //@Including AEROBIC THRESHOLD
 			}
-
 			if( hr_module_nv_buf_update_flags.anaerobic_threshold == true ){
 				hr_module_nv_buf_update_flags.anaerobic_threshold = false;
-
 				set_anaerobic_threshold( temporary_buff.anaerobic_threshold.anaerobic_threshold_value );  //@Including ANAEROBIC THRESHOLD
 			}
-
 			if( hr_module_nv_buf_update_flags.name == true ){
 				hr_module_nv_buf_update_flags.name = false;
-
 				set_name( temporary_buff.name.name_value );  //@Including NAME
 			}*/
 
-				if( hr_module_nv_buf_update_flags.fitness_index == true ){
-						hr_module_nv_buf_update_flags.fitness_index = false;
+				if( hr_module_nv_buf_update_flags.hr_zone_preference_calc == true ){
+						hr_module_nv_buf_update_flags.hr_zone_preference_calc = false;
 
-						set_fitness_index( temporary_buff.fitness_index.fitness_index_value );  //@Including
+						set_hr_zone_preference_calc( temporary_buff.hr_zone_preference_calc.hr_zone_preference_calc_value );  //@Including
 				}
 
 
@@ -2356,8 +2343,8 @@ static uint32_t rw_request(ble_evt_t * p_ble_evt){
 		if(handle == m_rus.user_id_char_handles.value_handle)
 				reply((uint16_t)get_user_id());
 
-		if(handle == m_rus.fitness_index_char_handles.value_handle)
-				reply((uint16_t)get_fitness_index());					//@Including FITNESS INDEX
+		if(handle == m_rus.hr_zone_preference_calc_char_handles.value_handle)
+				reply((uint16_t)get_hr_zone_preference_calc());					//@Including FITNESS INDEX
 
 		if(handle == m_uds.first_name_char_handler.value_handle)
 				reply_name((uint64_t)get_first_name_metric());					//@Including
@@ -3031,7 +3018,7 @@ void amazenar_PPG(uint8_t * numeroAmostra, dadosBbPPG * bufferPPG){
 		MAX30110_dados24BitsFIFO_t dadosFila;
 		MAX30110_leFila( &dadosFila, 2 );
 
-//		NRF_LOG_INFO("2C:%ld,%ld",((dadosFila.dados.valorPPG)&0x7FFFF)>>3,dadosFila.dados.valorPPG);//,dadosFila.dados.valorAMB);
+		NRF_LOG_INFO("2C:%ld,%ld",((dadosFila.dados.valorPPG)&0x7FFFF)>>3,dadosFila.dados.valorPPG);//,dadosFila.dados.valorAMB);
 									
 		if(indiceAmostra==0){
 				//verificar mascara de bits bit [0] msb [2] lsb da fifo
@@ -3052,7 +3039,7 @@ void amazenar_PPG(uint8_t * numeroAmostra, dadosBbPPG * bufferPPG){
 				indiceAmostra=0;
 		}
 		*numeroAmostra=indiceAmostra;
-		ControlLoop((uint32_t)(((dadosFila.dados.valorPPG)&0x7FFFF)>>3), &sControlLoopParams.ledPower, &sControlLoopParams.adcGain,sControlLoopParams);
+//		ControlLoop((uint32_t)(((dadosFila.dados.valorPPG)&0x7FFFF)>>3), &sControlLoopParams.ledPower, &sControlLoopParams.adcGain,sControlLoopParams);
 		
 }
 

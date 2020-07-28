@@ -12,13 +12,16 @@ ZONE_2,
 ZONE_3,
 ZONE_4,
 ZONE_5,
+ZONE_6,	
 RESTING_ZONE,
 END_ZONE
 }zonesEnum;
 
 typedef enum{
 hr_zone_select_SPIVI = 0,
-hr_zone_select_RHR
+hr_zone_select_RHR,
+hr_zone_select_CIA_ATHLETICA,
+hr_zone_select_MYBEAT_V2
 }hr_zone_select_t;
 
 /******************************************************************************/

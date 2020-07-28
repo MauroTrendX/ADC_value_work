@@ -58,7 +58,7 @@ static void uart_evt_handler(nrf_drv_uart_event_t * p_event, void * p_context)
 static void uart_init(bool async_mode)
 {
     nrf_drv_uart_config_t config = NRF_DRV_UART_DEFAULT_CONFIG;
-    config.pseltxd  = 20;
+    config.pseltxd  = 18;//20;
     config.pselrxd  = NRF_UART_PSEL_DISCONNECTED;
     config.pselcts  = NRF_UART_PSEL_DISCONNECTED;
     config.pselrts  = NRF_UART_PSEL_DISCONNECTED;

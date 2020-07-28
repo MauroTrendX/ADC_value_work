@@ -6,6 +6,9 @@
 #include "lis2dw12_reg.h"
 #include "Controle_LEDs.h"
 #include "biblioteca_phillips.h"
+#include "MAX30110_API.h"
+
+
 
 #define V_BODYPOSITION_LEFT ( 1 )
 #define V_BODYPOSITION_RIGHT ( 2 )
@@ -23,7 +26,9 @@
 //		static FX_UINT16 ppg[FXI_NUMBER_OF_PPG_SAMPLES];
 
 		static PFXI_INST pFxInst = 0;
-
+		
+		extern g4_PPGControlLoopConfig_t    sControlLoopParams;
+		
 		extern stmdev_ctx_t dev_ctx;
 		extern bool trigLoop;
 		volatile uint8_t queroEsteLed=1;
@@ -274,7 +279,8 @@ void run_biblioteca_phillips(dadosBbPPG amostrasPPG, dadosBbACC amostrasACC, uin
 						trigLoop=false;
 				}else
 							trigLoop=true;
-				
+							ControlLoop((uint32_t)amostrasPPG.amostra1.vetor[0], &sControlLoopParams.ledPower, &sControlLoopParams.adcGain,sControlLoopParams);
+
 				NRF_LOG_INFO("ID: %x  Index: %d Quality: %x Value: %d status: %d",metricData[0], metricData[3], metricData[4], metricData[5],status);	
 
 		}
