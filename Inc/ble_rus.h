@@ -53,8 +53,8 @@ NRF_SDH_BLE_OBSERVER(_name ## _obs,                                             
 #define RUS_UUID_ANAEROBIC_THRESHOLD_CHAR	0x99BA		//@Including ANAEROBIC THRESHOLD
 //#define RUS_UUID_NAME_CHAR					0x3407		//@Including NAME
 #define RUS_UUID_NAME_CHAR					0x3407		//@Including NAME
-//#define RUS_UUID_FITNESS_INDEX				0xE184		//@Including FITNESS INDEX
-#define RUS_UUID_FITNESS_INDEX				0xE184		//@Including FITNESS INDEX
+//#define RUS_UUID_FITNESS_INDEX				0xE185		//@Including FITNESS INDEX
+#define RUS_UUID_FITNESS_INDEX				0xE185		//@Including FITNESS INDEX
 
 
 
@@ -80,7 +80,7 @@ typedef struct{
 //	ble_rus_setup_handler_t aerobic_threshold_write_handler;		//@Including AEROBIC THRESHOLD
 //	ble_rus_setup_handler_t anaerobic_threshold_write_handler;		//@Including ANAEROBIC THRESHOLD
 	ble_rus_setup_handler_t name_write_handler;						//@Including NAME
-	ble_rus_setup_handler_t fitness_index_write_handler;			//@Including FITNESS INDEX
+	ble_rus_setup_handler_t hr_zone_preference_calc_write_handler;			//@Including FITNESS INDEX
 } ble_rus_init_t;
 
 struct ble_rus_s{
@@ -99,7 +99,7 @@ struct ble_rus_s{
 //	ble_gatts_char_handles_t	aerobic_threshold_char_handles;		//@Including AEROBIC THRESHOLD
 //	ble_gatts_char_handles_t	anaerobic_threshold_char_handles;	//@Including ANAEROBIC THRESHOLD
 //	ble_gatts_char_handles_t	name_char_handles;					//@Including NAME
-	ble_gatts_char_handles_t	fitness_index_char_handles;			//@Including FITNESS INDEX
+	ble_gatts_char_handles_t	hr_zone_preference_calc_char_handles;			//@Including FITNESS INDEX
 	uint8_t uuid_type;
 	uint16_t conn_handle;
 	ble_rus_setup_handler_t		year_of_birth_write_handler;
@@ -116,7 +116,7 @@ struct ble_rus_s{
 //	ble_rus_setup_handler_t 	aerobic_threshold_write_handler;	//@Including AEROBIC THRESHOLD
 //	ble_rus_setup_handler_t 	anaerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
 //	ble_rus_setup_handler_t 	name_write_handler;					//@Including NAME
-	ble_rus_setup_handler_t 	fitness_index_write_handler;		//@Including FITNESS INDEX
+	ble_rus_setup_handler_t 	hr_zone_preference_calc_write_handler;		//@Including FITNESS INDEX
 };
 
 

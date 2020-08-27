@@ -1049,15 +1049,18 @@ void ControlLoop( uint32_t ppg, uint16_t *pwr, uint8_t *gain,g4_PPGControlLoopCo
 				if (ppg > thrHigh) 
     		{
 			  		pwrNew >>= 1;   /* /2 */
+//						pwrNew=pwrNew/1.7;
+
 				}
 
 				else if (ppg < thrLow) 
     		{
 						pwrNew <<= 1;   /* x2 */
+//						pwrNew=pwrNew*1.7;
 				}
 		
-				if(pwrNew>60)
-						pwrNew=60;
+				if(pwrNew>70)
+						pwrNew=70;
 		
 				if(pwrNew<10)
 						pwrNew=10;
@@ -1068,6 +1071,7 @@ void ControlLoop( uint32_t ppg, uint16_t *pwr, uint8_t *gain,g4_PPGControlLoopCo
 				/* Return the new power value */
     		*pwr = (uint16_t) pwrNew;
 				SetLedPower(pwrNew);
+				NRF_LOG_INFO("Power LED: %d",pwrNew);
 		}
 }
 

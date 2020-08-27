@@ -1359,10 +1359,10 @@ static uint32_t five_zone_heart_rate_limits_char_add(ble_uds_t *p_uds, const ble
 	char_md.char_props.read		= 1;
 	char_md.char_props.write 	= 1;
 	char_md.p_char_user_desc	= NULL;
-	char_md.p_char_pf			= NULL;
+	char_md.p_char_pf					= NULL;
 	char_md.p_user_desc_md		= NULL;
-	char_md.p_cccd_md			= NULL;
-	char_md.p_sccd_md			= NULL;
+	char_md.p_cccd_md					= NULL;
+	char_md.p_sccd_md					= NULL;
 
 //	ble_uuid.type = p_uds->uuid_type;
 //	ble_uuid.uuid = RUS_UUID_MONTH_OF_BIRTH_CHAR;
@@ -1405,10 +1405,10 @@ static uint32_t three_zone_heart_rate_limits_char_add(ble_uds_t *p_uds, const bl
 	char_md.char_props.read		= 1;
 	char_md.char_props.write 	= 1;
 	char_md.p_char_user_desc	= NULL;
-	char_md.p_char_pf			= NULL;
+	char_md.p_char_pf					= NULL;
 	char_md.p_user_desc_md		= NULL;
-	char_md.p_cccd_md			= NULL;
-	char_md.p_sccd_md			= NULL;
+	char_md.p_cccd_md					= NULL;
+	char_md.p_sccd_md					= NULL;
 
 //	ble_uuid.type = p_uds->uuid_type;
 //	ble_uuid.uuid = RUS_UUID_MONTH_OF_BIRTH_CHAR;
@@ -1451,10 +1451,10 @@ static uint32_t two_zone_heart_rate_limit_char_add(ble_uds_t *p_uds, const ble_u
 	char_md.char_props.read		= 1;
 	char_md.char_props.write 	= 1;
 	char_md.p_char_user_desc	= NULL;
-	char_md.p_char_pf			= NULL;
+	char_md.p_char_pf					= NULL;
 	char_md.p_user_desc_md		= NULL;
-	char_md.p_cccd_md			= NULL;
-	char_md.p_sccd_md			= NULL;
+	char_md.p_cccd_md					= NULL;
+	char_md.p_sccd_md					= NULL;
 
 //	ble_uuid.type = p_uds->uuid_type;
 //	ble_uuid.uuid = RUS_UUID_MONTH_OF_BIRTH_CHAR;
@@ -1497,10 +1497,10 @@ static uint32_t language_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_
 	char_md.char_props.read		= 1;
 	char_md.char_props.write 	= 1;
 	char_md.p_char_user_desc	= NULL;
-	char_md.p_char_pf			= NULL;
+	char_md.p_char_pf					= NULL;
 	char_md.p_user_desc_md		= NULL;
-	char_md.p_cccd_md			= NULL;
-	char_md.p_sccd_md			= NULL;
+	char_md.p_cccd_md					= NULL;
+	char_md.p_sccd_md					= NULL;
 
 //	ble_uuid.type = p_uds->uuid_type;
 //	ble_uuid.uuid = RUS_UUID_MONTH_OF_BIRTH_CHAR;
@@ -1544,10 +1544,10 @@ static uint32_t fitnes_index_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_
 	char_md.char_props.read		= 1;
 	char_md.char_props.write 	= 1;
 	char_md.p_char_user_desc	= NULL;
-	char_md.p_char_pf			= NULL;
+	char_md.p_char_pf					= NULL;
 	char_md.p_user_desc_md		= NULL;
-	char_md.p_cccd_md			= NULL;
-	char_md.p_sccd_md			= NULL;
+	char_md.p_cccd_md					= NULL;
+	char_md.p_sccd_md					= NULL;
 
 //	ble_uuid.type = p_uds->uuid_type;
 //	ble_uuid.uuid = 0xE184;
@@ -1584,34 +1584,34 @@ uint32_t ble_uds_init(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
 	ble_uuid_t 	ble_uuid;
 
 	//Initalize service structure.
-	p_uds->conn_handle														= BLE_CONN_HANDLE_INVALID;
-	p_uds->first_name_write_handler											= p_uds_init->first_name_write_handler;
-	p_uds->last_name_write_handler											= p_uds_init->last_name_write_handler;
-	p_uds->email_address_write_handler										= p_uds_init->email_address_write_handler;
-	p_uds->age_write_handler												= p_uds_init->age_write_handler;
-	p_uds->date_of_birth_write_handler										= p_uds_init->date_of_birth_write_handler;
-	p_uds->gender_write_handler												= p_uds_init->gender_write_handler;
-	p_uds->weight_write_handler												= p_uds_init->weight_write_handler;
-	p_uds->height_write_handler												= p_uds_init->height_write_handler;
-	p_uds->VO2_max_write_handler											= p_uds_init->VO2_max_write_handler;
-	p_uds->heart_rate_max_write_handler										= p_uds_init->heart_rate_max_write_handler;
-	p_uds->resting_heart_write_handler										= p_uds_init->resting_heart_write_handler;   				//@Including USER ID
-	p_uds->maximum_recommended_heart_rate_write_handler						= p_uds_init->maximum_recommended_heart_rate_write_handler;		//@Including AEROBIC THRESHOLD
-	p_uds->aerobic_threshold_write_handler									= p_uds_init->aerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
-	p_uds->anaerobic_threshold_write_handler								= p_uds_init->anaerobic_threshold_write_handler;  					//@Including NAME
-	p_uds->sport_type_for_aerobic_and_anaerobic_thresholds_write_handler	= p_uds_init->sport_type_for_aerobic_and_anaerobic_thresholds_write_handler;			//@Including FITNESS INDEX
-	p_uds->date_of_threshold_assessment_write_handler						= p_uds_init->date_of_threshold_assessment_write_handler;
-	p_uds->waist_circumference_write_handler								= p_uds_init->waist_circumference_write_handler;
-	p_uds->fat_burn_heart_rate_lower_limit_write_handler					= p_uds_init->fat_burn_heart_rate_lower_limit_write_handler;
-	p_uds->fat_burn_heart_rate_upper_limit_write_handler					= p_uds_init->fat_burn_heart_rate_upper_limit_write_handler;
-	p_uds->aerobic_heart_rate_lower_limit_write_handler						= p_uds_init->aerobic_heart_rate_lower_limit_write_handler;
-	p_uds->aerobic_heart_rate_upper_limit_write_handler						= p_uds_init->aerobic_heart_rate_upper_limit_write_handler;
-	p_uds->anaerobic_heart_rate_lower_limit_write_handler					= p_uds_init->anaerobic_heart_rate_lower_limit_write_handler;
-	p_uds->five_zone_heart_rate_limits_write_handler						= p_uds_init->five_zone_heart_rate_limits_write_handler;
-	p_uds->three_zone_heart_rate_limits_write_handler						= p_uds_init->three_zone_heart_rate_limits_write_handler;
-	p_uds->two_zone_heart_rate_limits_write_handler							= p_uds_init->two_zone_heart_rate_limits_write_handler;
-	p_uds->language_write_handler											= p_uds_init->language_write_handler;
-	p_uds->fitnes_index_write_handler										= p_uds_init->fitnes_index_write_handler;
+	p_uds->conn_handle																											= BLE_CONN_HANDLE_INVALID;
+	p_uds->first_name_write_handler																					= p_uds_init->first_name_write_handler;
+	p_uds->last_name_write_handler																					= p_uds_init->last_name_write_handler;
+	p_uds->email_address_write_handler																			= p_uds_init->email_address_write_handler;
+	p_uds->age_write_handler																								= p_uds_init->age_write_handler;
+	p_uds->date_of_birth_write_handler																			= p_uds_init->date_of_birth_write_handler;
+	p_uds->gender_write_handler																							= p_uds_init->gender_write_handler;
+	p_uds->weight_write_handler																							= p_uds_init->weight_write_handler;
+	p_uds->height_write_handler																							= p_uds_init->height_write_handler;
+	p_uds->VO2_max_write_handler																						= p_uds_init->VO2_max_write_handler;
+	p_uds->heart_rate_max_write_handler																			= p_uds_init->heart_rate_max_write_handler;
+	p_uds->resting_heart_write_handler																			= p_uds_init->resting_heart_write_handler;   				//@Including USER ID
+	p_uds->maximum_recommended_heart_rate_write_handler											= p_uds_init->maximum_recommended_heart_rate_write_handler;		//@Including AEROBIC THRESHOLD
+	p_uds->aerobic_threshold_write_handler																	= p_uds_init->aerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
+	p_uds->anaerobic_threshold_write_handler																= p_uds_init->anaerobic_threshold_write_handler;  					//@Including NAME
+	p_uds->sport_type_for_aerobic_and_anaerobic_thresholds_write_handler		= p_uds_init->sport_type_for_aerobic_and_anaerobic_thresholds_write_handler;			//@Including FITNESS INDEX
+	p_uds->date_of_threshold_assessment_write_handler												= p_uds_init->date_of_threshold_assessment_write_handler;
+	p_uds->waist_circumference_write_handler																= p_uds_init->waist_circumference_write_handler;
+	p_uds->fat_burn_heart_rate_lower_limit_write_handler										= p_uds_init->fat_burn_heart_rate_lower_limit_write_handler;
+	p_uds->fat_burn_heart_rate_upper_limit_write_handler										= p_uds_init->fat_burn_heart_rate_upper_limit_write_handler;
+	p_uds->aerobic_heart_rate_lower_limit_write_handler											= p_uds_init->aerobic_heart_rate_lower_limit_write_handler;
+	p_uds->aerobic_heart_rate_upper_limit_write_handler											= p_uds_init->aerobic_heart_rate_upper_limit_write_handler;
+	p_uds->anaerobic_heart_rate_lower_limit_write_handler										= p_uds_init->anaerobic_heart_rate_lower_limit_write_handler;
+	p_uds->five_zone_heart_rate_limits_write_handler												= p_uds_init->five_zone_heart_rate_limits_write_handler;
+	p_uds->three_zone_heart_rate_limits_write_handler												= p_uds_init->three_zone_heart_rate_limits_write_handler;
+	p_uds->two_zone_heart_rate_limits_write_handler													= p_uds_init->two_zone_heart_rate_limits_write_handler;
+	p_uds->language_write_handler																						= p_uds_init->language_write_handler;
+	p_uds->fitnes_index_write_handler																				= p_uds_init->fitnes_index_write_handler;
 
 
 

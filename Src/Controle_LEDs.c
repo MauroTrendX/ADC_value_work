@@ -29,14 +29,13 @@
 #define CALCULO_INTENSIDADE_LED_VERMELHO(BALANCO)      /*    ( PERIODO_PWM - */(CALCULO_BALANCO_LED(BALANCO)*100/100) //)
 
 /*definição da intensidade do LED verde*/
-#define CALCULO_INTENSIDADE_LED_VERDE(BALANCO)         /* ( PERIODO_PWM - */( CALCULO_BALANCO_LED(BALANCO)*8/100 ) //)
+#define CALCULO_INTENSIDADE_LED_VERDE(BALANCO)         /* ( PERIODO_PWM - */( CALCULO_BALANCO_LED(BALANCO)*15/100 ) //)
 
 /*definição da intensidade do LED azul*/
 #define CALCULO_INTENSIDADE_LED_AZUL(BALANCO)         /* ( PERIODO_PWM - */( CALCULO_BALANCO_LED(BALANCO)*100/100 ) //)
 
 /******************************************************************************/
 /******************************************************************************/
-
 
 nrf_drv_pwm_t m_pwm0 = NRF_DRV_PWM_INSTANCE(0);
 nrf_drv_pwm_t m_pwm1 = NRF_DRV_PWM_INSTANCE(1);
@@ -71,7 +70,7 @@ const balancoCorRGB cores[fimCores] =
 	{ CALCULO_INTENSIDADE_LED_VERMELHO(0), CALCULO_INTENSIDADE_LED_VERDE(0), CALCULO_INTENSIDADE_LED_AZUL(255) },			//azul
 	{ CALCULO_INTENSIDADE_LED_VERMELHO(0), CALCULO_INTENSIDADE_LED_VERDE(255), CALCULO_INTENSIDADE_LED_AZUL(0) },			//verde
 	{ CALCULO_INTENSIDADE_LED_VERMELHO(255), CALCULO_INTENSIDADE_LED_VERDE(255), CALCULO_INTENSIDADE_LED_AZUL(0) },   //amarelo	
-	{ CALCULO_INTENSIDADE_LED_VERMELHO(255), CALCULO_INTENSIDADE_LED_VERDE(100), CALCULO_INTENSIDADE_LED_AZUL(0) },	//laranja
+	{ CALCULO_INTENSIDADE_LED_VERMELHO(255), CALCULO_INTENSIDADE_LED_VERDE(55), CALCULO_INTENSIDADE_LED_AZUL(0) },		//laranja
 	{ CALCULO_INTENSIDADE_LED_VERMELHO(255), CALCULO_INTENSIDADE_LED_VERDE(0), CALCULO_INTENSIDADE_LED_AZUL(0) },			//vermelho
 	{ CALCULO_INTENSIDADE_LED_VERMELHO(255), CALCULO_INTENSIDADE_LED_VERDE(0), CALCULO_INTENSIDADE_LED_AZUL(255) }		//rosa
 };
@@ -87,8 +86,6 @@ const balancoCorRGB cores[fimCores] =
 	{ CALCULO_INTENSIDADE_LED_VERMELHO(255), CALCULO_INTENSIDADE_LED_VERDE(100), CALCULO_INTENSIDADE_LED_AZUL(0) },	//laranja
 	{ CALCULO_INTENSIDADE_LED_VERMELHO(255), CALCULO_INTENSIDADE_LED_VERDE(0), CALCULO_INTENSIDADE_LED_AZUL(255) }		//rosa
 };*/
-
-
 
 /*Variavel utilizada pelo programa para manuseio do timer 2, (obs: extern, pois a variavel foi declarada no arquivo main.c*/
 //extern TIM_HandleTypeDef htim2;
@@ -176,16 +173,16 @@ void set_led(selecionarLED led){
 				nrf_gpio_pin_set(LD2_A);
 				nrf_gpio_pin_set(LD3_A);
 				nrf_gpio_pin_set(LD4_A);
-
 		}
+		
 		if(led==LED_BLINK){
 			  nrf_gpio_pin_clear(LD1_A);
 				nrf_gpio_pin_clear(LD2_A);
 				nrf_gpio_pin_clear(LD3_A);
 				nrf_gpio_pin_set(LD4_A);
-
 		}
-	ledAtual=led;
+
+		ledAtual=led;
 	}
 }
 
@@ -202,12 +199,8 @@ void pwm1_handler(nrf_drv_pwm_evt_type_t event_type)
 				pwm1_seq_values.channel_2 = get_pulso(azul); 
 				pwm1_seq_values.channel_3 = 0; 
 
-    
     }
 }
-
-
-
 
 void pwm_init(void){
 
@@ -221,12 +214,10 @@ void pwm_init(void){
 			
 		};
 			
-			
     config.output_pins[0] = CLK_32K;
 		config.output_pins[1] = NRF_DRV_PWM_PIN_NOT_USED;
 		config.output_pins[2] = NRF_DRV_PWM_PIN_NOT_USED;
 		config.output_pins[3] = NRF_DRV_PWM_PIN_NOT_USED;
-
         
     config.base_clock   = NRF_PWM_CLK_2MHz;
     config.top_value    = 61;
@@ -234,7 +225,6 @@ void pwm_init(void){
      
 	  APP_ERROR_CHECK(nrf_drv_pwm_init(&m_pwm0, &config, NULL));
     m_used |= USED_PWM(0);
-
 
     // This array cannot be allocated on stack (hence "static") and it must
     // be in RAM (hence no "const", though its content is not changed).
@@ -248,12 +238,10 @@ void pwm_init(void){
         .end_delay           = 0
     };
 		
-		
 		config.output_pins[0] = K_RED;
 		config.output_pins[1] = K_GREEN;
 		config.output_pins[2] = K_BLUE;
 		config.output_pins[3] = NRF_DRV_PWM_PIN_NOT_USED;
-
         
     config.base_clock   = NRF_PWM_CLK_4MHz;
     config.top_value    = 32768;
@@ -268,8 +256,6 @@ void pwm_init(void){
 		pwm1_seq_values.channel_1 = 0; 
 		pwm1_seq_values.channel_2 = 0; 
 		pwm1_seq_values.channel_3 = 0; 
-
-
 		
     (void)nrf_drv_pwm_simple_playback(&m_pwm0, &seq0, 1, NRF_DRV_PWM_FLAG_LOOP);
 		(void)nrf_drv_pwm_simple_playback(&m_pwm1, &seq1, 1, NRF_DRV_PWM_FLAG_LOOP);
@@ -277,12 +263,10 @@ void pwm_init(void){
 
 void pwm_stop(void){
 	
-nrf_drv_pwm_uninit(&m_pwm0);
-nrf_drv_pwm_uninit(&m_pwm1);
+		nrf_drv_pwm_uninit(&m_pwm0);
+		nrf_drv_pwm_uninit(&m_pwm1);
 
 }
-
-
 
 uint8_t get_current_color(void){
 		return (uint8_t)corAtual;

@@ -104,8 +104,8 @@ static void on_write(ble_rus_t *p_rus, ble_evt_t const * p_ble_evt){
 //		p_rus->name_write_handler(p_rus, p_evt_write->data[0]);          //@Including NAME
 //	}
 //	else
-	if((p_evt_write->handle == p_rus->fitness_index_char_handles.value_handle) && (p_rus->fitness_index_write_handler != NULL)){
-		p_rus->fitness_index_write_handler(p_rus, p_evt_write->data[0]);          //@Including FITNESS INDEX
+	if((p_evt_write->handle == p_rus->hr_zone_preference_calc_char_handles.value_handle) && (p_rus->hr_zone_preference_calc_write_handler != NULL)){
+		p_rus->hr_zone_preference_calc_write_handler(p_rus, p_evt_write->data[0]);          //@Including FITNESS INDEX
 					}
 
 }
@@ -768,7 +768,7 @@ static uint32_t user_id_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_i
 }*/
 
 //@Including FITNESS INDEX
-static uint32_t fitness_index_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
+static uint32_t hr_zone_preference_calc_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 
 	ble_gatts_char_md_t char_md;
 	ble_gatts_attr_t	attr_char_value;
@@ -811,7 +811,7 @@ static uint32_t fitness_index_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p
 	return sd_ble_gatts_characteristic_add(p_rus->service_handle,
 										   &char_md,
 										   &attr_char_value,
-										   &p_rus->fitness_index_char_handles);
+										   &p_rus->hr_zone_preference_calc_char_handles);
 }
 
 
@@ -836,7 +836,7 @@ uint32_t ble_rus_init(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 //	p_rus->aerobic_threshold_write_handler	= p_rus_init->aerobic_threshold_write_handler;		//@Including AEROBIC THRESHOLD
 //	p_rus->anaerobic_threshold_write_handler= p_rus_init->anaerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
 //	p_rus->name_write_handler				= p_rus_init->name_write_handler;  					//@Including NAME
-	p_rus->fitness_index_write_handler		= p_rus_init->fitness_index_write_handler;			//@Including FITNESS INDEX
+	p_rus->hr_zone_preference_calc_write_handler		= p_rus_init->hr_zone_preference_calc_write_handler;			//@Including FITNESS INDEX
 
 	
 	//Add service
@@ -914,9 +914,9 @@ uint32_t ble_rus_init(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 //		if(err_code != NRF_SUCCESS)
 //			return err_code;			//@Including NAME
 
-//	err_code = fitness_index_char_add(p_rus, p_rus_init);
-//		if(err_code != NRF_SUCCESS)
-//			return err_code;			//@Including FITNESS INDEX
+	err_code = hr_zone_preference_calc_char_add(p_rus, p_rus_init);
+		if(err_code != NRF_SUCCESS)
+			return err_code;			//@Including FITNESS INDEX
 
 
 		return NRF_SUCCESS;
