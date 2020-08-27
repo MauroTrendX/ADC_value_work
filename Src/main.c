@@ -3610,3 +3610,4 @@ bool MAX30110_ConfiguraSensorPPG ( void ) {
 		return true;
 		
 }
+
