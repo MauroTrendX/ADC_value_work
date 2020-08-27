@@ -215,9 +215,7 @@ BLE_UDS_DEF(m_uds);                                                 /**< User da
 BLE_RUS_DEF(m_rus);                                                 /**< RAE user service instance. */
 BLE_RTCS_DEF(m_rtcs);                                               /**< RAE treshhold calibration service instance. */
 
-//static ble_rus_t						 m_rus;											/**< Structure used to identify the User Profile service. */
-//static ble_rtcs_t						 m_rtcs;
-//static ble_uds_t						 m_uds;
+
 
 static uint16_t m_conn_handle         = BLE_CONN_HANDLE_INVALID;    /**< Handle of the current connection. */
 //static bool     m_rr_interval_enabled = false;                       /**< Flag for enabling and disabling the registration of new RR interval measurements (the purpose of disabling this is just to test sending HRM without RR interval data. */
@@ -3018,7 +3016,7 @@ void amazenar_PPG(uint8_t * numeroAmostra, dadosBbPPG * bufferPPG){
 		MAX30110_dados24BitsFIFO_t dadosFila;
 		MAX30110_leFila( &dadosFila, 2 );
 
-//		NRF_LOG_INFO("2C:%ld,%ld",((dadosFila.dados.valorPPG)&0x7FFFF)>>3,dadosFila.dados.valorPPG);//,dadosFila.dados.valorAMB);
+		NRF_LOG_INFO("2C:%ld,%ld",((dadosFila.dados.valorPPG)&0x7FFFF)>>3,dadosFila.dados.valorPPG);//,dadosFila.dados.valorAMB);
 									
 		if(indiceAmostra==0){
 				//verificar mascara de bits bit [0] msb [2] lsb da fifo
