@@ -944,7 +944,7 @@ MAX30110_retorno_t MAX30110_testeProximidade ( void ) {
 
 	memset(vetor, 0, sizeof(vetor));
 
-	MAX30110_SYSTEM_CONTROL_REGISTER(vetor)->data.frequencyClockPinControl = 1;
+	MAX30110_SYSTEM_CONTROL_REGISTER(vetor)->data.frequencyClockPinControl = 0;
 	MAX30110_SYSTEM_CONTROL_REGISTER(vetor)->data.lowPowerMode = 1;
 	MAX30110_SYSTEM_CONTROL_REGISTER(vetor)->data.fifoEnabled = 1;
 	MAX30110_SYSTEM_CONTROL_REGISTER(vetor)->data.shutDown = 0;

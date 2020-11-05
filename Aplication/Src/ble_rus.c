@@ -39,74 +39,17 @@ static void on_write(ble_rus_t *p_rus, ble_evt_t const * p_ble_evt){
 	ble_gatts_evt_write_t const* p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
 
 	//check here after compilation if the pointer will have the right structure contents.
-	if((p_evt_write->handle == p_rus->year_of_birth_char_handles.value_handle) && (p_rus->year_of_birth_write_handler != NULL)){
-		p_rus->year_of_birth_write_handler(p_rus, (p_evt_write->data[0] << 8) | (p_evt_write->data[1]) );
-	}
-
-	else
-	if((p_evt_write->handle == p_rus->month_of_birth_char_handles.value_handle) && (p_rus->month_of_birth_write_handler != NULL)){
-		p_rus->month_of_birth_write_handler(p_rus, p_evt_write->data[0]);
-	}
-
-	else
-	if((p_evt_write->handle == p_rus->day_of_birth_char_handles.value_handle) && (p_rus->day_of_birth_write_handler != NULL)){
-		p_rus->day_of_birth_write_handler(p_rus, p_evt_write->data[0]);
-	}
-
-	else
-//	if((p_evt_write->handle == p_rus->gender_char_handles.value_handle) && (p_rus->gender_write_handler != NULL)){
-//		p_rus->gender_write_handler(p_rus, p_evt_write->data[0]);
-//	}
-
-//	else
-	if((p_evt_write->handle == p_rus->handedness_char_handles.value_handle) && (p_rus->handedness_write_handler != NULL)){
-		p_rus->handedness_write_handler(p_rus, p_evt_write->data[0]);
-	}
-
-	else
-//	if((p_evt_write->handle == p_rus->height_char_handles.value_handle) && (p_rus->height_write_handler != NULL)){
-///		p_rus->height_write_handler(p_rus, p_evt_write->data[0]);
-//	}
-
-//	else
-//	if((p_evt_write->handle == p_rus->weight_char_handles.value_handle) && (p_rus->weight_write_handler != NULL)){
-//		p_rus->weight_write_handler(p_rus, p_evt_write->data[0]);
-//	}
-
-//	else
-//	if ((p_evt_write->handle == p_rus->age_char_handles.value_handle) && (p_rus->age_write_handler != NULL)){
-//		p_rus->age_write_handler(p_rus, p_evt_write->data[0]);
-//	}
-
-//	else
-	if((p_evt_write->handle == p_rus->body_position_char_handles.value_handle) && (p_rus->body_position_write_handler != NULL)){
-		p_rus->body_position_write_handler(p_rus, p_evt_write->data[0]);
-	}
-
-	else
-	if((p_evt_write->handle == p_rus->resting_heart_rate_char_handles.value_handle) && (p_rus->resting_heart_rate_write_handler != NULL)){
-		p_rus->resting_heart_rate_write_handler(p_rus, p_evt_write->data[0]);
-	}
-	else
 	if((p_evt_write->handle == p_rus->user_id_char_handles.value_handle) && (p_rus->user_id_write_handler != NULL)){
 		p_rus->user_id_write_handler(p_rus, p_evt_write->data[0]);          //@Including USER ID
 	}
 	else
-//	if((p_evt_write->handle == p_rus->aerobic_threshold_char_handles.value_handle) && (p_rus->aerobic_threshold_write_handler != NULL)){
-//		p_rus->aerobic_threshold_write_handler(p_rus, p_evt_write->data[0]);          //@Including AEROBIC THRESHOLD
-//	}
-//	else
-//	if((p_evt_write->handle == p_rus->anaerobic_threshold_char_handles.value_handle) && (p_rus->anaerobic_threshold_write_handler != NULL)){
-//		p_rus->anaerobic_threshold_write_handler(p_rus, p_evt_write->data[0]);          //@Including ANAEROBIC THRESHOLD
-//	}
-//	else
-//	if((p_evt_write->handle == p_rus->name_char_handles.value_handle) && (p_rus->name_write_handler != NULL)){
-//		p_rus->name_write_handler(p_rus, p_evt_write->data[0]);          //@Including NAME
-//	}
-//	else
 	if((p_evt_write->handle == p_rus->hr_zone_preference_calc_char_handles.value_handle) && (p_rus->hr_zone_preference_calc_write_handler != NULL)){
 		p_rus->hr_zone_preference_calc_write_handler(p_rus, p_evt_write->data[0]);          //@Including FITNESS INDEX
-					}
+	}
+	else
+	if((p_evt_write->handle == p_rus->serial_number_char_handles.value_handle) && (p_rus->serial_number_write_handler != NULL)){
+		p_rus->serial_number_write_handler(p_rus, (uint32_t) p_evt_write->data);          //@Including SERIAL NUMBER
+	}
 
 }
 
@@ -129,7 +72,7 @@ void ble_rus_on_ble_evt(ble_evt_t const * p_ble_evt, void* p_context){
 	}
 }
 
-static uint32_t year_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
+/*static uint32_t year_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	
 	ble_gatts_char_md_t char_md;
 	ble_gatts_attr_t	attr_char_value;
@@ -171,9 +114,9 @@ static uint32_t year_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p
 										   &char_md,
 										   &attr_char_value,
 										   &p_rus->year_of_birth_char_handles);
-}
+}*/
 
-static uint32_t month_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
+/*static uint32_t month_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	
 	ble_gatts_char_md_t char_md;
 	ble_gatts_attr_t	attr_char_value;
@@ -215,9 +158,9 @@ static uint32_t month_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *
 										   &char_md,
 										   &attr_char_value,
 										   &p_rus->month_of_birth_char_handles);
-}
+}*/
 
-static uint32_t day_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
+/*static uint32_t day_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	
 	ble_gatts_char_md_t char_md;
 	ble_gatts_attr_t	attr_char_value;
@@ -260,7 +203,7 @@ static uint32_t day_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_
 										   &attr_char_value,
 										   &p_rus->day_of_birth_char_handles);
 	
-}
+}*/
 
 /*static uint32_t gender_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	
@@ -310,7 +253,7 @@ static uint32_t day_of_birth_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_
 	
 }*/
 
-static uint32_t handedness_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
+/*static uint32_t handedness_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	
 	ble_gatts_char_md_t char_md;
 	ble_gatts_attr_t	attr_char_value;
@@ -352,7 +295,7 @@ static uint32_t handedness_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_ru
 										   &char_md,
 										   &attr_char_value,
 										   &p_rus->handedness_char_handles);
-}
+}*/
 
 /*static uint32_t weight_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	
@@ -491,7 +434,7 @@ static uint32_t handedness_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_ru
 										   &p_rus->age_char_handles);
 }*/
 
-static uint32_t body_position_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
+/*static uint32_t body_position_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	
 	ble_gatts_char_md_t char_md;
 	ble_gatts_attr_t	attr_char_value;
@@ -533,7 +476,7 @@ static uint32_t body_position_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p
 										   &char_md,
 										   &attr_char_value,
 										   &p_rus->body_position_char_handles);
-}
+}*/
 
 /*static uint32_t resting_heart_rate_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	
@@ -767,7 +710,7 @@ static uint32_t user_id_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_i
 										   &p_rus->name_char_handles);
 }*/
 
-//@Including FITNESS INDEX
+//@Including 
 static uint32_t hr_zone_preference_calc_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 
 	ble_gatts_char_md_t char_md;
@@ -814,6 +757,52 @@ static uint32_t hr_zone_preference_calc_char_add(ble_rus_t *p_rus, const ble_rus
 										   &p_rus->hr_zone_preference_calc_char_handles);
 }
 
+//@Including SERIAL NUMBER
+static uint32_t serial_number_char_add(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
+
+	ble_gatts_char_md_t char_md;
+	ble_gatts_attr_t	attr_char_value;
+	ble_uuid_t			ble_uuid;
+	ble_gatts_attr_md_t	attr_md;
+
+	memset(&char_md, 0, sizeof(char_md));
+
+	char_md.char_props.read		= 1;
+	char_md.char_props.write 	= 1;
+	char_md.p_char_user_desc	= NULL;
+	char_md.p_char_pf			= NULL;
+	char_md.p_user_desc_md		= NULL;
+	char_md.p_cccd_md			= NULL;
+	char_md.p_sccd_md			= NULL;
+
+	ble_uuid.type = p_rus->uuid_type;
+	ble_uuid.uuid = RUS_UUID_SERIAL_NUMBER;
+
+//	BLE_UUID_BLE_ASSIGN(ble_uuid, BLE_UUID_USER_INDEX_CHAR);
+
+	memset(&attr_md, 0, sizeof(attr_md));
+
+	BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
+	BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+	attr_md.vloc	= BLE_GATTS_VLOC_STACK;
+	attr_md.rd_auth	= 1;
+	attr_md.wr_auth	= 0;
+	attr_md.vlen	= 1;
+
+	memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+	attr_char_value.p_uuid		= &ble_uuid;
+	attr_char_value.p_attr_md	= &attr_md;
+	attr_char_value.init_len	= sizeof(uint8_t);
+	attr_char_value.init_offs	= 0;
+	attr_char_value.max_len		= 12;
+	attr_char_value.p_value		= NULL;
+
+	return sd_ble_gatts_characteristic_add(p_rus->service_handle,
+										   &char_md,
+										   &attr_char_value,
+										   &p_rus->serial_number_char_handles);
+}
 
 uint32_t ble_rus_init(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	
@@ -821,23 +810,23 @@ uint32_t ble_rus_init(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 	ble_uuid_t 	ble_uuid;
 	
 	//Initalize service structure.
-	p_rus->conn_handle						= BLE_CONN_HANDLE_INVALID;
-	p_rus->year_of_birth_write_handler		= p_rus_init->year_of_birth_write_handler;
-	p_rus->month_of_birth_write_handler		= p_rus_init->month_of_birth_write_handler;
-	p_rus->day_of_birth_write_handler		= p_rus_init->day_of_birth_write_handler;
+	p_rus->conn_handle															= BLE_CONN_HANDLE_INVALID;
+//	p_rus->year_of_birth_write_handler							= p_rus_init->year_of_birth_write_handler;
+//	p_rus->month_of_birth_write_handler							= p_rus_init->month_of_birth_write_handler;
+//	p_rus->day_of_birth_write_handler								= p_rus_init->day_of_birth_write_handler;
 //	p_rus->gender_write_handler				= p_rus_init->gender_write_handler;
-	p_rus->handedness_write_handler			= p_rus_init->handedness_write_handler;
+//	p_rus->handedness_write_handler									= p_rus_init->handedness_write_handler;
 //	p_rus->height_write_handler				= p_rus_init->height_write_handler;
 //	p_rus->weight_write_handler				= p_rus_init->weight_write_handler;
 //	p_rus->age_write_handler				= p_rus_init->age_write_handler;
-	p_rus->body_position_write_handler		= p_rus_init->body_position_write_handler;
+//	p_rus->body_position_write_handler							= p_rus_init->body_position_write_handler;
 //	p_rus->resting_heart_rate_write_handler	= p_rus_init->resting_heart_rate_write_handler;
-	p_rus->user_id_write_handler			= p_rus_init->user_id_write_handler;   				//@Including USER ID
+	p_rus->user_id_write_handler										= p_rus_init->user_id_write_handler;   				//@Including USER ID
 //	p_rus->aerobic_threshold_write_handler	= p_rus_init->aerobic_threshold_write_handler;		//@Including AEROBIC THRESHOLD
 //	p_rus->anaerobic_threshold_write_handler= p_rus_init->anaerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
 //	p_rus->name_write_handler				= p_rus_init->name_write_handler;  					//@Including NAME
 	p_rus->hr_zone_preference_calc_write_handler		= p_rus_init->hr_zone_preference_calc_write_handler;			//@Including FITNESS INDEX
-
+	p_rus->serial_number_write_handler 							= p_rus_init->serial_number_write_handler;
 	
 	//Add service
 	ble_uuid128_t base_uuid = {RUS_UUID_BASE};
@@ -918,20 +907,10 @@ uint32_t ble_rus_init(ble_rus_t *p_rus, const ble_rus_init_t *p_rus_init){
 		if(err_code != NRF_SUCCESS)
 			return err_code;			//@Including FITNESS INDEX
 
+	err_code = serial_number_char_add(p_rus, p_rus_init);
+		if(err_code != NRF_SUCCESS)
+			return err_code;			//@Including FITNESS INDEX
 
 		return NRF_SUCCESS;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 

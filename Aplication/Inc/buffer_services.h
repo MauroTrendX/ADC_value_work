@@ -3,46 +3,47 @@
 //#include "zonas_cardiacas.h"
 
 typedef enum{
-	LIST_ALL				= -1,	//for listing enabled metrics
-	ALL						= 0,	//for getting all metrics updated in the last 'data available' event.
-	AGE						= 0x03,
-	PROFILE					= 0x04,
-	HEIGHT					= 0x05,
-	WEIGHT					= 0x06,
-	RHR_PREFERENCE			= 0x07,
-	SLEEP_PREFERENCE		= 0x09,
-	TIME					= 0x1E,
-	BODY_POSITION			= 0x1F,
-	HEART_RATE				= 0x20,
-	RESTING_HEART_RATE		= 0x21,
-	SKIN_PROXIMITY			= 0x22,
-	ENERGY_EXPENDITURE		= 0x23,
-	SPEED					= 0x24,
-	MOTION_CADENCE			= 0x25,
-	ACTIVITY_TYPE			= 0x26,
-	HEART_BEATS				= 0x27,
-	VO2MAX					= 0x28,
-	CARDIO_FITNESS_INDEX	= 0x29,
-	RESPIRATION_RATE		= 0x2A,
-	ACCELERATION			= 0x2B,
-	PPG						= 0x2C,
-	LOW_POWER_HEART_RATE	= 0x2D,
-	ACTIVITY_COUNT			= 0x2E,
-	WEST_PRIVATE_DATA		= 0x2F,
-	SLEEP_SESSION			= 0x30,
-	MOTION_EVENT			= 0x31,
-	USER_ID      			= 0x32,          //@Including USER ID
-	AEROBIC_THRESHOLD  		= 0x33,          //@Including AEROBIC THRESHOLD
-	ANAEROBIC_THRESHOLD		= 0x34,          //@Including ANAEROBIC THRESHOLD
-	NAME	      			= 0x35,          //@Including NAME
-	FITNESS_INDEX      		= 0x36,           //@Including FITNESS INDEX
-	FITST_NAME				= 0x37,
-	LAST_NAME				= 0x38,
-	EMAIL_ADDRESS			= 0x39,
-	DATE_OF_BIRTH			= 0x3A,
-	GENDER					= 0x3B,
-	VO2_MAX					= 0x3C,
-	HEART_RATE_MAX			= 0x3D
+	LIST_ALL									= -1,	//for listing enabled metrics
+	ALL												= 0,	//for getting all metrics updated in the last 'data available' event.
+	AGE												= 0x03,
+	PROFILE										= 0x04,
+	HEIGHT										= 0x05,
+	WEIGHT										= 0x06,
+	RHR_PREFERENCE						= 0x07,
+	SLEEP_PREFERENCE					= 0x09,
+	TIME											= 0x1E,
+	BODY_POSITION							= 0x1F,
+	HEART_RATE								= 0x20,
+	RESTING_HEART_RATE				= 0x21,
+	SKIN_PROXIMITY						= 0x22,
+	ENERGY_EXPENDITURE				= 0x23,
+	SPEED											= 0x24,
+	MOTION_CADENCE						= 0x25,
+	ACTIVITY_TYPE							= 0x26,
+	HEART_BEATS								= 0x27,
+	VO2MAX										= 0x28,
+	CARDIO_FITNESS_INDEX			= 0x29,
+	RESPIRATION_RATE					= 0x2A,
+	ACCELERATION							= 0x2B,
+	PPG												= 0x2C,
+	LOW_POWER_HEART_RATE			= 0x2D,
+	ACTIVITY_COUNT						= 0x2E,
+	WEST_PRIVATE_DATA					= 0x2F,
+	SLEEP_SESSION							= 0x30,
+	MOTION_EVENT							= 0x31,
+	USER_ID      							= 0x32,          //@Including USER ID
+	AEROBIC_THRESHOLD  				= 0x33,          //@Including AEROBIC THRESHOLD
+	ANAEROBIC_THRESHOLD				= 0x34,          //@Including ANAEROBIC THRESHOLD
+	NAME	      							= 0x35,          //@Including NAME
+	FITNESS_INDEX      				= 0x36,           //@Including FITNESS INDEX
+	FITST_NAME								= 0x37,
+	LAST_NAME									= 0x38,
+	EMAIL_ADDRESS							= 0x39,
+	DATE_OF_BIRTH							= 0x3A,
+	GENDER										= 0x3B,
+	VO2_MAX										= 0x3C,
+	HEART_RATE_MAX						= 0x3D,
+	SERIAL_NUMBER 						= 0x3D
 } module_metric_t;
 
 typedef uint8_t hr_module_state_t;
@@ -607,6 +608,16 @@ typedef struct{
 } hr_module_fitnes_index_metric_t ;			//@Including FITNESS INDEX
 
 
+typedef struct{
+		char string_data [12];
+}string_serial_number; 
+
+typedef struct{
+	uint8_t measurement_index;
+	uint8_t quality_index;
+	uint8_t serial_number_value[12];
+}hr_module_serial_number_metric_t;
+
 /**
  * structure to control which metrics will be enabled or disabled and
  * the type of value (default or user-defined) values to be used.
@@ -646,7 +657,7 @@ typedef struct{
 	bool two_zone_heart_rate_limit_metric_set;
 	bool language_metric_set;
 	bool fitnes_index_metric_set;
-
+	bool serial_number_metric_set;
 } hr_module_input_metrics_settings_t;
 
 typedef struct{
@@ -666,67 +677,59 @@ typedef enum{
  * structure to propagate information to main application layer.
  */
 typedef struct{
-	hr_module_state_t						state;
-//	hr_module_age_metric_t					age;
-	hr_module_profile_metric_t				profile;
-//	hr_module_height_metric_t				height;
-//	hr_module_weight_metric_t				weight;
-	hr_module_rhr_preference_metric_t		rhr_preference;
-	hr_module_sleep_preference_metric_t		sleep_preference;
-	hr_module_time_metric_t					time;
-	hr_module_body_position_metric_t		body_position;
-	hr_module_heart_rate_metric_t			heart_rate;
-	hr_module_rhr_metric_t					resting_hr;
-	hr_module_skin_proximity_metric_t		skin_proximity;
-	hr_module_energy_expediture_metric_t	energy_expediture;
-	hr_module_speed_metric_t				speed;
-	hr_module_motion_cadence_metric_t		motion_cadence;
-	hr_module_activity_type_metric_t		activity_type;
-	hr_module_heart_beats_metric_t			heart_beats;
-	hr_module_vo2max_metric_t				vo2_max;
-	hr_module_cardio_fitness_index_metric_t	cardio_fitness_index;
-	hr_module_rr_metric_t					rr;
-	hr_module_acceleration_metric_t			acceleration;
-	hr_module_ppg_metric_t					ppg;
-	hr_module_low_power_hr_metric_t			low_power_hr;
-	hr_module_activity_count_metric_t		activity_count;
-	hr_module_motion_event_metric_t			motion_event;
-	hr_module_user_id_metric_t				user_id;					//@Including USER ID
-//	hr_module_aerobic_threshold_metric_t	aerobic_threshold;			//@Including AEROBIC THRESHOLD
-//	hr_module_anaerobic_threshold_metric_t	anaerobic_threshold;		//@Including ANAEROBIC THRESHOLD
-//	hr_module_name_metric_t					name;						//@Including NAME
-	hr_module_hr_zone_preference_calc_metric_t		hr_zone_preference_calc;				//@Including FITNESS INDEX
-	hr_module_first_name_metric_t						first_name;
-	hr_module_last_name_metric_t						last_name;
-	hr_module_email_address_metric_t					email_address;
-	hr_module_age_metric_t								age;
-	hr_module_date_of_birth_metric_t					date_of_birth;
-	hr_module_gender_metric_t							gender;
-	hr_module_weight_metric_t							weight;
-	hr_module_height_metric_t							height;
-	hr_module_VO2_max_metric_t							VO2_max;
-	hr_module_heart_rate_max_metric_t					heart_rate_max;
-	hr_module_resting_heart_rate_metric_t				resting_heart_rate;
-	hr_module_maximum_recommended_heart_rate_metric_t	maximum_recommended_heart_rate;
-	hr_module_aerobic_threshold_metric_t				aerobic_threshold;
-	hr_module_anaerobic_threshold_metric_t				anaerobic_threshold;
-	hr_module_sport_type_for_aerobic_and_anaerobic_thresholds_metric_t	sport_type_for_aerobic_and_anaerobic_thresholds;
-	hr_module_date_of_threshold_assessment_metric_t		date_of_threshold_assessment;
-	hr_module_waist_circumference_metric_t				waist_circumference;
-	hr_module_fat_burn_heart_rate_lower_limit_metric_t	fat_burn_heart_rate_lower_limit;
-	hr_module_fat_burn_heart_rate_upper_limit_metric_t	fat_burn_heart_rate_upper_limit;
-	hr_module_aerobic_heart_rate_lower_limit_metric_t	aerobic_heart_rate_lower_limit;
-	hr_module_aerobic_heart_rate_upper_limit_metric_t	aerobic_heart_rate_upper_limit;
-	hr_module_anaerobic_heart_rate_lower_limit_metric_t	anaerobic_heart_rate_lower_limit;
-	hr_module_five_zone_heart_rate_limits_metric_t		five_zone_heart_rate_limits;
-	hr_module_three_zone_heart_rate_limits_metric_t		three_zone_heart_rate_limits;
-	hr_module_two_zone_heart_rate_limit_metric_t		two_zone_heart_rate_limit;
-	hr_module_language_metric_t							language;
-	hr_module_fitnes_index_metric_t							fitnes_index;
+	hr_module_state_t																												state;
+	hr_module_profile_metric_t																							profile;
+	hr_module_rhr_preference_metric_t																				rhr_preference;
+	hr_module_sleep_preference_metric_t																			sleep_preference;
+	hr_module_time_metric_t																									time;
+	hr_module_body_position_metric_t																				body_position;
+	hr_module_heart_rate_metric_t																						heart_rate;
+	hr_module_rhr_metric_t																									resting_hr;
+	hr_module_skin_proximity_metric_t																				skin_proximity;
+	hr_module_energy_expediture_metric_t																		energy_expediture;
+	hr_module_speed_metric_t																								speed;
+	hr_module_motion_cadence_metric_t																				motion_cadence;
+	hr_module_activity_type_metric_t																				activity_type;
+	hr_module_heart_beats_metric_t																					heart_beats;
+	hr_module_vo2max_metric_t																								vo2_max;
+	hr_module_cardio_fitness_index_metric_t																	cardio_fitness_index;
+	hr_module_rr_metric_t																										rr;
+	hr_module_acceleration_metric_t																					acceleration;
+	hr_module_ppg_metric_t																									ppg;
+	hr_module_low_power_hr_metric_t																					low_power_hr;
+	hr_module_activity_count_metric_t																				activity_count;
+	hr_module_motion_event_metric_t																					motion_event;
+	hr_module_user_id_metric_t																							user_id;					//@Including USER ID
+	hr_module_hr_zone_preference_calc_metric_t															hr_zone_preference_calc;				//@Including FITNESS INDEX
+	hr_module_first_name_metric_t																						first_name;
+	hr_module_last_name_metric_t																						last_name;
+	hr_module_email_address_metric_t																				email_address;
+	hr_module_age_metric_t																									age;
+	hr_module_date_of_birth_metric_t																				date_of_birth;
+	hr_module_gender_metric_t																								gender;
+	hr_module_weight_metric_t																								weight;
+	hr_module_height_metric_t																								height;
+	hr_module_VO2_max_metric_t																							VO2_max;
+	hr_module_heart_rate_max_metric_t																				heart_rate_max;
+	hr_module_resting_heart_rate_metric_t																		resting_heart_rate;
+	hr_module_maximum_recommended_heart_rate_metric_t												maximum_recommended_heart_rate;
+	hr_module_aerobic_threshold_metric_t																		aerobic_threshold;
+	hr_module_anaerobic_threshold_metric_t																	anaerobic_threshold;
+	hr_module_sport_type_for_aerobic_and_anaerobic_thresholds_metric_t			sport_type_for_aerobic_and_anaerobic_thresholds;
+	hr_module_date_of_threshold_assessment_metric_t													date_of_threshold_assessment;
+	hr_module_waist_circumference_metric_t																	waist_circumference;
+	hr_module_fat_burn_heart_rate_lower_limit_metric_t											fat_burn_heart_rate_lower_limit;
+	hr_module_fat_burn_heart_rate_upper_limit_metric_t											fat_burn_heart_rate_upper_limit;
+	hr_module_aerobic_heart_rate_lower_limit_metric_t												aerobic_heart_rate_lower_limit;
+	hr_module_aerobic_heart_rate_upper_limit_metric_t												aerobic_heart_rate_upper_limit;
+	hr_module_anaerobic_heart_rate_lower_limit_metric_t											anaerobic_heart_rate_lower_limit;
+	hr_module_five_zone_heart_rate_limits_metric_t													five_zone_heart_rate_limits;
+	hr_module_three_zone_heart_rate_limits_metric_t													three_zone_heart_rate_limits;
+	hr_module_two_zone_heart_rate_limit_metric_t														two_zone_heart_rate_limit;
+	hr_module_language_metric_t																							language;
+	hr_module_fitnes_index_metric_t																					fitnes_index;
+	hr_module_serial_number_metric_t 																				serial_number;
 } hr_module_metric_info_t;
-
-
-
 
 
 /**
@@ -770,6 +773,7 @@ typedef struct{
 	hr_module_two_zone_heart_rate_limit_metric_t																	two_zone_heart_rate_limit;
 	hr_module_language_metric_t																										language;
 	hr_module_fitnes_index_metric_t																								fitnes_index;
+	hr_module_serial_number_metric_t 																							serial_number;
 } hr_module_nv_buf_t;
 
 typedef struct{
@@ -805,6 +809,7 @@ typedef struct{
 typedef struct{
 	hr_module_rhr_preference_metric_t				rhr_preference;
 	hr_module_user_id_metric_t							user_id;					//@Including USER ID
+	hr_module_serial_number_metric_t 				serial_number;
 } rus_buf_t;
 
 typedef struct{
@@ -846,6 +851,7 @@ typedef struct{
 	bool two_zone_heart_rate_limit;
 	bool language;
 	bool fitnes_index;
+	bool serial_number;
 } hr_module_nv_buf_update_flags_t;
 /****************************************************************************/
 /******************************************************************************/
@@ -972,6 +978,9 @@ void set_language_metric(uint8_t value);
 
 uint8_t get_fitnes_index_metric(void);
 void set_fitnes_index_metric(uint8_t value);
+
+char * get_serial_number_metric(void);
+void set_serial_number_metric(char * value);
 
 hr_module_metric_info_t *get_metrics(void);
 

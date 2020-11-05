@@ -11820,7 +11820,7 @@
 
 // <o> NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE - Attribute Table size in bytes. The size must be a multiple of 4. 
 #ifndef NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE
-#define NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE 1668 //alterei aqui para adicionar mais caracteristicas
+#define NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE 1800 //alterei aqui para adicionar mais caracteristicas, para cada caracteristica adicionar 36
 #endif
 
 // <o> NRF_SDH_BLE_VS_UUID_COUNT - The number of vendor-specific UUIDs. 

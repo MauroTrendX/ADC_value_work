@@ -55,7 +55,7 @@ NRF_SDH_BLE_OBSERVER(_name ## _obs,                                             
 #define RUS_UUID_NAME_CHAR					0x3407		//@Including NAME
 //#define RUS_UUID_FITNESS_INDEX				0xE185		//@Including FITNESS INDEX
 #define RUS_UUID_FITNESS_INDEX				0xE185		//@Including FITNESS INDEX
-
+#define RUS_UUID_SERIAL_NUMBER				0x3407
 
 
 
@@ -66,57 +66,60 @@ typedef struct ble_rus_s ble_rus_t;
 typedef void (*ble_rus_setup_handler_t) (ble_rus_t *p_rus, uint32_t new_setup);
 
 typedef struct{
-	ble_rus_setup_handler_t	year_of_birth_write_handler;
-	ble_rus_setup_handler_t month_of_birth_write_handler;
-	ble_rus_setup_handler_t day_of_birth_write_handler;
+//	ble_rus_setup_handler_t	year_of_birth_write_handler;
+//	ble_rus_setup_handler_t month_of_birth_write_handler;
+//	ble_rus_setup_handler_t day_of_birth_write_handler;
 //	ble_rus_setup_handler_t gender_write_handler;
-	ble_rus_setup_handler_t handedness_write_handler;
+//	ble_rus_setup_handler_t handedness_write_handler;
 //	ble_rus_setup_handler_t height_write_handler;
 //	ble_rus_setup_handler_t weight_write_handler;
 //	ble_rus_setup_handler_t age_write_handler;
-	ble_rus_setup_handler_t body_position_write_handler;
-	ble_rus_setup_handler_t resting_heart_rate_write_handler;
+//	ble_rus_setup_handler_t body_position_write_handler;
+//	ble_rus_setup_handler_t resting_heart_rate_write_handler;
 	ble_rus_setup_handler_t user_id_write_handler;					//@Including USER ID
 //	ble_rus_setup_handler_t aerobic_threshold_write_handler;		//@Including AEROBIC THRESHOLD
 //	ble_rus_setup_handler_t anaerobic_threshold_write_handler;		//@Including ANAEROBIC THRESHOLD
-	ble_rus_setup_handler_t name_write_handler;						//@Including NAME
+//	ble_rus_setup_handler_t name_write_handler;						//@Including NAME
 	ble_rus_setup_handler_t hr_zone_preference_calc_write_handler;			//@Including FITNESS INDEX
+	ble_rus_setup_handler_t serial_number_write_handler;			//@Including FITNESS INDEX
 } ble_rus_init_t;
 
 struct ble_rus_s{
 	uint16_t service_handle;
-	ble_gatts_char_handles_t	year_of_birth_char_handles;
-	ble_gatts_char_handles_t	month_of_birth_char_handles;
-	ble_gatts_char_handles_t	day_of_birth_char_handles;
+//	ble_gatts_char_handles_t	year_of_birth_char_handles;
+//	ble_gatts_char_handles_t	month_of_birth_char_handles;
+//	ble_gatts_char_handles_t	day_of_birth_char_handles;
 //	ble_gatts_char_handles_t	gender_char_handles;
-	ble_gatts_char_handles_t	handedness_char_handles;
+//	ble_gatts_char_handles_t	handedness_char_handles;
 //	ble_gatts_char_handles_t	height_char_handles;
 //	ble_gatts_char_handles_t	weight_char_handles;
 //	ble_gatts_char_handles_t	age_char_handles;
-	ble_gatts_char_handles_t	body_position_char_handles;
-	ble_gatts_char_handles_t	resting_heart_rate_char_handles;
+//	ble_gatts_char_handles_t	body_position_char_handles;
+//	ble_gatts_char_handles_t	resting_heart_rate_char_handles;
 	ble_gatts_char_handles_t	user_id_char_handles;				//@Including USER ID
 //	ble_gatts_char_handles_t	aerobic_threshold_char_handles;		//@Including AEROBIC THRESHOLD
 //	ble_gatts_char_handles_t	anaerobic_threshold_char_handles;	//@Including ANAEROBIC THRESHOLD
 //	ble_gatts_char_handles_t	name_char_handles;					//@Including NAME
 	ble_gatts_char_handles_t	hr_zone_preference_calc_char_handles;			//@Including FITNESS INDEX
+	ble_gatts_char_handles_t	serial_number_char_handles;
 	uint8_t uuid_type;
 	uint16_t conn_handle;
-	ble_rus_setup_handler_t		year_of_birth_write_handler;
-	ble_rus_setup_handler_t		month_of_birth_write_handler;
-	ble_rus_setup_handler_t		day_of_birth_write_handler;
+//	ble_rus_setup_handler_t		year_of_birth_write_handler;
+//	ble_rus_setup_handler_t		month_of_birth_write_handler;
+//	ble_rus_setup_handler_t		day_of_birth_write_handler;
 //	ble_rus_setup_handler_t		gender_write_handler;
-	ble_rus_setup_handler_t		handedness_write_handler;
+//	ble_rus_setup_handler_t		handedness_write_handler;
 //	ble_rus_setup_handler_t		height_write_handler;
 //	ble_rus_setup_handler_t		weight_write_handler;
 //	ble_rus_setup_handler_t		age_write_handler;
-	ble_rus_setup_handler_t 	body_position_write_handler;
-	ble_rus_setup_handler_t		resting_heart_rate_write_handler;
+//	ble_rus_setup_handler_t 	body_position_write_handler;
+//	ble_rus_setup_handler_t		resting_heart_rate_write_handler;
 	ble_rus_setup_handler_t		user_id_write_handler;				//@Including USER ID
 //	ble_rus_setup_handler_t 	aerobic_threshold_write_handler;	//@Including AEROBIC THRESHOLD
 //	ble_rus_setup_handler_t 	anaerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
 //	ble_rus_setup_handler_t 	name_write_handler;					//@Including NAME
 	ble_rus_setup_handler_t 	hr_zone_preference_calc_write_handler;		//@Including FITNESS INDEX
+	ble_rus_setup_handler_t		serial_number_write_handler;
 };
 
 

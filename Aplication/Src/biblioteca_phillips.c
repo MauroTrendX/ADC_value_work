@@ -266,20 +266,25 @@ void run_biblioteca_phillips(dadosBbPPG amostrasPPG, dadosBbACC amostrasACC, uin
 
 				if(metricData[0]==0x22){
 						if(metricData[4]>1)
-									if(metricData[5]==0){
-											*contact_detected=true;
-									}else {
-											*contact_detected=false;
-									}
-
+								if(metricData[5]==0){
+										*contact_detected=true;
+								}else{
+										*contact_detected=false;
+										if(metricData[3]>40)
+											reboot_biblioteca_phillips();
+								}
 				}			
 				if(metricData[0]==0x20){
-						if(metricData[4]>1)
+						if(metricData[4]>1){
 								*batimentos=metricData[5];
 						trigLoop=false;
+						}
+//						NRF_LOG_INFO("ID: %x  Index: %d Quality: %x Value: %d status: %d",metricData[0], metricData[3], metricData[4], metricData[5],status);	
+						
 				}else
 							trigLoop=true;
-							ControlLoop((uint32_t)amostrasPPG.amostra1.vetor[0], &sControlLoopParams.ledPower, &sControlLoopParams.adcGain,sControlLoopParams);
+	
+				ControlLoop((uint32_t)amostrasPPG.amostra1.vetor[0], &sControlLoopParams.ledPower, &sControlLoopParams.adcGain,sControlLoopParams);
 
 				NRF_LOG_INFO("ID: %x  Index: %d Quality: %x Value: %d status: %d",metricData[0], metricData[3], metricData[4], metricData[5],status);	
 
@@ -296,6 +301,12 @@ void terminate_biblioteca_phillips(void){
 
 }
 
+void reboot_biblioteca_phillips(void){
+	
+		terminate_biblioteca_phillips();
+		init_biblioteca_phillips();
+	
+}
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/

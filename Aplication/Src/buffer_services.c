@@ -137,34 +137,6 @@ void buff_init(void){
     (void) nrf5_flash_end_addr_get();		
 		
 }
-/*
-uint8_t test[]="junior12";
-uint8_t retorno_teste[8];
-void buff_save_test(void){
-		ret_code_t rc;
-		volatile uint32_t retorno;
-	
-		retorno = nrf5_flash_end_addr_get();
-    wait_for_flash_ready(&fstorage);
-//		rc = nrf_fstorage_erase(&fstorage, 0x6F000, 1, NULL);
-//    APP_ERROR_CHECK(rc);  
-//		wait_for_flash_ready(&fstorage);
-		rc = nrf_fstorage_write(&fstorage, 0x6F000, test, sizeof(test), NULL);
-    APP_ERROR_CHECK(rc);
-
-    wait_for_flash_ready(&fstorage);
-    NRF_LOG_INFO("Done.");		
-	
-}
-
-void buff_load_test(void){
-
-		uint32_t err_code;
-
-		err_code=nrf_fstorage_read(&fstorage, 0x6F000,&retorno_teste, sizeof(test));
-		wait_for_flash_ready(&fstorage);
-}
-*/
 
 void buff_save(void){
 		ret_code_t rc;
@@ -176,7 +148,6 @@ void buff_save(void){
     rc = nrf_fstorage_write(&fstorage, addr_start, (uint8_t*)&metric_nv_info, sizeof(hr_module_nv_buf_t), NULL);
     APP_ERROR_CHECK(rc);
     wait_for_flash_ready(&fstorage);
-	
 }
 
 
@@ -188,66 +159,27 @@ uint32_t err_code;
 	wait_for_flash_ready(&fstorage);
 	
 if(err_code == NRF_SUCCESS){
-//			if(metric_nv_info.metric_settings_nv_buf.age_metric_set)
-//				p_metric_info.age.age_value = metric_nv_info.age.age_value;
-//			else
-//				p_metric_info.age.age_value = 0;
-
-//			if(metric_nv_info.metric_settings_nv_buf.body_position_metric_set)
-//				p_metric_info.body_position.body_position_value = metric_nv_info.body_position.body_position_value;
-//			else
-//				p_metric_info.body_position.body_position_value = 0;
-
-//			if(metric_nv_info.metric_settings_nv_buf.height_metric_set)
-//				p_metric_info.height.height_value = metric_nv_info.height.height_value;
-//			else
-//				p_metric_info.height.height_value = 0;
 
 			if(metric_nv_info.metric_settings_nv_buf.rhr_preference_metric_set)
 				p_metric_info.rhr_preference.rhr_preference_value = metric_nv_info.rhr_preference.rhr_preference_value;
 			else
 				p_metric_info.rhr_preference.rhr_preference_value = 0;
 
-//			if(metric_nv_info.metric_settings_nv_buf.sleep_preference_metric_set)
-//				p_metric_info.sleep_preference.sleep_preference_value = metric_nv_info.sleep_preference.sleep_preference_value;
-//			else
-//				p_metric_info.sleep_preference.sleep_preference_value = 0;
-
-//			if(metric_nv_info.metric_settings_nv_buf.time_metric_set)
-//				p_metric_info.time.time_value = metric_nv_info.time.time_value;
-//			else
-//				p_metric_info.time.time_value = 0;
-
-//			if(metric_nv_info.metric_settings_nv_buf.weight_metric_set)
-//				p_metric_info.weight.weight_value = metric_nv_info.weight.weight_value;
-//			else
-//				p_metric_info.weight.weight_value = 0;
-
 			if(metric_nv_info.metric_settings_nv_buf.user_id_metric_set)						//@Including USER ID
 				p_metric_info.user_id.user_id_value = metric_nv_info.user_id.user_id_value;
 			else
 				p_metric_info.user_id.user_id_value = 0;
 
-//			if(metric_nv_info.metric_settings_nv_buf.aerobic_threshold_metric_set)				//@Including AEROBIC THRESHOLD
-//				p_metric_info.aerobic_threshold.aerobic_threshold_value = metric_nv_info.aerobic_threshold.aerobic_threshold_value;
-//			else
-//				p_metric_info.aerobic_threshold.aerobic_threshold_value = 0;
-
-//			if(metric_nv_info.metric_settings_nv_buf.anaerobic_threshold_metric_set)			//@Including ANAEROBIC THRESHOLD
-//				p_metric_info.anaerobic_threshold.anaerobic_threshold_value = metric_nv_info.anaerobic_threshold.anaerobic_threshold_value;
-//			else
-//				p_metric_info.anaerobic_threshold.anaerobic_threshold_value = 0;
-
-//			if(metric_nv_info.metric_settings_nv_buf.name_metric_set)							//@Including NAME
-//				p_metric_info.name.name_value = metric_nv_info.name.name_value;
-//			else
-//				p_metric_info.name.name_value = 0;
-
 			if(metric_nv_info.metric_settings_nv_buf.hr_zone_preference_calc_metric_set)					//@Including FITNESS INDEX
 				p_metric_info.hr_zone_preference_calc.hr_zone_preference_calc_value = metric_nv_info.hr_zone_preference_calc.hr_zone_preference_calc_value;
 			else
 				p_metric_info.hr_zone_preference_calc.hr_zone_preference_calc_value = 0;
-
+			
+			if(metric_nv_info.metric_settings_nv_buf.serial_number_metric_set)					//@Including FITNESS INDEX
+				strcpy( (char *) p_metric_info.serial_number.serial_number_value , (char *) metric_nv_info.serial_number.serial_number_value);
+			else
+				strcpy( (char *) p_metric_info.serial_number.serial_number_value , "0");
+			
 			if(metric_nv_info.metric_settings_nv_buf.first_name_metric_set)					//
 				p_metric_info.first_name.first_name_value = metric_nv_info.first_name.first_name_value;
 			else
@@ -414,6 +346,23 @@ uint8_t get_hr_zone_preference_calc(void){
 
 void set_hr_zone_preference_calc(uint8_t value){
 	metric_nv_info.hr_zone_preference_calc.hr_zone_preference_calc_value = value;
+}
+
+/******************************************************************************/
+/******************************************************************************/
+/******************************@Including FITNESS INDEX*******************************/
+char * get_serial_number_metric(void){
+	if( ((uint64_t)metric_nv_info.serial_number.serial_number_value[0]) == 0xFF ||((uint64_t)metric_nv_info.serial_number.serial_number_value[0]) == 0x00 ){
+
+		strcpy((char *) metric_nv_info.serial_number.serial_number_value,"AAAAMMDDNNNN");
+		
+	}
+	
+	return (char *)metric_nv_info.serial_number.serial_number_value;
+}
+
+void set_serial_number_metric(char * value){
+	strcpy((char *) metric_nv_info.serial_number.serial_number_value , value);
 }
 
 /******************************************************************************/

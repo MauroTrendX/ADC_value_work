@@ -114,8 +114,6 @@
 #include "nrf_drv_clock.h"
 #endif
 
-
-
 //#define MYBEAT_V1 
 
 #ifdef MYBEAT_V1
@@ -130,6 +128,8 @@
 
 #define MANUFACTURER_NAME                   "Trendx"    							              /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                    300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
+
+#define FIRMWARE_VERSION 										"1.0.0"
 
 #define APP_ADV_DURATION                    18000                                   /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
 
@@ -636,6 +636,14 @@ uint8_t OperationMode=1;
 void MAX30110_sleep(void){
 
 		MAX30110_estruturaConfiguracao_t configuracao = {
+				.ativaInterrupcoes = {
+						.ledForaConformidade=0,
+						.interrrupcaoProxiidade=0,
+						.cancelamentoLuzAmbienteTransbordou=0,
+						.amostraPpgPronta=0,
+						.filaQuaseCheia=0,
+						.vddAnalogicoOk=0
+				},
 				.configuracoesSistema = {
 				.desligar=1
 				}
@@ -681,24 +689,38 @@ void get_status_carregador (void){
 		}
 
 }
+/*
+bool dado_pronto_AFE=false; 
+bool dado_pronto_ACC=false;
 
-void usb_pin_callback(void)
+void irq_AFE_event(void)
 {
-    solicitacaoDesligamento=true;
+    dado_pronto_AFE=true;
 }
 
-/*void config_usb_interrupt(void)
+void irq_ACC_event(void)
+{
+    dado_pronto_ACC=true;
+}
+
+void config_interrupt(void)
 {		
 		ret_code_t err_code;
 	
 		nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
     in_config.pull = NRF_GPIO_PIN_NOPULL;
 	
-		err_code = nrf_drv_gpiote_in_init(USB, &in_config, usb_pin_callback);
+		err_code = nrf_drv_gpiote_in_init(AFE_IRQ, &in_config, irq_AFE_event);
     APP_ERROR_CHECK(err_code);
-		nrf_drv_gpiote_in_event_enable(USB, true);
-}*/
+		nrf_drv_gpiote_in_event_enable(AFE_IRQ, true);
 
+		in_config.sense=NRF_GPIOTE_POLARITY_LOTOHI;
+		err_code = nrf_drv_gpiote_in_init(ACC_IRQ, &in_config, irq_ACC_event);
+    APP_ERROR_CHECK(err_code);
+		nrf_drv_gpiote_in_event_enable(ACC_IRQ, true);
+
+}
+*/
 void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
 {
 
@@ -793,24 +815,33 @@ uint8_t get_percent_batt(nrf_saadc_value_t sample){
 		int8_t temp=(sample-455)*100/120;
 		
 //		percent_batt=temp;
-		if(temp>90)
-				return percent_batt=100;
-		else if(temp<90&&temp>80)
-				return percent_batt=90;
-		else if(temp<80&&temp>70)
-				return percent_batt=80;
-		else if(temp<70&&temp>60)
-				return percent_batt=70;
-		else if(temp<60&&temp>50)
-				return percent_batt=60;
-		else if(temp<50&&temp>40)
-				return percent_batt=50;
-		else if(temp<40&&temp>30)
-				return percent_batt=40;
-		else if(temp<30&&temp>20)
-				return percent_batt=30;
-		else if(temp<20&&temp>10)
-				return percent_batt=20;
+		if(temp>90){
+				avisoBateriaFraca=false;
+				return percent_batt=100;}
+		else if(temp<90&&temp>80){
+				avisoBateriaFraca=false;
+				return percent_batt=90;}
+		else if(temp<80&&temp>70){
+				avisoBateriaFraca=false;
+				return percent_batt=80;}
+		else if(temp<70&&temp>60){
+				avisoBateriaFraca=false;
+				return percent_batt=70;}
+		else if(temp<60&&temp>50){
+				avisoBateriaFraca=false;
+				return percent_batt=60;}
+		else if(temp<50&&temp>40){
+				avisoBateriaFraca=false;
+				return percent_batt=50;}
+		else if(temp<40&&temp>30){
+				avisoBateriaFraca=false;
+				return percent_batt=40;}
+		else if(temp<30&&temp>20){
+				avisoBateriaFraca=false;
+				return percent_batt=30;}
+		else if(temp<20&&temp>10){
+				avisoBateriaFraca=false;
+				return percent_batt=20;}
 		else if(temp>5&&temp<10){
 				avisoBateriaFraca=true;
 				return percent_batt=10;
@@ -876,7 +907,7 @@ static void battery_level_update(void)
     {
         APP_ERROR_HANDLER(err_code);
     }
-		NRF_LOG_INFO("Nivel da bateria: %d ",percent_batt);
+//		NRF_LOG_INFO("Nivel da bateria: %d ",percent_batt);
 }
 
 
@@ -1170,6 +1201,18 @@ static void hr_zone_preference_calc_write_handler(ble_rus_t *p_rus, uint32_t new
 	update_nv_mem_buf_request = true;
 }
 
+/******************************************************************************/
+
+//@Including FITNESS INDEX
+/******************************************************************************/
+static void serial_number_write_handler(ble_rus_t *p_rus, char * new_state){
+
+	strcpy((char *)temporary_buff.serial_number.serial_number_value, new_state);
+
+/* Solicita para o programa a atualização do coeficiente de condicionamento na memória NV */
+	hr_module_nv_buf_update_flags.serial_number = true;
+	update_nv_mem_buf_request = true;
+}
 
 static void first_name_write_handler(ble_uds_t *p_uds, uint64_t new_state){
 /* Conversão do valor de entrada para uint8_t */
@@ -1911,8 +1954,15 @@ static void services_init(void)
     memset(&dis_init, 0, sizeof(dis_init));
 
     ble_srv_ascii_to_utf8(&dis_init.manufact_name_str, (char *)MANUFACTURER_NAME);
+		
+		ble_srv_ascii_to_utf8(&dis_init.fw_rev_str, (char*)FIRMWARE_VERSION);
 
-    dis_init.dis_char_rd_sec = SEC_OPEN;
+//		temporary_buff.serial_number.serial_number_value = get_serial_number_metric();
+
+		dis_init.serial_num_str.length = (12);
+		dis_init.serial_num_str.p_str	= (uint8_t *) get_serial_number_metric();	
+ 
+		dis_init.dis_char_rd_sec = SEC_OPEN;
 
     err_code = ble_dis_init(&dis_init);
     APP_ERROR_CHECK(err_code);
@@ -1923,47 +1973,44 @@ static void services_init(void)
     memset(&uds_init, 0, sizeof(uds_init));
 
 
-    uds_init.first_name_write_handler											= first_name_write_handler;
-    uds_init.last_name_write_handler											= last_name_write_handler;
-    uds_init.email_address_write_handler										= email_address_write_handler;
-    uds_init.age_write_handler													= age_write_handler;
-    uds_init.date_of_birth_write_handler										= date_of_birth_write_handler;
-    uds_init.gender_write_handler												= gender_write_handler;
-    uds_init.weight_write_handler												= weight_write_handler;
-    uds_init.height_write_handler												= height_write_handler;
-    uds_init.VO2_max_write_handler												= VO2_max_write_handler;
-    uds_init.heart_rate_max_write_handler										= heart_rate_max_write_handler;
-    uds_init.resting_heart_write_handler										= resting_heart_rate_write_handler;   				//@Including USER ID
-    uds_init.maximum_recommended_heart_rate_write_handler						= maximum_recommended_heart_rate_write_handler;		//@Including AEROBIC THRESHOLD
-    uds_init.aerobic_threshold_write_handler									= aerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
-    uds_init.anaerobic_threshold_write_handler									= anaerobic_threshold_write_handler;  					//@Including NAME
-    uds_init.sport_type_for_aerobic_and_anaerobic_thresholds_write_handler		= sport_type_for_aerobic_and_anaerobic_thresholds_write_handler;			//@Including FITNESS INDEX
-    uds_init.date_of_threshold_assessment_write_handler				    		= date_of_threshold_assessment_write_handler;
-    uds_init.waist_circumference_write_handler									= waist_circumference_write_handler;
-    uds_init.fat_burn_heart_rate_lower_limit_write_handler						= fat_burn_heart_rate_lower_limit_write_handler;
-    uds_init.fat_burn_heart_rate_upper_limit_write_handler						= fat_burn_heart_rate_upper_limit_write_handler;
-    uds_init.aerobic_heart_rate_lower_limit_write_handler						= aerobic_heart_rate_lower_limit_write_handler;
-    uds_init.aerobic_heart_rate_upper_limit_write_handler						= aerobic_heart_rate_upper_limit_write_handler;
-    uds_init.anaerobic_heart_rate_lower_limit_write_handler						= anaerobic_heart_rate_lower_limit_write_handler;
-    uds_init.five_zone_heart_rate_limits_write_handler							= five_zone_heart_rate_limits_write_handler;
-    uds_init.three_zone_heart_rate_limits_write_handler							= three_zone_heart_rate_limits_write_handler;
-    uds_init.two_zone_heart_rate_limits_write_handler							= two_zone_heart_rate_limits_write_handler;
-    uds_init.language_write_handler												= language_write_handler;
-    uds_init.fitnes_index_write_handler												= fitnes_index_write_handler;
+    uds_init.first_name_write_handler																				= first_name_write_handler;
+    uds_init.last_name_write_handler																				= last_name_write_handler;
+    uds_init.email_address_write_handler																		= email_address_write_handler;
+    uds_init.age_write_handler																							= age_write_handler;
+    uds_init.date_of_birth_write_handler																		= date_of_birth_write_handler;
+    uds_init.gender_write_handler																						= gender_write_handler;
+    uds_init.weight_write_handler																						= weight_write_handler;
+    uds_init.height_write_handler																						= height_write_handler;
+    uds_init.VO2_max_write_handler																					= VO2_max_write_handler;
+    uds_init.heart_rate_max_write_handler																		= heart_rate_max_write_handler;
+    uds_init.resting_heart_write_handler																		= resting_heart_rate_write_handler;   				//@Including USER ID
+    uds_init.maximum_recommended_heart_rate_write_handler										= maximum_recommended_heart_rate_write_handler;		//@Including AEROBIC THRESHOLD
+    uds_init.aerobic_threshold_write_handler																= aerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
+    uds_init.anaerobic_threshold_write_handler															= anaerobic_threshold_write_handler;  					//@Including NAME
+    uds_init.sport_type_for_aerobic_and_anaerobic_thresholds_write_handler	= sport_type_for_aerobic_and_anaerobic_thresholds_write_handler;			//@Including FITNESS INDEX
+    uds_init.date_of_threshold_assessment_write_handler				 				   		= date_of_threshold_assessment_write_handler;
+    uds_init.waist_circumference_write_handler															= waist_circumference_write_handler;
+    uds_init.fat_burn_heart_rate_lower_limit_write_handler									= fat_burn_heart_rate_lower_limit_write_handler;
+    uds_init.fat_burn_heart_rate_upper_limit_write_handler									= fat_burn_heart_rate_upper_limit_write_handler;
+    uds_init.aerobic_heart_rate_lower_limit_write_handler										= aerobic_heart_rate_lower_limit_write_handler;
+    uds_init.aerobic_heart_rate_upper_limit_write_handler										= aerobic_heart_rate_upper_limit_write_handler;
+    uds_init.anaerobic_heart_rate_lower_limit_write_handler									= anaerobic_heart_rate_lower_limit_write_handler;
+    uds_init.five_zone_heart_rate_limits_write_handler											= five_zone_heart_rate_limits_write_handler;
+    uds_init.three_zone_heart_rate_limits_write_handler											= three_zone_heart_rate_limits_write_handler;
+    uds_init.two_zone_heart_rate_limits_write_handler												= two_zone_heart_rate_limits_write_handler;
+    uds_init.language_write_handler																					= language_write_handler;
+    uds_init.fitnes_index_write_handler																			= fitnes_index_write_handler;
 
 		err_code = ble_uds_init(&m_uds, &uds_init);
 		APP_ERROR_CHECK(err_code);
-
-
-
 
     //introduce RAE User Profile Service (ble_rus) here.
     memset(&rus_init, 0, sizeof(rus_init));
 
 
-		rus_init.user_id_write_handler				= user_id_write_handler;      //@Including USER ID
-		rus_init.hr_zone_preference_calc_write_handler		= hr_zone_preference_calc_write_handler;      //@Including FITNESS INDEX
-
+		rus_init.user_id_write_handler											= user_id_write_handler;      //@Including USER ID
+		rus_init.hr_zone_preference_calc_write_handler			= hr_zone_preference_calc_write_handler;      //@Including FITNESS INDEX
+		rus_init.serial_number_write_handler								= serial_number_write_handler;
 		err_code = ble_rus_init(&m_rus, &rus_init);
 		APP_ERROR_CHECK(err_code);
 
@@ -2003,7 +2050,7 @@ void check_nv_update_request (void){
 				if( hr_module_nv_buf_update_flags.rhr_preference == true ){
 						hr_module_nv_buf_update_flags.rhr_preference = false;
 
-					set_resting_heart_rate_value_threshold( temporary_buff.rhr_preference.rhr_preference_value );
+						set_resting_heart_rate_value_threshold( temporary_buff.rhr_preference.rhr_preference_value );
 				}
 
 				if( hr_module_nv_buf_update_flags.user_id == true ){
@@ -2018,6 +2065,11 @@ void check_nv_update_request (void){
 						set_hr_zone_preference_calc( temporary_buff.hr_zone_preference_calc.hr_zone_preference_calc_value );  //@Including
 				}
 
+				if( hr_module_nv_buf_update_flags.serial_number == true ){
+						hr_module_nv_buf_update_flags.serial_number = false;
+
+						set_serial_number_metric( (char *) temporary_buff.serial_number.serial_number_value );  //@Including
+				}
 				if( hr_module_nv_buf_update_flags.first_name == true ){
 						hr_module_nv_buf_update_flags.first_name = false;
 		
@@ -2322,6 +2374,10 @@ static void sleep_mybeat(void){
 		nrf_gpio_cfg_input(CTS,NRF_GPIO_PIN_PULLDOWN);
 		nrf_gpio_cfg_input(RTS,NRF_GPIO_PIN_PULLDOWN);
 	
+		nrf_gpio_cfg_input(SPI_MISO_PIN, NRF_GPIO_PIN_PULLUP);
+
+		
+	
 //    err_code = bsp_indication_set(BSP_INDICATE_IDLE);
 //    APP_ERROR_CHECK(err_code);
 //		err_code=app_timer_stop(m_bsp_leds_tmr);
@@ -2389,6 +2445,24 @@ uint32_t hl_lh(uint32_t d)
 uint32_t Int_to_Hex(int16_t vi)
 {
        return (((vi/10000)<<16) | (((vi%10000)/1000)<<12) | (((vi%1000)/100)<<8) | (((vi%100)/10)<<4) | (vi%10));
+}
+
+void reply_serial_number(char * value){
+//		char *temp = malloc(2*(sizeof(uint8_t *)));
+		ble_gatts_rw_authorize_reply_params_t auth_reply;
+		auth_reply.type = BLE_GATTS_AUTHORIZE_TYPE_READ;
+		auth_reply.params.read.update = 1;
+		auth_reply.params.read.offset = 0;
+//		auth_reply.params.read.len = 1;
+		auth_reply.params.read.gatt_status = BLE_GATT_STATUS_SUCCESS;	
+	
+		auth_reply.params.read.len = 12;
+			
+//		temp = value;
+
+		auth_reply.params.read.p_data = (uint8_t *) value;
+		sd_ble_gatts_rw_authorize_reply(m_conn_handle, &auth_reply);
+//		free(temp);
 }
 
 
@@ -2496,7 +2570,7 @@ static uint32_t rw_request(ble_evt_t * p_ble_evt){
 		hr_module_metric_info_t *metrics = get_metrics();
 		uint16_t handle = p_ble_evt->evt.gatts_evt.params.authorize_request.request.read.handle;
 	
-		if(handle == m_rus.year_of_birth_char_handles.value_handle)
+/*		if(handle == m_rus.year_of_birth_char_handles.value_handle)
 				reply(metrics->profile.year_of_birth);
 
 		if(handle == m_rus.month_of_birth_char_handles.value_handle)
@@ -2510,12 +2584,15 @@ static uint32_t rw_request(ble_evt_t * p_ble_evt){
 
 		if(handle == m_rus.body_position_char_handles.value_handle)
 				reply((uint16_t)metrics->body_position.body_position_value);
-
+*/
 		if(handle == m_rus.user_id_char_handles.value_handle)
 				reply((uint16_t)get_user_id());
 
 		if(handle == m_rus.hr_zone_preference_calc_char_handles.value_handle)
 				reply((uint16_t)get_hr_zone_preference_calc());					//@Including FITNESS INDEX
+
+		if(handle == m_rus.serial_number_char_handles.value_handle)
+				reply_serial_number(get_serial_number_metric());					//@Including
 
 		if(handle == m_uds.first_name_char_handler.value_handle)
 				reply_name((uint64_t)get_first_name_metric());					//@Including
@@ -3023,8 +3100,8 @@ static void button_and_leds_init(bool * p_erase_bonds)
 		nrf_gpio_cfg_input(ACC_IRQ,NRF_GPIO_PIN_NOPULL);
 		nrf_gpio_cfg_input(AFE_IRQ,NRF_GPIO_PIN_NOPULL);
 		nrf_gpio_cfg_input(USB,NRF_GPIO_PIN_NOPULL);
+		
 }
-
 
 /**@brief Function for initializing the nrf log module.
  */
@@ -3217,7 +3294,7 @@ void amazenar_PPG(uint8_t * numeroAmostra, dadosBbPPG * bufferPPG){
 		MAX30110_dados24BitsFIFO_t dadosFila;
 		MAX30110_leFila( &dadosFila, 2 );
 
-//		NRF_LOG_INFO("2C:%ld,%ld",((dadosFila.dados.valorPPG)&0x7FFFF)>>3,dadosFila.dados.valorPPG);//,dadosFila.dados.valorAMB);
+		NRF_LOG_INFO("2C:%ld,%ld",((dadosFila.dados.valorPPG)&0x7FFFF)>>3,((dadosFila.dados.valorAMB)&0x7FFFF)>>3);//,dadosFila.dados.valorAMB);
 									
 		if(indiceAmostra==0){
 				//verificar mascara de bits bit [0] msb [2] lsb da fifo
@@ -3253,7 +3330,7 @@ void amazenar_ACC(uint8_t * numeroAmostra, dadosBbACC * bufferACC){
 		data_raw_acceleration.i16bit[1]=((data_raw_acceleration.i16bit[1]>>4)&0xFFFF);	
 		data_raw_acceleration.i16bit[0]=((data_raw_acceleration.i16bit[0]>>4)&0xFFFF);
 		data_raw_acceleration.i16bit[2]=((data_raw_acceleration.i16bit[2]>>4)&0xFFFF);
-					
+	
 //		NRF_LOG_INFO("2B:%ld,%ld,%ld %X,%X,%X" ,data_raw_acceleration.i16bit[1],data_raw_acceleration.i16bit[0],data_raw_acceleration.i16bit[2],(uint16_t)data_raw_acceleration.i16bit[1],(uint16_t)data_raw_acceleration.i16bit[0],(uint16_t)data_raw_acceleration.i16bit[2]);
 	
 		if(indiceAmostra==0){						
@@ -3337,7 +3414,8 @@ void amazenar_ACC(uint8_t * numeroAmostra, dadosBbACC * bufferACC){
 }
 
 void check_init(bool code_error1, bool code_error2){
-		if(code_error1&&code_error2==0){
+		bool status = code_error1&&code_error2;
+		if(!status){
 				set_led(LED4);
 				set_cor(vermelho);
 				nrf_delay_ms(1000);
@@ -3350,7 +3428,6 @@ void check_init(bool code_error1, bool code_error2){
 		nrf_delay_ms(350);
 }
 
-//void check_interrupcoes_gerais(void){}
 
 /**@brief Function for application main entry.
  */
@@ -3371,9 +3448,9 @@ int main(void)
     ble_stack_init();
     gap_params_init();
     gatt_init();
-    load_user_info_metrics();
 		buff_init();
 		buff_load();
+		load_user_info_metrics();
 		advertising_init();
     services_init();
     conn_params_init();
@@ -3381,7 +3458,7 @@ int main(void)
 		spi_init();
 		pwm_init();
 		saadc_init();
-//		config_usb_interrupt();
+
 		// Start execution.
 		NRF_LOG_INFO("Heart Rate Sensor example started.");
     advertising_start(erase_bonds);
@@ -3399,8 +3476,8 @@ int main(void)
 		measurement_setup();
     profile_setup();
 		
-				
-		
+//		config_interrupt();		
+			
 				
 #ifdef WDT_ATIVO
 		//Configure WDT.
@@ -3412,16 +3489,11 @@ int main(void)
     nrf_drv_wdt_enable();
 #endif				
 				
-//	  lis2dw12_reg_t int_route;
-
     dev_ctx.write_reg = platform_write;
     dev_ctx.read_reg = platform_read;
     dev_ctx.handle = &spi_event_handler;
 		
-//		uint8_t dadosAcc8bits[6];
-//		uint32_t contagem=0;
-		
-//		MAX30110_interruptStatusRegistersUnion_t registroEstadoPPG;
+
 
 #ifdef RESAMPLE_1S
 
@@ -3441,13 +3513,7 @@ int main(void)
 		
 #else
 				    
-//		lis2dw12_all_sources_t all_source;
-//    uint8_t ppgsample;
-//    uint8_t acceleration_mg[6];
-//		uint8_t partI[22];
 		uint8_t tempo=0;
-//		uint32_t contagemAmostral=0;
-//		MAX30110_dados24BitsFIFO_t dadosFila;
 		dadosBbPPG	amostrasPPG;
 		dadosBbACC	amostrasACC;
     uint8_t indiceAmostraPPG=0;
@@ -3464,7 +3530,7 @@ int main(void)
     // Enter main loop.
 		for (;;){
 				check_nv_update_request();
-//				check_interrupcoes_gerais();
+
 		
 				switch(OperationMode){
 						case RUNNING:{
@@ -3474,30 +3540,26 @@ int main(void)
 								* Read status register
   				      */
 
-//								lis2dw12_all_sources_get(&dev_ctx, &all_source);
-								MAX30110_leRegistroAguardaTermino( 0x00, &tempo, 1 );		
-//								tempo=partI[0];
+
 #ifdef RESAMPLE_1S
-								if((tempo & 0x40) == 0x40){
+								if(!nrf_gpio_pin_read(AFE_IRQ)){
 			
 										amazenar_PPG(&indiceFilaPPG, amostrasFilaPPG);	
 								}							
 							
 #else
-								if((tempo & 0x40) == 0x40){
+								if(!nrf_gpio_pin_read(AFE_IRQ)){
 			
 										amazenar_PPG(&indiceAmostraPPG, &amostrasPPG);
-				
+										
 								}		
 							
 #endif							
-	
-								lis2dw12_status_reg_get(&dev_ctx, &statusLIS2DW12);
-					
-								if(statusLIS2DW12.drdy){
+						
+								if(nrf_gpio_pin_read(ACC_IRQ)){
 						
 										amazenar_ACC(&indiceAmostraACC,&amostrasACC);
-								
+										
 								}
 			
 								if(flag_timer_bb_phillips)
@@ -3725,7 +3787,7 @@ bool lis2dw12_config (void){
    /*
     * Configure power mode
     */
-    lis2dw12_power_mode_set(&dev_ctx, LIS2DW12_CONT_LOW_PWR_12bit);//LIS2DW12_CONT_LOW_PWR_12bit);
+    lis2dw12_power_mode_set(&dev_ctx, LIS2DW12_CONT_LOW_PWR_LOW_NOISE_2);//LIS2DW12_CONT_LOW_PWR_12bit);
 
 
    /*
@@ -3733,7 +3795,7 @@ bool lis2dw12_config (void){
     */
   
 	  lis2dw12_pin_int1_route_get(&dev_ctx, &int_route.ctrl4_int1_pad_ctrl);
-    int_route.ctrl4_int1_pad_ctrl.int1_fth = PROPERTY_ENABLE;
+    int_route.ctrl4_int1_pad_ctrl.int1_drdy = PROPERTY_ENABLE;
     lis2dw12_pin_int1_route_set(&dev_ctx, &int_route.ctrl4_int1_pad_ctrl);
 	  lis2dw12_pin_int1_route_get(&dev_ctx, &int_route.ctrl4_int1_pad_ctrl);
   
