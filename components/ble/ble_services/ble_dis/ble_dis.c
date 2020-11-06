@@ -186,7 +186,7 @@ uint32_t ble_dis_init(ble_dis_init_t const * p_dis_init)
     }
     if (p_dis_init->serial_num_str.length > 0)
     {
-        err_code = char_add(BLE_UUID_SERIAL_NUMBER_STRING_CHAR,
+				err_code = char_add(BLE_UUID_SERIAL_NUMBER_STRING_CHAR,
                             p_dis_init->serial_num_str.p_str,
                             p_dis_init->serial_num_str.length,
                             p_dis_init->dis_char_rd_sec,
