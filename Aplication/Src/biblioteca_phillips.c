@@ -78,7 +78,7 @@ void run_biblioteca_phillips(dadosBbPPG amostrasPPG, dadosBbACC amostrasACC, uin
 		FX_UINT08 numberOfRequiredMetrics = sizeof(requiredMetrics);
 				
 		status = FXI_ListRequiredMetrics( pFxInst, requiredMetrics, &numberOfRequiredMetrics );
-		nrf_gpio_pin_set(20);
+
 			
 		/* transfer acc metric to library */
 		metricId = FXI_METRIC_ID_ACCELERATION; 
@@ -289,9 +289,7 @@ void run_biblioteca_phillips(dadosBbPPG amostrasPPG, dadosBbACC amostrasACC, uin
 				NRF_LOG_INFO("ID: %x  Index: %d Quality: %x Value: %d status: %d",metricData[0], metricData[3], metricData[4], metricData[5],status);	
 
 		}
-		
-		nrf_gpio_pin_clear(20);
- 
+		 
 		return;
 }
 

@@ -107,6 +107,8 @@
 #include "ble_uds.h"
 #include "buffer_services.h"
 
+#include "armazenamento_treino.h"
+
 #define WDT_ATIVO
 
 #ifdef WDT_ATIVO
@@ -114,7 +116,7 @@
 #include "nrf_drv_clock.h"
 #endif
 
-//#define MYBEAT_V1 
+#define MYBEAT_V1 
 
 #ifdef MYBEAT_V1
 
@@ -129,7 +131,7 @@
 #define MANUFACTURER_NAME                   "Trendx"    							              /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                    300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 
-#define FIRMWARE_VERSION 										"1.0.0"
+#define FIRMWARE_VERSION 										"1.0.6"
 
 #define APP_ADV_DURATION                    18000                                   /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
 
@@ -3521,12 +3523,10 @@ int main(void)
 		lis2dw12_status_t statusLIS2DW12;
 		
 #endif
-
-
 		
-
-		
-		
+		uint8_t interrupcoesAFE;
+						
+		uint16_t contador=0;
     // Enter main loop.
 		for (;;){
 				check_nv_update_request();
@@ -3540,7 +3540,6 @@ int main(void)
 								* Read status register
   				      */
 
-
 #ifdef RESAMPLE_1S
 								if(!nrf_gpio_pin_read(AFE_IRQ)){
 			
@@ -3550,10 +3549,17 @@ int main(void)
 #else
 								if(!nrf_gpio_pin_read(AFE_IRQ)){
 			
-										amazenar_PPG(&indiceAmostraPPG, &amostrasPPG);
+								MAX30110_verifica_interrupcao(&interrupcoesAFE);
+
+									if (interrupcoesAFE==0x10) //proximidade
+												NRF_LOG_INFO("Interrupcao Proximidade");								
+
+									if (interrupcoesAFE==0x40) //amostra pronta
+												amazenar_PPG(&indiceAmostraPPG, &amostrasPPG);
 										
+									
 								}		
-							
+					
 #endif							
 						
 								if(nrf_gpio_pin_read(ACC_IRQ)){
@@ -3589,6 +3595,7 @@ int main(void)
 										resample_ACC (indiceAmostraACC, &amostrasACC );
 						
 										run_biblioteca_phillips(amostrasPPG, amostrasACC,&BPM,&sensor_contact_detected);
+								
 								
 										memset(&amostrasACC,0,sizeof(dadosBbACC));
 										memset(&amostrasPPG,0,sizeof(dadosBbPPG));
@@ -3811,16 +3818,14 @@ bool lis2dw12_config (void){
 
 }
 bool MAX30110_ConfiguraSensorPPG ( void ) {
-			
-
-	
+				
 		MAX30110_estruturaConfiguracao_t configuracao = {
 				.correnteLed1 = 5.0,
 				.correnteLed2 = 5.0,
 				.ativaInterrupcoes = {
 						.ledForaConformidade=0,
-						.interrrupcaoProxiidade=0,
-						.cancelamentoLuzAmbienteTransbordou=1,
+						.interrrupcaoProxiidade=0,//1,
+						.cancelamentoLuzAmbienteTransbordou=0,
 						.amostraPpgPronta=1,
 						.filaQuaseCheia=1,
 						.vddAnalogicoOk=0
@@ -3829,7 +3834,7 @@ bool MAX30110_ConfiguraSensorPPG ( void ) {
 						.habilitarFila = 1,
 						.modoBaixoConsumo = 1,
 						.pinoOsciladorExterno = 0,
-						.desligar=0
+						.desligar = 0
 				},
 				.escalaAdc = MAX30110_ESCALA_ADC_12UA,
 				.fila = {
@@ -3843,11 +3848,13 @@ bool MAX30110_ConfiguraSensorPPG ( void ) {
 				.tempoEstabilizacaoLed = MAX30110_TEMPO_ESTABILIZACAO_20MS,
 				.tempoIntegracao = MAX30110_TEMPO_INTEGRACAO_104US,//MAX30110_TEMPO_INTEGRACAO_52US,
 				.tipoDadosFila  = {
-						.FD1= MAX30110_LED1_AND_LED2,  //MAX30110_LED1_AND_LED2
-						.FD2= MAX30110_DIRECT_AMBIENT, //MAX30110_DIRECT_AMBIENT
-						.FD3=	MAX30110_NONE,
-						.FD4= MAX30110_NONE
-				} 
+						.FD1 = MAX30110_LED1_AND_LED2,  //MAX30110_LED1_AND_LED2
+						.FD2 = MAX30110_DIRECT_AMBIENT, //MAX30110_DIRECT_AMBIENT
+						.FD3 = MAX30110_NONE,
+						.FD4 = MAX30110_NONE
+				}//, 
+//				.correnteProximidade = 1,
+//				.limiteInterrupcaoProximidade = 25
 		};
 		
 		sControlLoopParams.enabled  = true;

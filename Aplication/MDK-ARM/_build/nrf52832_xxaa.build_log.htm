@@ -32,17 +32,21 @@ compiling main.c...
   void reboot_biblioteca_phillips(void);
 ..\Inc\biblioteca_phillips.h(8): warning:  #1-D: last line of file ends without a newline
   void reboot_biblioteca_phillips(void);
-..\Src\main.c(2013): warning:  #513-D: a value of type "void (*)(ble_rus_t *, char *)" cannot be assigned to an entity of type "ble_rus_setup_handler_t"
+..\Src\main.c(2015): warning:  #513-D: a value of type "void (*)(ble_rus_t *, char *)" cannot be assigned to an entity of type "ble_rus_setup_handler_t"
   		rus_init.serial_number_write_handler								= serial_number_write_handler;
-..\Src\main.c(2836): warning:  #144-D: a value of type "void (*)(ble_evt_t *, void *)" cannot be used to initialize an entity of type "nrf_sdh_ble_evt_handler_t"
+..\Src\main.c(2838): warning:  #144-D: a value of type "void (*)(ble_evt_t *, void *)" cannot be used to initialize an entity of type "nrf_sdh_ble_evt_handler_t"
       NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
-..\Src\main.c(3516): warning:  #550-D: variable "tempo"  was set but never used
+..\Src\main.c(2966): warning:  #513-D: a value of type "volatile ble_advdata_manuf_data_t *" cannot be assigned to an entity of type "ble_advdata_manuf_data_t *"
+  		init.advdata.p_manuf_specific_data 		= &hr_adv_manuf_data;
+..\Src\main.c(3518): warning:  #550-D: variable "tempo"  was set but never used
   		uint8_t tempo=0;
-..\Src\main.c(3521): warning:  #177-D: variable "statusLIS2DW12"  was declared but never referenced
+..\Src\main.c(3523): warning:  #177-D: variable "statusLIS2DW12"  was declared but never referenced
   		lis2dw12_status_t statusLIS2DW12;
-..\Src\main.c(3870): warning:  #1-D: last line of file ends without a newline
+..\Src\main.c(3529): warning:  #177-D: variable "contador"  was declared but never referenced
+  		uint16_t contador=0;
+..\Src\main.c(3877): warning:  #1-D: last line of file ends without a newline
   }
-..\Src\main.c: 7 warnings, 0 errors
+..\Src\main.c: 9 warnings, 0 errors
 linking...
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol pwr_mgmt_data2$$Base (referred from nrf_pwr_mgmt.o). Unused section has been removed.
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol pwr_mgmt_data2$$Limit (referred from nrf_pwr_mgmt.o). Unused section has been removed.
@@ -54,10 +58,10 @@ linking...
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol sdh_state_observers1$$Limit (referred from nrf_sdh.o). Unused section has been removed.
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol sdh_ant_observers0$$Base (referred from nrf_sdh_ant.o). Unused section has been removed.
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol sdh_ant_observers0$$Limit (referred from nrf_sdh_ant.o). Unused section has been removed.
-Program Size: Code=131792 RO-data=21048 RW-data=816 ZI-data=37536  
+Program Size: Code=131744 RO-data=21064 RW-data=816 ZI-data=37536  
 Finished: 0 information, 10 warning and 0 error messages.
 FromELF: creating hex file...
-".\_build\nrf52832_xxaa.axf" - 0 Error(s), 17 Warning(s).
+".\_build\nrf52832_xxaa.axf" - 0 Error(s), 19 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -86,8 +90,8 @@ Package Vendor: NordicSemiconductor
 
    * Component: NordicSemiconductor::Device:Startup:8.29.0
       Source file:   Device\Source\arm\arm_startup_nrf52.s
-      Include file:  Device\Include\system_nrf52.h
       Source file:   Device\Source\system_nrf52.c
+      Include file:  Device\Include\system_nrf52.h
       Include file:  Device\Include\system_nrf.h
 
    * Component: NordicSemiconductor::Device:StartupConfig:8.29.0

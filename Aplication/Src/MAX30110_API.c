@@ -609,6 +609,7 @@ MAX30110_retorno_t MAX30110_configura ( MAX30110_estruturaConfiguracao_t* config
 
 	MAX30110_ASSERT( MAX30110_ASSERT_CORRENTE_LED( configuracao->correnteLed1 ) );
 	MAX30110_ASSERT( MAX30110_ASSERT_CORRENTE_LED( configuracao->correnteLed2 ) );
+	MAX30110_ASSERT( MAX30110_ASSERT_CORRENTE_LED( configuracao->correnteProximidade ) );
 	MAX30110_ASSERT( MAX30110_ASSERT_ESCALA_ADC( configuracao->escalaAdc ) );
 	MAX30110_ASSERT( MAX30110_ASSERT_TEMPO_INTEGRACAO( configuracao->tempoIntegracao ) );
 	MAX30110_ASSERT( MAX30110_ASSERT_TEMPO_ESTABILIZACAO( configuracao->tempoEstabilizacaoLed ) );
@@ -644,17 +645,6 @@ MAX30110_retorno_t MAX30110_configura ( MAX30110_estruturaConfiguracao_t* config
 
 	}while( tentativas > 0 );
 
-/*	memset(configurationRegisters.systemControl.vector, 0, sizeof(MAX30110_systemControlUnion_t));
-
-	configurationRegisters.systemControl.data.reset = MAX30110_SYS_CONTROL_RESET_ON;
-
-	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_SYSTEM_CONTROL, configurationRegisters.systemControl.vector, sizeof(MAX30110_systemControlUnion_t) ) != MAX30110_SUCESSO )
-		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
-
-	
-	DELAYMS(10);
-		
-*/	
 	memset(configurationRegisters.ppgConfiguration.vector, 0, sizeof(MAX30110_ppgConfigurationUnion_t));
 
 	if( configuracao->escalaAdc == MAX30110_ESCALA_ADC_6UA ) configurationRegisters.ppgConfiguration.data.adcRange = MAX30110_CFG_ADC_RANGE_6US;
@@ -732,7 +722,16 @@ MAX30110_retorno_t MAX30110_configura ( MAX30110_estruturaConfiguracao_t* config
 
 	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_LEDS_PA, configurationRegisters.ledPeakAmplitude.vector, sizeof(MAX30110_ledPeakAmplitudeUnion_t) ) != MAX30110_SUCESSO )
 		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
-		
+	
+	
+//	uint8_t correnteProximidade = MAX30110_CONVERT_CURRENT_TO_LED_PEAK_50MA(configuracao->correnteProximidade);
+	
+//	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_PILOT_PA,&correnteProximidade , 1 ) != MAX30110_SUCESSO )
+//		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
+	
+	
+	
+	
 	
 	
 	
@@ -772,25 +771,6 @@ MAX30110_retorno_t MAX30110_configura ( MAX30110_estruturaConfiguracao_t* config
 	
 	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_FIFO_DATA_CONTROL_REGISTERS, configurationRegisters.fifoDataControl.vector, sizeof(MAX30110_fifoDataControlUnion_t) ) != MAX30110_SUCESSO )
 		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
-	
-	
-//	uint8_t vetor[2]={0x7F, 0x00};
-//	if( MAX30110_escreveRegistroAguardaTermino( 0x08, vetor, 1 ) != MAX30110_SUCESSO )
-//		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
-	
-	
-	
-//		vetor[0]=0x03;
-//		vetor[1]=0x03;
-//		if( MAX30110_escreveRegistroAguardaTermino( MAX30110_LEDS_PA, vetor, 2)  != MAX30110_SUCESSO )
-//			return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
-	
-//		vetor[0]=0x0F;
-		
-//		if( MAX30110_escreveRegistroAguardaTermino( MAX30110_LED_RANGE, vetor, 1)  != MAX30110_SUCESSO )
-//			return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
-	
-
 
 	memset(configurationRegisters.systemControl.vector, 0, sizeof(MAX30110_systemControlUnion_t));
 
@@ -849,6 +829,11 @@ MAX30110_retorno_t MAX30110_configura ( MAX30110_estruturaConfiguracao_t* config
 		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
 	
 	
+	
+	
+//	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_PROX_INTERRUPT_THRESHOULD, &configuracao->limiteInterrupcaoProximidade, 1 ) != MAX30110_SUCESSO )
+//		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
+
 	return MAX30110_SUCESSO;
 
 }
@@ -1073,6 +1058,15 @@ void ControlLoop( uint32_t ppg, uint16_t *pwr, uint8_t *gain,g4_PPGControlLoopCo
 				SetLedPower(pwrNew);
 				NRF_LOG_INFO("Power LED: %d",pwrNew);
 		}
+}
+
+MAX30110_retorno_t MAX30110_verifica_interrupcao (uint8_t * p_interrupcao){
+	
+		if( MAX30110_leRegistroAguardaTermino( MAX30110_INTERRUPT_STATUS, p_interrupcao, 1 ) != MAX30110_SUCESSO )
+				return MAX30110_FALHOU_ERRO_LEITURA_SPI;
+
+		return MAX30110_SUCESSO;		
+		
 }
 
 /************************************************************************************************************/

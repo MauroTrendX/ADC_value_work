@@ -154,6 +154,8 @@
 .\_build\main.o: ..\Inc\ble_rtcs.h
 .\_build\main.o: ..\Inc\ble_uds.h
 .\_build\main.o: ..\Inc\buffer_services.h
+.\_build\main.o: ..\Inc\armazenamento_treino.h
+.\_build\main.o: ..\..\components\libraries\util\app_util_bds.h
 .\_build\main.o: ..\..\integration\nrfx\legacy\nrf_drv_wdt.h
 .\_build\main.o: ..\..\modules\nrfx\drivers\include\nrfx_wdt.h
 .\_build\main.o: ..\..\modules\nrfx\hal/nrf_wdt.h
