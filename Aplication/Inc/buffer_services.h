@@ -857,35 +857,35 @@ typedef struct{
 /******************************************************************************/
 /******************************************************************************/
 uint8_t get_SPIVI_zone1_percentage_threshold(void);
-void set_SPIVI_zone1_percentage_threshold(uint8_t);
+void set_SPIVI_zone1_percentage_threshold(uint8_t value);
 
 uint8_t get_SPIVI_zone2_percentage_threshold(void);
-void set_SPIVI_zone2_percentage_threshold(uint8_t);
+void set_SPIVI_zone2_percentage_threshold(uint8_t value);
 
 uint8_t get_SPIVI_zone3_percentage_threshold(void);
-void set_SPIVI_zone3_percentage_threshold(uint8_t);
+void set_SPIVI_zone3_percentage_threshold(uint8_t value);
 
 uint8_t get_SPIVI_zone4_percentage_threshold(void);
-void set_SPIVI_zone4_percentage_threshold(uint8_t);
+void set_SPIVI_zone4_percentage_threshold(uint8_t value);
 
 uint8_t get_SPIVI_zone5_percentage_threshold(void);
-void set_SPIVI_zone5_percentage_threshold(uint8_t);
+void set_SPIVI_zone5_percentage_threshold(uint8_t value);
 
 /******************************************************************************/
 uint8_t get_rhr_zone1_percentage_threshold(void);
-void set_rhr_zone1_percentage_threshold(uint8_t);
+void set_rhr_zone1_percentage_threshold(uint8_t value);
 
 uint8_t get_rhr_zone2_percentage_threshold(void);
-void set_rhr_zone2_percentage_threshold(uint8_t);
+void set_rhr_zone2_percentage_threshold(uint8_t value);
 
 uint8_t get_rhr_zone3_percentage_threshold(void);
-void set_rhr_zone3_percentage_threshold(uint8_t);
+void set_rhr_zone3_percentage_threshold(uint8_t value);
 
 uint8_t get_rhr_zone4_percentage_threshold(void);
-void set_rhr_zone4_percentage_threshold(uint8_t);
+void set_rhr_zone4_percentage_threshold(uint8_t value);
 
 uint8_t get_rhr_zone5_percentage_threshold(void);
-void set_rhr_zone5_percentage_threshold(uint8_t);
+void set_rhr_zone5_percentage_threshold(uint8_t value);
 /******************************************************************************/
 //uint8_t max_hr_get(void);
 

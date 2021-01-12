@@ -6,6 +6,7 @@
 #include <string.h>
 #include "app_error.h"
 #include "nrf_log.h"
+#include "armazenamento_treino.h"
 
 static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
 /******************************************************************************/

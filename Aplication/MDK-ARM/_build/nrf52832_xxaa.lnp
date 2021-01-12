@@ -12,6 +12,7 @@
 ".\_build\ble_rus.o"
 ".\_build\ble_uds.o"
 ".\_build\buffer_services.o"
+".\_build\reamostragem.o"
 ".\_build\boards.o"
 ".\_build\bsp.o"
 ".\_build\bsp_btn_ble.o"
