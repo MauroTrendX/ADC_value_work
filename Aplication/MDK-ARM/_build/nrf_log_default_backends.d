@@ -45,4 +45,3 @@
 .\_build\nrf_log_default_backends.o: ..\..\components\libraries\log\nrf_log_instance.h
 .\_build\nrf_log_default_backends.o: ..\..\components\libraries\experimental_section_vars\nrf_section.h
 .\_build\nrf_log_default_backends.o: ..\..\components\libraries\log\src\nrf_log_internal.h
-.\_build\nrf_log_default_backends.o: ..\..\components\libraries\log\nrf_log_backend_uart.h

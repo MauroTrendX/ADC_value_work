@@ -656,6 +656,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\buffer_services.c</FilePath>
             </File>
+            <File>
+              <FileName>reamostragem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\reamostragem.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -8332,6 +8337,11 @@
               <FileName>buffer_services.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\buffer_services.c</FilePath>
+            </File>
+            <File>
+              <FileName>reamostragem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\reamostragem.c</FilePath>
             </File>
           </Files>
         </Group>

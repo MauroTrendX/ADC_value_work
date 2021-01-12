@@ -723,17 +723,10 @@ MAX30110_retorno_t MAX30110_configura ( MAX30110_estruturaConfiguracao_t* config
 	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_LEDS_PA, configurationRegisters.ledPeakAmplitude.vector, sizeof(MAX30110_ledPeakAmplitudeUnion_t) ) != MAX30110_SUCESSO )
 		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
 	
+	uint8_t correnteProximidade = MAX30110_CONVERT_CURRENT_TO_LED_PEAK_50MA(configuracao->correnteProximidade);
 	
-//	uint8_t correnteProximidade = MAX30110_CONVERT_CURRENT_TO_LED_PEAK_50MA(configuracao->correnteProximidade);
-	
-//	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_PILOT_PA,&correnteProximidade , 1 ) != MAX30110_SUCESSO )
-//		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
-	
-	
-	
-	
-	
-	
+	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_PILOT_PA,&correnteProximidade , 1 ) != MAX30110_SUCESSO )
+		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
 	
 	memset(configurationRegisters.fifoDataControl.vector, 0, sizeof(MAX30110_fifoDataControlUnion_t));
 
@@ -828,11 +821,8 @@ MAX30110_retorno_t MAX30110_configura ( MAX30110_estruturaConfiguracao_t* config
 	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_INTERRUPT_ENABLE, configurationRegisters.interruptEnableRegisters.vector, sizeof(MAX30110_interruptEnableRegistersUnion_t) ) != MAX30110_SUCESSO )
 		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
 	
-	
-	
-	
-//	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_PROX_INTERRUPT_THRESHOULD, &configuracao->limiteInterrupcaoProximidade, 1 ) != MAX30110_SUCESSO )
-//		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
+	if( MAX30110_escreveRegistroAguardaTermino( MAX30110_PROX_INTERRUPT_THRESHOULD, &configuracao->limiteInterrupcaoProximidade, 1 ) != MAX30110_SUCESSO )
+		return MAX30110_FALHOU_ERRO_ESCRITA_SPI;
 
 	return MAX30110_SUCESSO;
 
@@ -1033,15 +1023,15 @@ void ControlLoop( uint32_t ppg, uint16_t *pwr, uint8_t *gain,g4_PPGControlLoopCo
 		if(trigLoop){
 				if (ppg > thrHigh) 
     		{
-			  		pwrNew >>= 1;   /* /2 */
-//						pwrNew=pwrNew/1.7;
+//			  		pwrNew >>= 1;   /* /2 */
+						pwrNew=pwrNew/1.5;
 
 				}
 
 				else if (ppg < thrLow) 
     		{
-						pwrNew <<= 1;   /* x2 */
-//						pwrNew=pwrNew*1.7;
+//						pwrNew <<= 1;   /* x2 */
+						pwrNew=pwrNew*1.5;
 				}
 		
 				if(pwrNew>70)

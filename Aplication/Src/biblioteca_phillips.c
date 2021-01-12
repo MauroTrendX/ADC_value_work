@@ -38,9 +38,10 @@
 		FX_SINT08 adcGain = 3; // gain 0=gain 1, 1=gain 2, 2=gain4, 3=gain8
 		FX_SINT08 bodyPosition = V_BODYPOSITION_LEFT;
 
+		uint8_t contador_qualidade=0;
+		
 void init_biblioteca_phillips(void){
 
-		bool HR_enabled = true;
 		/* VERSION INFO ************************************************* */
 		FX_UINT08 versionInfo[20]; // declaration used in general
 		FX_UINT16 versionSize = sizeof(versionInfo);
@@ -235,7 +236,9 @@ void run_biblioteca_phillips(dadosBbPPG amostrasPPG, dadosBbACC amostrasACC, uin
 		data[4] = 4; // Q(uality), set fixed to 4
 		data[5] = bodyPosition; // fill in sensor wrist position
 		data[6] = 0x7F; // SF, fixed to 0xFF for 2 PGG samples
-		data[7] = ledPower; // 
+//		data[7] = ledPower; 
+		data[7] = sControlLoopParams.ledPower;
+
 		data[8] = adcGain; // 
 								
 		data[9]	 = amostrasPPG.amostra1.dadosPPG.PPGlsb; 				//lsb_ppg
@@ -264,8 +267,8 @@ void run_biblioteca_phillips(dadosBbPPG amostrasPPG, dadosBbACC amostrasACC, uin
 				FX_UINT16 metricDataSize = sizeof(metricData);
 				status = FXI_GetMetric( pFxInst, metrics[k], metricData, &metricDataSize );
 
-				if(metricData[0]==0x22){
-						if(metricData[4]>1)
+				if(metricData[0]==FXI_METRIC_ID_SKINPROXIMITY){
+						if(metricData[4]>1){
 								if(metricData[5]==0){
 										*contact_detected=true;
 								}else{
@@ -273,23 +276,28 @@ void run_biblioteca_phillips(dadosBbPPG amostrasPPG, dadosBbACC amostrasACC, uin
 										if(metricData[3]>40)
 											reboot_biblioteca_phillips();
 								}
-				}			
-				if(metricData[0]==0x20){
-						if(metricData[4]>1){
-								*batimentos=metricData[5];
-						trigLoop=false;
 						}
-//						NRF_LOG_INFO("ID: %x  Index: %d Quality: %x Value: %d status: %d",metricData[0], metricData[3], metricData[4], metricData[5],status);	
+				}			
+				if(metricData[0]==FXI_METRIC_ID_HEARTRATE){
+						if(metricData[4]>0){
+								*batimentos=metricData[5];
+								contador_qualidade = 0;
+								trigLoop=false;
+						}else
+								contador_qualidade++;
 						
 				}else
-							trigLoop=true;
-	
+						trigLoop=true;
+				
 				ControlLoop((uint32_t)amostrasPPG.amostra1.vetor[0], &sControlLoopParams.ledPower, &sControlLoopParams.adcGain,sControlLoopParams);
 
 				NRF_LOG_INFO("ID: %x  Index: %d Quality: %x Value: %d status: %d",metricData[0], metricData[3], metricData[4], metricData[5],status);	
 
 		}
-		 
+		
+		if(contador_qualidade>30)
+				reboot_biblioteca_phillips();
+		
 		return;
 }
 
@@ -300,7 +308,7 @@ void terminate_biblioteca_phillips(void){
 }
 
 void reboot_biblioteca_phillips(void){
-	
+		contador_qualidade = 0;
 		terminate_biblioteca_phillips();
 		init_biblioteca_phillips();
 	
