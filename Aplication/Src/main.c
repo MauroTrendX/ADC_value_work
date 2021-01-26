@@ -107,6 +107,8 @@
 #include "ble_uds.h"
 #include "buffer_services.h"
 
+#include "armazenamento_treino.h"
+
 #define WDT_ATIVO
 
 #ifdef WDT_ATIVO
@@ -114,7 +116,7 @@
 #include "nrf_drv_clock.h"
 #endif
 
-//#define MYBEAT_V1 
+//#define MYBEAT_V1
 
 #ifdef MYBEAT_V1
 
@@ -129,7 +131,7 @@
 #define MANUFACTURER_NAME                   "Trendx"    							              /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                    300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 
-#define FIRMWARE_VERSION 										"1.0.0"
+#define FIRMWARE_VERSION 										"1.0.9"
 
 #define APP_ADV_DURATION                    18000                                   /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
 
@@ -190,11 +192,6 @@ static ant_hrm_measurement_t  m_ant_hrm_measurement;
 /** @snippet [ANT HRM TX Instance] */
 void ant_hrm_evt_handler(ant_hrm_profile_t * p_profile, ant_hrm_evt_t event);
 
-//HRM_SENS_CHANNEL_CONFIG_DEF(m_ant_hrm,
-//                            HRM_CHANNEL_NUM,
-//                            CHAN_ID_TRANS_TYPE,
-//                            CHAN_ID_DEV_NUM,
-//                            ANTPLUS_NETWORK_NUM);
 HRM_SENS_PROFILE_CONFIG_DEF(m_ant_hrm,
                             true,
                             ANT_HRM_PAGE_0,
@@ -329,8 +326,6 @@ volatile bool flagEstadoLed = true;
 
 static uint8_t whoamI, rst;
 
-//static nrf_saadc_value_t     m_buffer_pool[2][SAMPLES_IN_BUFFER];
-
 //variaveis  utilizadas na gestão da bateria e carregamento USB
 static uint8_t percent_batt=100;
 bool avisoCarregadorUSB=false; 
@@ -348,8 +343,6 @@ NRF_BLE_QWR_DEF(m_qwr);                                             /**< Context
 BLE_ADVERTISING_DEF(m_advertising);                                 /**< Advertising module instance. */
 APP_TIMER_DEF(m_battery_timer_id);                                  /**< Battery timer. */
 APP_TIMER_DEF(m_heart_rate_timer_id);                               /**< Heart rate measurement timer. */
-//APP_TIMER_DEF(m_rr_interval_timer_id);                            /**< RR interval timer. */
-//APP_TIMER_DEF(m_sensor_contact_timer_id);                         /**< Sensor contact detected timer. */
 APP_TIMER_DEF(m_biblioteca_phillips_id);                           	/**< Biblioteca Phillips timer. */
 APP_TIMER_DEF(m_adv_update);                           							/**< update adv data */
 APP_TIMER_DEF(m_tick_timer);                       								  /**< Timer used to update cumulative operating time. */
@@ -364,23 +357,10 @@ BLE_RTCS_DEF(m_rtcs);                                               /**< RAE tre
 static uint16_t m_conn_handle         = BLE_CONN_HANDLE_INVALID;       /**< Handle of the current connection. */
 //static bool     m_rr_interval_enabled = false;                       /**< Flag for enabling and disabling the registration of new RR interval measurements (the purpose of disabling this is just to test sending HRM without RR interval data. */
 
-//static sensorsim_cfg_t   m_battery_sim_cfg;                         /**< Battery Level sensor simulator configuration. */
-//static sensorsim_state_t m_battery_sim_state;                       /**< Battery Level sensor simulator state. */
-//static sensorsim_cfg_t   m_heart_rate_sim_cfg;                      /**< Heart Rate sensor simulator configuration. */
-//static sensorsim_state_t m_heart_rate_sim_state;                    /**< Heart Rate sensor simulator state. */
-//static sensorsim_cfg_t   m_rr_interval_sim_cfg;                     /**< RR Interval sensor simulator configuration. */
-//static sensorsim_state_t m_rr_interval_sim_state;                   /**< RR Interval sensor simulator state. */
-
 static ble_uuid_t m_adv_uuids[] =                                   /**< Universally unique service identifiers. */
 {
-    {BLE_UUID_HEART_RATE_SERVICE,           BLE_UUID_TYPE_BLE}/*,
-    {BLE_UUID_BATTERY_SERVICE,              BLE_UUID_TYPE_BLE},
-    {BLE_UUID_DEVICE_INFORMATION_SERVICE,   BLE_UUID_TYPE_BLE}*/
+    {BLE_UUID_HEART_RATE_SERVICE,           BLE_UUID_TYPE_BLE}
 };
-
-
-
-// Interrupt-driven events related to ADC sampling
 
 volatile bool flag_timer_bb_phillips=false;
 
@@ -654,7 +634,6 @@ void MAX30110_sleep(void){
 }
 void lis2dw12_sleep(void){
 		lis2dw12_data_rate_set(&dev_ctx, LIS2DW12_XL_ODR_OFF);
-//		lis2dw12_act_mode_set(&dev_ctx, LIS2DW12_DETECT_ACT_INACT);
 		nrf_delay_ms(5);
 }
 
@@ -689,38 +668,7 @@ void get_status_carregador (void){
 		}
 
 }
-/*
-bool dado_pronto_AFE=false; 
-bool dado_pronto_ACC=false;
 
-void irq_AFE_event(void)
-{
-    dado_pronto_AFE=true;
-}
-
-void irq_ACC_event(void)
-{
-    dado_pronto_ACC=true;
-}
-
-void config_interrupt(void)
-{		
-		ret_code_t err_code;
-	
-		nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(true);
-    in_config.pull = NRF_GPIO_PIN_NOPULL;
-	
-		err_code = nrf_drv_gpiote_in_init(AFE_IRQ, &in_config, irq_AFE_event);
-    APP_ERROR_CHECK(err_code);
-		nrf_drv_gpiote_in_event_enable(AFE_IRQ, true);
-
-		in_config.sense=NRF_GPIOTE_POLARITY_LOTOHI;
-		err_code = nrf_drv_gpiote_in_init(ACC_IRQ, &in_config, irq_ACC_event);
-    APP_ERROR_CHECK(err_code);
-		nrf_drv_gpiote_in_event_enable(ACC_IRQ, true);
-
-}
-*/
 void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
 {
 
@@ -814,7 +762,6 @@ uint8_t get_percent_batt(nrf_saadc_value_t sample){
 		
 		int8_t temp=(sample-455)*100/120;
 		
-//		percent_batt=temp;
 		if(temp>90){
 				avisoBateriaFraca=false;
 				return percent_batt=100;}
@@ -884,7 +831,6 @@ void simu_hr(void){
 static void battery_level_update(void)
 {
     ret_code_t err_code;
-//    uint8_t  battery_level=58;
 		nrf_saadc_value_t sample;
 		
 #ifdef SIMULA_BPM	
@@ -893,9 +839,6 @@ static void battery_level_update(void)
 
 	
 		nrf_drv_saadc_sample_convert(0, &sample);
-//		NRF_LOG_INFO("Sample ADC: %d", sample);
-//		battery_level = 60;
-		//battery_level = (uint8_t)sensorsim_measure(&m_battery_sim_state, &m_battery_sim_cfg);
 	
     err_code = ble_bas_battery_level_update(&m_bas, get_percent_batt(sample), BLE_CONN_HANDLE_ALL);
     if ((err_code != NRF_SUCCESS) &&
@@ -937,11 +880,8 @@ static void heart_rate_meas_timeout_handler(void * p_context)
 {		
     static uint32_t cnt = 0;
     ret_code_t      err_code;
-//    uint16_t        heart_rate;
 		flagEstadoLed=!flagEstadoLed;
     UNUSED_PARAMETER(p_context);
-
-//    heart_rate = (uint16_t)sensorsim_measure(&m_heart_rate_sim_state, &m_heart_rate_sim_cfg);
 
     cnt++;
 		#ifdef SIMULA_BPM
@@ -969,69 +909,8 @@ static void heart_rate_meas_timeout_handler(void * p_context)
 		#endif
 		
 		ble_hrs_sensor_contact_detected_update(&m_hrs, sensor_contact_detected);
-		
-
-		
-		
-		
-    // Disable RR Interval recording every third heart rate measurement.
-    // NOTE: An application will normally not do this. It is done here just for testing generation
-    // of messages without RR Interval measurements.
-//    m_rr_interval_enabled = ((cnt % 3) != 0);
-		
+				
 }
-
-
-/**@brief Function for handling the RR interval timer timeout.
- *
- * @details This function will be called each time the RR interval timer expires.
- *
- * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
- *                       app_start_timer() call to the timeout handler.
- */
-/*static void rr_interval_timeout_handler(void * p_context)
-{
-    UNUSED_PARAMETER(p_context);
-    if (m_rr_interval_enabled)
-    {
-        uint16_t rr_interval;
-        rr_interval = (uint16_t)sensorsim_measure(&m_rr_interval_sim_state,
-                                                  &m_rr_interval_sim_cfg);
-        ble_hrs_rr_interval_add(&m_hrs, rr_interval);
-        rr_interval = (uint16_t)sensorsim_measure(&m_rr_interval_sim_state,
-                                                  &m_rr_interval_sim_cfg);
-        ble_hrs_rr_interval_add(&m_hrs, rr_interval);
-        rr_interval = (uint16_t)sensorsim_measure(&m_rr_interval_sim_state,
-                                                  &m_rr_interval_sim_cfg);
-        ble_hrs_rr_interval_add(&m_hrs, rr_interval);
-        rr_interval = (uint16_t)sensorsim_measure(&m_rr_interval_sim_state,
-                                                  &m_rr_interval_sim_cfg);
-        ble_hrs_rr_interval_add(&m_hrs, rr_interval);
-        rr_interval = (uint16_t)sensorsim_measure(&m_rr_interval_sim_state,
-                                                  &m_rr_interval_sim_cfg);
-        ble_hrs_rr_interval_add(&m_hrs, rr_interval);
-        rr_interval = (uint16_t)sensorsim_measure(&m_rr_interval_sim_state,
-                                                  &m_rr_interval_sim_cfg);
-        ble_hrs_rr_interval_add(&m_hrs, rr_interval);
-    }
-}*/
-
-
-/**@brief Function for handling the Sensor Contact Detected timer timeout.
- *
- * @details This function will be called each time the Sensor Contact Detected timer expires.
- *
- * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
- *                       app_start_timer() call to the timeout handler.
- */
-
-/*static bool sensor_contact_detected = false;
-static void sensor_contact_detected_timeout_handler(void * p_context)
-{
-    
-    UNUSED_PARAMETER(p_context);
-    ble_hrs_sensor_contact_detected_update(&m_hrs, sensor_contact_detected);
-}*/
 
 /**@brief Function for handling the biblioteca phillips.
  *
@@ -1073,15 +952,6 @@ static void timers_init(void)
                                 APP_TIMER_MODE_REPEATED,
                                 heart_rate_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
-
-  /*  err_code = app_timer_create(&m_rr_interval_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                rr_interval_timeout_handler);
-    APP_ERROR_CHECK(err_code);
-    err_code = app_timer_create(&m_sensor_contact_timer_id,
-                                APP_TIMER_MODE_REPEATED,
-                                sensor_contact_detected_timeout_handler);
-    APP_ERROR_CHECK(err_code);*/
 		
 		err_code = app_timer_create(&m_biblioteca_phillips_id,
                                 APP_TIMER_MODE_REPEATED,
@@ -1178,9 +1048,6 @@ static void user_id_write_handler(ble_rus_t *p_rus, uint32_t new_state){
 
 /******************************************************************************/
 
-
-
-
 /******************************************************************************/
 
 //@Including FITNESS INDEX
@@ -1218,10 +1085,6 @@ static void first_name_write_handler(ble_uds_t *p_uds, uint64_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint64_t temp = new_state;// & 0xFF;
 
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
-
 /* Altera valor da idade na variável temporária */
 	temporary_buff.first_name.first_name_value = temp;
 /* Solicita para o programa a atualização da idade na memória NV */
@@ -1234,10 +1097,6 @@ static void first_name_write_handler(ble_uds_t *p_uds, uint64_t new_state){
 static void last_name_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
 
 /* Altera valor da idade na variável temporária */
 	temporary_buff.last_name.last_name_value = temp;
@@ -1253,10 +1112,6 @@ static void email_address_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state;// & 0xFF;
 
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
-
 /* Altera valor da idade na variável temporária */
 	temporary_buff.email_address.email_address_value = temp;
 
@@ -1269,10 +1124,6 @@ static void email_address_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 static void age_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = (uint8_t) new_state & 0xFF;
-
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
 
 /* Altera valor da idade na variável temporária */
 	temporary_buff.age.age_value = temp;
@@ -1287,10 +1138,6 @@ static void date_of_birth_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state & 0xFF;
 
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
-
 /* Altera valor da idade na variável temporária */
 	temporary_buff.date_of_birth.date_of_birth_value = temp;
 
@@ -1303,10 +1150,6 @@ static void date_of_birth_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 static void gender_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = (uint8_t) new_state; // & 0xFF;
-
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
 
 /* Altera valor da idade na variável temporária */
 	temporary_buff.gender.gender_value = temp;
@@ -1321,10 +1164,6 @@ static void weight_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint16_t temp = new_state ;//& 0xFF;
 
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
-
 /* Altera valor da idade na variável temporária */
 	temporary_buff.weight.weight_value = temp;
 
@@ -1336,10 +1175,6 @@ static void weight_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 static void height_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint16_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
 
 /* Altera valor da idade na variável temporária */
 	temporary_buff.height.height_value = temp;
@@ -1353,10 +1188,6 @@ static void VO2_max_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = (uint8_t) new_state;// & 0xFF;
 
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
-
 /* Altera valor da idade na variável temporária */
 	temporary_buff.VO2_max.VO2_max_value = temp;
 
@@ -1369,10 +1200,6 @@ static void heart_rate_max_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state;// & 0xFF;
 
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
-
 /* Altera valor da idade na variável temporária */
 	temporary_buff.heart_rate_max.heart_rate_max_value = temp;
 
@@ -1384,10 +1211,6 @@ static void heart_rate_max_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 static void resting_heart_rate_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = (uint8_t) new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
 
 /* Altera valor da idade na variável temporária */
 	temporary_buff.resting_heart_rate.resting_heart_rate_value = temp;
@@ -1417,10 +1240,6 @@ static void aerobic_threshold_write_handler(ble_uds_t *p_uds, uint32_t new_state
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = (uint8_t) new_state;// & 0xFF;
 
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
-
 /* Altera valor da idade na variável temporária */
 	temporary_buff.aerobic_threshold.aerobic_threshold_value = temp;
 
@@ -1432,10 +1251,6 @@ static void aerobic_threshold_write_handler(ble_uds_t *p_uds, uint32_t new_state
 static void anaerobic_threshold_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = (uint8_t) new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
 
 /* Altera valor da idade na variável temporária */
 	temporary_buff.anaerobic_threshold.anaerobic_threshold_value = temp;
@@ -1480,10 +1295,6 @@ static void date_of_threshold_assessment_write_handler(ble_uds_t *p_uds, uint32_
 static void waist_circumference_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-//	if( temp > 100 )
-//		return;
 
 /* Altera valor da idade na variável temporária */
 	temporary_buff.waist_circumference.waist_circumference_value = temp;
@@ -1662,16 +1473,8 @@ static void SPIVI_zone1_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state & 0xFF;
 
-/* Validação do minimo e máximo do SPIVI zona 1 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
-
 /* Altera valor do SPIVI zona 1 na variável temporária */
 	temporary_buff.hr_SPIVI_zone_limits.zone1_threshold = temp;
-//	temporary_buff.hr_SPIVI_zone_limits.zone2_threshold = get_SPIVI_zone2_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone3_threshold = get_SPIVI_zone3_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone4_threshold = get_SPIVI_zone4_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone5_threshold = get_SPIVI_zone5_percentage_threshold();
 
 /* Solicita para o programa a atualização do SPIVI zona 1 na memória NV */
 	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
@@ -1684,16 +1487,8 @@ static void SPIVI_zone2_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state & 0xFF;
 
-/* Validação do minimo e máximo do SPIVI zona 2 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
-
 /* Altera valor do SPIVI zona 2 na variável temporária */
 	temporary_buff.hr_SPIVI_zone_limits.zone2_threshold = temp;
-//	temporary_buff.hr_SPIVI_zone_limits.zone1_threshold = get_SPIVI_zone1_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone3_threshold = get_SPIVI_zone3_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone4_threshold = get_SPIVI_zone4_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone5_threshold = get_SPIVI_zone5_percentage_threshold();
 
 /* Solicita para o programa a atualização do SPIVI zona 2 na memória NV */
 	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
@@ -1706,16 +1501,8 @@ static void SPIVI_zone3_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state & 0xFF;
 
-/* Validação do minimo e máximo do SPIVI zona 3 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
-
 /* Altera valor do SPIVI zona 3 na variável temporária */
 	temporary_buff.hr_SPIVI_zone_limits.zone3_threshold = temp;
-//	temporary_buff.hr_SPIVI_zone_limits.zone1_threshold = get_SPIVI_zone1_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone2_threshold = get_SPIVI_zone2_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone4_threshold = get_SPIVI_zone4_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone5_threshold = get_SPIVI_zone5_percentage_threshold();
 
 /* Solicita para o programa a atualização do SPIVI zona 3 na memória NV */
 	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
@@ -1729,15 +1516,9 @@ static void SPIVI_zone4_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new
 	uint8_t temp = new_state & 0xFF;
 
 /* Validação do minimo e máximo do SPIVI zona 4 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
 
 /* Altera valor do SPIVI zona 4 na variável temporária */
 	temporary_buff.hr_SPIVI_zone_limits.zone4_threshold = temp;
-//	temporary_buff.hr_SPIVI_zone_limits.zone1_threshold = get_SPIVI_zone1_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone2_threshold = get_SPIVI_zone2_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone3_threshold = get_SPIVI_zone3_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone5_threshold = get_SPIVI_zone5_percentage_threshold();
 
 /* Solicita para o programa a atualização do SPIVI zona 4 na memória NV */
 	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
@@ -1751,15 +1532,9 @@ static void SPIVI_zone5_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new
 	uint8_t temp = new_state & 0xFF;
 
 /* Validação do minimo e máximo do SPIVI zona 5 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
 
 /* Altera valor do SPIVI zona 5 na variável temporária */
 	temporary_buff.hr_SPIVI_zone_limits.zone5_threshold = temp;
-//	temporary_buff.hr_SPIVI_zone_limits.zone1_threshold = get_SPIVI_zone1_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone2_threshold = get_SPIVI_zone2_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone3_threshold = get_SPIVI_zone3_percentage_threshold();
-//	temporary_buff.hr_SPIVI_zone_limits.zone4_threshold = get_SPIVI_zone4_percentage_threshold();
 
 /* Solicita para o programa a atualização do SPIVI zona 5 na memória NV */
 	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
@@ -1773,15 +1548,9 @@ static void rhr_zone1_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_s
 	uint8_t temp = new_state & 0xFF;
 
 /* Validação do minimo e máximo do HRH zona 1 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
 
 /* Altera valor do HRH zona 1 na variável temporária */
 	temporary_buff.hr_rhr_zone_limits.zone1_threshold = temp;
-//	temporary_buff.hr_rhr_zone_limits.zone2_threshold = get_rhr_zone2_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone3_threshold = get_rhr_zone3_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone4_threshold = get_rhr_zone4_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone5_threshold = get_rhr_zone5_percentage_threshold();
 
 /* Solicita para o programa a atualização do HRH zona 1 na memória NV */
 	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
@@ -1795,15 +1564,9 @@ static void rhr_zone2_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_s
 	uint8_t temp = new_state & 0xFF;
 
 /* Validação do minimo e máximo do HRH zona 2 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
 
 /* Altera valor do HRH zona 2 na variável temporária */
 	temporary_buff.hr_rhr_zone_limits.zone2_threshold = temp;
-//	temporary_buff.hr_rhr_zone_limits.zone1_threshold = get_rhr_zone1_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone3_threshold = get_rhr_zone3_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone4_threshold = get_rhr_zone4_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone5_threshold = get_rhr_zone5_percentage_threshold();
 
 /* Solicita para o programa a atualização do HRH zona 2 na memória NV */
 	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
@@ -1816,16 +1579,8 @@ static void rhr_zone3_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_s
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state & 0xFF;
 
-/* Validação do minimo e máximo do HRH zona 3 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
-
 /* Altera valor do HRH zona 3 na variável temporária */
 	temporary_buff.hr_rhr_zone_limits.zone3_threshold = temp;
-//	temporary_buff.hr_rhr_zone_limits.zone1_threshold = get_rhr_zone1_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone2_threshold = get_rhr_zone2_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone4_threshold = get_rhr_zone4_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone5_threshold = get_rhr_zone5_percentage_threshold();
 
 /* Solicita para o programa a atualização do HRH zona 3 na memória NV */
 	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
@@ -1838,16 +1593,8 @@ static void rhr_zone4_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_s
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state & 0xFF;
 
-/* Validação do minimo e máximo do HRH zona 4 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
-
 /* Altera valor do HRH zona 4 na variável temporária */
 	temporary_buff.hr_rhr_zone_limits.zone4_threshold = temp;
-//	temporary_buff.hr_rhr_zone_limits.zone1_threshold = get_rhr_zone1_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone2_threshold = get_rhr_zone2_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone3_threshold = get_rhr_zone3_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone5_threshold = get_rhr_zone5_percentage_threshold();
 
 /* Solicita para o programa a atualização do HRH zona 4 na memória NV */
 	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
@@ -1860,16 +1607,8 @@ static void rhr_zone5_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_s
 /* Conversão do valor de entrada para uint8_t */
 	uint8_t temp = new_state & 0xFF;
 
-/* Validação do minimo e máximo do HRH zona 5 que pode ser salva */
-//	if( temp < 50 || temp > 100 )
-//		return;
-
 /* Altera valor do HRH zona 5 na variável temporária */
 	temporary_buff.hr_rhr_zone_limits.zone5_threshold = temp;
-//	temporary_buff.hr_rhr_zone_limits.zone1_threshold = get_rhr_zone1_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone2_threshold = get_rhr_zone2_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone3_threshold = get_rhr_zone3_percentage_threshold();
-//	temporary_buff.hr_rhr_zone_limits.zone4_threshold = get_rhr_zone4_percentage_threshold();
 
 /* Solicita para o programa a atualização do HRH zona 5 na memória NV */
 	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
@@ -1957,8 +1696,6 @@ static void services_init(void)
 		
 		ble_srv_ascii_to_utf8(&dis_init.fw_rev_str, (char*)FIRMWARE_VERSION);
 
-//		temporary_buff.serial_number.serial_number_value = get_serial_number_metric();
-
 		dis_init.serial_num_str.length = (12);
 		dis_init.serial_num_str.p_str	= (uint8_t *) get_serial_number_metric();	
  
@@ -1967,11 +1704,8 @@ static void services_init(void)
     err_code = ble_dis_init(&dis_init);
     APP_ERROR_CHECK(err_code);
 
-
-
 //introduce RAE User Profile Service (ble_rus) here.
     memset(&uds_init, 0, sizeof(uds_init));
-
 
     uds_init.first_name_write_handler																				= first_name_write_handler;
     uds_init.last_name_write_handler																				= last_name_write_handler;
@@ -2007,7 +1741,6 @@ static void services_init(void)
     //introduce RAE User Profile Service (ble_rus) here.
     memset(&rus_init, 0, sizeof(rus_init));
 
-
 		rus_init.user_id_write_handler											= user_id_write_handler;      //@Including USER ID
 		rus_init.hr_zone_preference_calc_write_handler			= hr_zone_preference_calc_write_handler;      //@Including FITNESS INDEX
 		rus_init.serial_number_write_handler								= serial_number_write_handler;
@@ -2031,7 +1764,6 @@ static void services_init(void)
 
 		err_code = ble_rtcs_init(&m_rtcs, &rtcs_init);
 		APP_ERROR_CHECK(err_code);
-
 		
 		dfus_init.evt_handler = ble_dfu_evt_handler;
     err_code = ble_dfu_buttonless_init(&dfus_init);
@@ -2237,22 +1969,12 @@ void check_nv_update_request (void){
 				if( hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits == true ){
 						hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = false;
 
-/*				set_SPIVI_zone1_percentage_threshold( temporary_buff.hr_SPIVI_zone_limits.zone1_threshold );
-				set_SPIVI_zone2_percentage_threshold( temporary_buff.hr_SPIVI_zone_limits.zone2_threshold );
-				set_SPIVI_zone3_percentage_threshold( temporary_buff.hr_SPIVI_zone_limits.zone3_threshold );
-				set_SPIVI_zone4_percentage_threshold( temporary_buff.hr_SPIVI_zone_limits.zone4_threshold );
-				set_SPIVI_zone5_percentage_threshold( temporary_buff.hr_SPIVI_zone_limits.zone5_threshold );
-			*/}
+				}
 
 				if( hr_module_nv_buf_update_flags.hr_rhr_zone_limits == true ){
 						hr_module_nv_buf_update_flags.hr_rhr_zone_limits = false;
 
-/*				set_rhr_zone1_percentage_threshold( temporary_buff.hr_rhr_zone_limits.zone1_threshold );
-				set_rhr_zone2_percentage_threshold( temporary_buff.hr_rhr_zone_limits.zone2_threshold );
-				set_rhr_zone3_percentage_threshold( temporary_buff.hr_rhr_zone_limits.zone3_threshold );
-				set_rhr_zone4_percentage_threshold( temporary_buff.hr_rhr_zone_limits.zone4_threshold );
-				set_rhr_zone5_percentage_threshold( temporary_buff.hr_rhr_zone_limits.zone5_threshold );
-	*/		}
+				}
 
 				buff_save();
 	
@@ -2278,12 +2000,6 @@ static void application_timers_start(void)
 		
     err_code = app_timer_start(m_heart_rate_timer_id, HEART_RATE_MEAS_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
-
-//    err_code = app_timer_start(m_rr_interval_timer_id, RR_INTERVAL_INTERVAL, NULL);
-//    APP_ERROR_CHECK(err_code);
-
-//    err_code = app_timer_start(m_sensor_contact_timer_id, SENSOR_CONTACT_DETECTED_INTERVAL, NULL);
-//    APP_ERROR_CHECK(err_code);
 	
 		err_code = app_timer_start(m_biblioteca_phillips_id, APP_TIMER_TICKS(64), NULL);
     APP_ERROR_CHECK(err_code);
@@ -2376,12 +2092,6 @@ static void sleep_mybeat(void){
 	
 		nrf_gpio_cfg_input(SPI_MISO_PIN, NRF_GPIO_PIN_PULLUP);
 
-		
-	
-//    err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-//    APP_ERROR_CHECK(err_code);
-//		err_code=app_timer_stop(m_bsp_leds_tmr);
-
     // Prepare wakeup buttons.
     err_code = bsp_btn_ble_sleep_mode_prepare();
     APP_ERROR_CHECK(err_code);
@@ -2392,9 +2102,6 @@ static void sleep_mybeat(void){
 			
 }
 
-
-
-
 /**@brief Function for putting the chip into sleep mode.
  *
  * @note This function will not return.
@@ -2403,10 +2110,6 @@ static void sleep_mode_enter(void)
 {
 		solicitacaoDesligamento=true;
 	
-    //Disable SoftDevice. It is required to be able to write to GPREGRET2 register (SoftDevice API blocks it).
-    //GPREGRET2 register holds the information about skipping CRC check on next boot.
-//    err_code = nrf_sdh_disable_request();
-//    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -2453,16 +2156,13 @@ void reply_serial_number(char * value){
 		auth_reply.type = BLE_GATTS_AUTHORIZE_TYPE_READ;
 		auth_reply.params.read.update = 1;
 		auth_reply.params.read.offset = 0;
-//		auth_reply.params.read.len = 1;
 		auth_reply.params.read.gatt_status = BLE_GATT_STATUS_SUCCESS;	
 	
 		auth_reply.params.read.len = 12;
-			
-//		temp = value;
 
 		auth_reply.params.read.p_data = (uint8_t *) value;
 		sd_ble_gatts_rw_authorize_reply(m_conn_handle, &auth_reply);
-//		free(temp);
+
 }
 
 
@@ -2570,21 +2270,6 @@ static uint32_t rw_request(ble_evt_t * p_ble_evt){
 		hr_module_metric_info_t *metrics = get_metrics();
 		uint16_t handle = p_ble_evt->evt.gatts_evt.params.authorize_request.request.read.handle;
 	
-/*		if(handle == m_rus.year_of_birth_char_handles.value_handle)
-				reply(metrics->profile.year_of_birth);
-
-		if(handle == m_rus.month_of_birth_char_handles.value_handle)
-				reply((uint16_t)metrics->profile.month_of_birth);
-
-		if(handle == m_rus.day_of_birth_char_handles.value_handle)
-				reply((uint16_t)metrics->profile.day_of_birth);
-
-		if(handle == m_rus.handedness_char_handles.value_handle)
-				reply((uint16_t)metrics->profile.handedness);
-
-		if(handle == m_rus.body_position_char_handles.value_handle)
-				reply((uint16_t)metrics->body_position.body_position_value);
-*/
 		if(handle == m_rus.user_id_char_handles.value_handle)
 				reply((uint16_t)get_user_id());
 
@@ -2926,10 +2611,6 @@ static void advertising_init(void)
     ret_code_t             err_code;
     ble_advertising_init_t init;
 
-
-//		ble_advdata_manuf_data_t 		  adv_manuf_data;
-//		uint8_t 		                  adv_manuf_data_data[] = "MyBeat";
-	
     memset(&init, 0, sizeof(init));
 
     init.advdata.name_type               	= BLE_ADVDATA_FULL_NAME;
@@ -2941,8 +2622,6 @@ static void advertising_init(void)
     init.config.ble_adv_fast_enabled  		= true;
     init.config.ble_adv_fast_interval 		= APP_ADV_INTERVAL;
     init.config.ble_adv_fast_timeout  		= 0;
-
-	
 	
 		HR_advertising_data.user_id       = (uint8_t)get_user_id();
 		HR_advertising_data.sexo 		 		  = (uint8_t)get_gender_metric();
@@ -2957,8 +2636,7 @@ static void advertising_init(void)
 		HR_advertising_data.letra6        = ((uint8_t)(get_first_name_metric()>>16));//sexta Letra do nome - t
 		HR_advertising_data.idade         = (uint8_t)get_age_metric();
 		HR_advertising_data.peso          = (uint8_t)(get_weight_metric()/200);
-	
-		
+			
     init.evt_handler = on_adv_evt;
 		
 		init.advdata.p_manuf_specific_data 		= &hr_adv_manuf_data;
@@ -2983,22 +2661,11 @@ void HR_advdata_manuf_data_update(void * p_context)
 //		hr_module_metric_info_t *pointer = get_metrics();
 		
 	
-		pHR_adv_user_data->user_id       = (uint8_t)get_user_id();//((uint8_t)pointer->user_id.user_id_value);//((uint8_t)pointer->user_id.user_id_value);   //@Including USER ID
-		pHR_adv_user_data->sexo 		 		 = 0x00;//((uint8_t)pointer->gender.gender_value);//((uint8_t)pointer->gender.gender_value);//batt_level;//@Including battery_level (broadcasting)
-		pHR_adv_user_data->cor 		     	 = (uint8_t)get_age_metric();//get_color();//((uint8_t)pointer->age.age_value); 	//@Including Color, Perc and Name.
-		pHR_adv_user_data->hr        		 =  BPM;//((uint8_t)pointer->heart_rate.heart_rate_value);
-/*		pHR_adv_user_data->perc          = 0x00;//get_perc_hr_max();									//@Including Color, Perc and Name.
-		pHR_adv_user_data->letra1        = 0x00;//((uint8_t)((pointer->first_name.first_name_value)>>56));//((uint8_t)((pointer->first_name.first_name_value)>>56));//primeira Letra do nome - m 
-		pHR_adv_user_data->letra2        = 0x00;//((uint8_t)((pointer->first_name.first_name_value)>>48));//((uint8_t)((pointer->first_name.first_name_value)>>48));//segunda Letra do nome - y 
-		pHR_adv_user_data->letra3        = 0x00;//((uint8_t)((pointer->first_name.first_name_value)>>40));//((uint8_t)((pointer->first_name.first_name_value)>>40));//terceira Letra do nome - b 
-		pHR_adv_user_data->letra4        = 0x00;//((uint8_t)((pointer->first_name.first_name_value)>>32));//((uint8_t)((pointer->first_name.first_name_value)>>32));//quarta Letra do nome - e 
-		pHR_adv_user_data->letra5        = 0x00;//((uint8_t)((pointer->first_name.first_name_value)>>24));//((uint8_t)((pointer->first_name.first_name_value)>>24));//quinta Letra do nome -  a
-		pHR_adv_user_data->letra6        = 0x00;//((uint8_t)((pointer->first_name.first_name_value)>>16));//((uint8_t)((pointer->first_name.first_name_value)>>16));//sexta Letra do nome - t
-		pHR_adv_user_data->idade         = 0x00;//((uint8_t)pointer->age.age_value);//((uint8_t)pointer->age.age_value);//(uint16_t)(p->energy);   // kcal
-		pHR_adv_user_data->peso          = 0x00;//((uint8_t)pointer->weight.weight_value);//((uint8_t)((pointer->weight.weight_value)/200));//(uint16_t)(p->energy);   // kcal
-		pHR_adv_user_data->seconds       = 0x00;//seconds;//(p->seconds);
-		pHR_adv_user_data->trip          = 0x00;//(uint16_t)(p->cycle);
-*/	
+		pHR_adv_user_data->user_id       = (uint8_t)get_user_id();   //@Including USER ID
+		pHR_adv_user_data->sexo 		 		 = 0x00;//@Including battery_level (broadcasting)
+		pHR_adv_user_data->cor 		     	 = (uint8_t)get_age_metric();//@Including Color, Perc and Name.
+		pHR_adv_user_data->hr        		 =  BPM;
+	
 		memset(&advdata, 0, sizeof(advdata));
 
     advdata.name_type               = BLE_ADVDATA_FULL_NAME;
@@ -3026,8 +2693,6 @@ void HR_advdata_manuf_data_update(void * p_context)
 		ble_advdata_t advdata;
 		ret_code_t           err_code;
 		ble_advdata_manuf_data_t 		  adv_manuf_data;
-//		hr_module_metric_info_t *pointer = get_metrics();
-		
 	
 		pHR_adv_user_data->user_id       = (uint8_t)get_user_id();
 		pHR_adv_user_data->sexo 		 		 = (uint8_t)get_gender_metric();
@@ -3156,57 +2821,81 @@ void spi_event_handler(nrf_drv_spi_evt_t const * p_event,
 //#define RESAMPLE_1S
 
 #ifdef RESAMPLE_1S
-//dadosBbPPG bufferPPG;
 
-void resample_PPG (uint8_t * numeroAmostra,amostraPPG *dadosFila, dadosBbPPG *dadosPPG ){
-		uint8_t numAmosDispon = *numeroAmostra;
-		volatile uint8_t contadorFila =0;
+void resample_PPG_32Hz (uint8_t numeroAmostraEntrada, amostraPPG * dadosPPG_25Hz,dadosBbPPG * amostra32Hz ){
+		
+		amostraPPG dadosPPGresample[32];
+
+		float passo=0;
+		uint8_t temporario=0;
 	
-		volatile float coefAmos=0;
-		volatile float x=0;
-		if(numAmosDispon>=24){
-				coefAmos=(numAmosDispon*0.032258064);
-				x=coefAmos;
-				for(uint8_t i=0; i<16; i++){
-						if(i==0){
-								dadosPPG[i].amostra1.vetor[0]=dadosFila[0].vetor[0];
-								dadosPPG[i].amostra1.vetor[1]=dadosFila[0].vetor[1];
+		memset(&dadosPPGresample,0,sizeof(dadosPPGresample));
+		volatile uint8_t x25 = 0;
+		
+		passo=((float)numeroAmostraEntrada/((float)31.0));
+		dadosPPGresample[0].vetor[0] = dadosPPG_25Hz[0].vetor[0];
+		dadosPPGresample[0].vetor[1] = dadosPPG_25Hz[0].vetor[1];
+		
+		for(uint8_t x32=1;x32<32; x32++){
+				x25=(uint8_t)(passo*(float)x32);
+				dadosPPGresample[x32].vetor[0] = dadosPPG_25Hz[x25].vetor[0] + ((dadosPPG_25Hz[x25+1].vetor[0] - dadosPPG_25Hz[x25].vetor[0]) * ((passo*(float)x32) - (float)(x25)));
+				dadosPPGresample[x32].vetor[1] = dadosPPG_25Hz[x25].vetor[1] + ((dadosPPG_25Hz[x25+1].vetor[1] - dadosPPG_25Hz[x25].vetor[1]) * ((passo*(float)x32) - (float)(x25)));
+		}
+		
+		uint8_t u=0;
+		
+		for(uint8_t i=0; i<16; i++){
+				amostra32Hz[i].amostra1=dadosPPGresample[u];
+				u++;
+				amostra32Hz[i].amostra2=dadosPPGresample[u];
+				u++;
+		}
+		
+}
 
-								dadosPPG[i].amostra2.vetor[0]=(dadosFila[0].vetor[0]+(dadosFila[1].vetor[0]-dadosFila[1].vetor[0])*(coefAmos));
-								dadosPPG[i].amostra2.vetor[1]=(dadosFila[0].vetor[1]+(dadosFila[1].vetor[1]-dadosFila[1].vetor[1])*(coefAmos));
+void resample_ACC_128Hz (uint8_t numeroAmostraEntrada, amostraACC * dadosACC_100Hz,dadosBbACC * amostra128Hz ){
+		
+		amostraACC dadosACCresample[128];
 
-						}
-						else{
-								x+=coefAmos;
-								contadorFila=(uint8_t)x;
-							
-								dadosPPG[i].amostra1.vetor[0] = dadosFila[contadorFila].vetor[0]+(dadosFila[contadorFila+1].vetor[0]-dadosFila[contadorFila].vetor[0])*((x-contadorFila)/((contadorFila+1)-(contadorFila)));
-								dadosPPG[i].amostra1.vetor[1] = dadosFila[contadorFila].vetor[1]+(dadosFila[contadorFila+1].vetor[1]-dadosFila[contadorFila].vetor[1])*((x-contadorFila)/((contadorFila+1)-(contadorFila)));
-
-								x+=coefAmos;
-								contadorFila=(uint8_t)x;
-							
-								dadosPPG[i].amostra2.vetor[0] = dadosFila[contadorFila].vetor[0]+(dadosFila[contadorFila+1].vetor[0]-dadosFila[contadorFila].vetor[0])*((x-contadorFila)/((contadorFila+1)-(contadorFila)));
-								dadosPPG[i].amostra2.vetor[1] = dadosFila[contadorFila].vetor[1]+(dadosFila[contadorFila+1].vetor[1]-dadosFila[contadorFila].vetor[1])*((x-contadorFila)/((contadorFila+1)-(contadorFila)));		
-				
-						}
-				
-						*numeroAmostra=0;
-				}			
-				
-//				for(uint8_t i=0;i<25; i++){
-//						NRF_LOG_INFO("PPG_25Hz[%d]:%ld AMB_25HZ[%d]:%ld" ,i,dadosFila[i].vetor[0],i,dadosFila[i].vetor[1]);
-				
-//				}
-//				for(uint8_t i=0;i<16; i++){
-//						NRF_LOG_INFO("PPG_32Hz_1[%d]:%ld AMB_32Hz_1[%d]:%ld" ,i,dadosPPG[i].amostra1.vetor[0],i,dadosPPG[i].amostra1.vetor[1]);
-//						NRF_LOG_INFO("PPG_32Hz_2[%d]:%ld AMB_32Hz_2[%d]:%ld" ,i,dadosPPG[i].amostra2.vetor[0],i,dadosPPG[i].amostra2.vetor[1]);
-				
-//				}
+		float passo=0;
+		uint8_t temporario=0;
+	
+		memset(&dadosACCresample,0,sizeof(dadosACCresample));
+		volatile uint8_t x100 = 0;
+		
+		passo=((float)numeroAmostraEntrada-1.0/((float)127.0));
+		dadosACCresample[0].vetor[0] = dadosACC_100Hz[0].vetor[0];
+		dadosACCresample[0].vetor[1] = dadosACC_100Hz[0].vetor[1];
+		dadosACCresample[0].vetor[2] = dadosACC_100Hz[0].vetor[2];
+	
+		for(uint8_t x128=1;x128<128; x128++){
+				x100=(uint8_t)(passo*(float)x128);
+				dadosACCresample[x128].vetor[0] = dadosACC_100Hz[x100].vetor[0] + ((dadosACC_100Hz[x100+1].vetor[0] - dadosACC_100Hz[x100].vetor[0]) * ((passo*(float)x128) - (float)(x100)));
+				dadosACCresample[x128].vetor[1] = dadosACC_100Hz[x100].vetor[1] + ((dadosACC_100Hz[x100+1].vetor[1] - dadosACC_100Hz[x100].vetor[1]) * ((passo*(float)x128) - (float)(x100)));
+				dadosACCresample[x128].vetor[2] = dadosACC_100Hz[x100].vetor[2] + ((dadosACC_100Hz[x100+1].vetor[2] - dadosACC_100Hz[x100].vetor[2]) * ((passo*(float)x128) - (float)(x100)));
 
 		}
 		
-//		bufferPPG=*dadosPPG;
+		uint8_t u=0;
+		
+		for(uint8_t i=0; i<16; i++){
+				amostra128Hz[i].amostra1=dadosACCresample[u];
+				u++;
+				amostra128Hz[i].amostra2=dadosACCresample[u];
+				u++;
+				amostra128Hz[i].amostra3=dadosACCresample[u];
+				u++;
+				amostra128Hz[i].amostra4=dadosACCresample[u];
+				u++;
+				amostra128Hz[i].amostra5=dadosACCresample[u];
+				u++;
+				amostra128Hz[i].amostra6=dadosACCresample[u];
+				u++;
+				amostra128Hz[i].amostra7=dadosACCresample[u];
+				u++;
+				amostra128Hz[i].amostra8=dadosACCresample[u];
+				u++;
+		}
 		
 }
 
@@ -3219,10 +2908,14 @@ void resample_PPG (uint8_t numeroAmostra, dadosBbPPG *dadosPPG ){
 							
 				dadosPPG->amostra2=dadosPPG->amostra1;
 
-				dadosPPG->amostra1.vetor[0]=(bufferPPG.amostra1.vetor[0]+bufferPPG.amostra2.vetor[0]+dadosPPG->amostra2.vetor[0])/3;							//PPG
-				dadosPPG->amostra1.vetor[1]=(bufferPPG.amostra1.vetor[1]+bufferPPG.amostra2.vetor[1]+dadosPPG->amostra2.vetor[1])/3;							//AMBIENT
+				dadosPPG->amostra1.vetor[0]=(bufferPPG.amostra2.vetor[0]+dadosPPG->amostra2.vetor[0])/2;							//PPG
+				dadosPPG->amostra1.vetor[1]=(bufferPPG.amostra2.vetor[1]+dadosPPG->amostra2.vetor[1])/2;							//AMBIENT
 		}
 		
+//		NRF_LOG_INFO("amostra1:%ld",dadosPPG->amostra1.vetor[0]);
+		
+//		NRF_LOG_INFO("amostra2:%ld",dadosPPG->amostra2.vetor[0]);
+
 		bufferPPG=*dadosPPG;
 		
 }
@@ -3265,26 +2958,48 @@ g4_PPGControlLoopConfig_t    sControlLoopParams;
 
 #ifdef RESAMPLE_1S
 
-void amazenar_PPG(uint8_t * numeroAmostra, amostraPPG * filaDeAmostras){
-		volatile uint8_t indiceAmostra = *numeroAmostra;
-		MAX30110_dados24BitsFIFO_t dadosFila;
-		MAX30110_leFila( &dadosFila, 2 );
+amostraPPG amostraPPG25Hz[25];
+dadosBbPPG amostraPPG32Hz[16];
+uint8_t i25 =0;
+void amazenar_PPG_25Hz(uint8_t PPGlsb, uint8_t PPGmsb, uint8_t AMBlsb, uint8_t AMBmsb){
 
-//		NRF_LOG_INFO("2C:%ld,%ld",((dadosFila.dados.valorPPG)&0x7FFFF)>>3,dadosFila.dados.valorPPG);//,dadosFila.dados.valorAMB);
-		
-		filaDeAmostras[indiceAmostra].dadosPPG.PPGlsb=(uint8_t)(dadosFila.dados.valorPPG>>3); 					//LSB PPG
-		filaDeAmostras[indiceAmostra].dadosPPG.PPGmsb=(uint8_t)((dadosFila.dados.valorPPG&0x7FFFF)>>11); 					//MSB PPG 
-		filaDeAmostras[indiceAmostra].dadosPPG.ambientelsb=(uint8_t)(dadosFila.dados.valorAMB>>3); 		//LSB AMBIENT
-		filaDeAmostras[indiceAmostra].dadosPPG.ambientemsb=(uint8_t)((dadosFila.dados.valorAMB&0x7FFFF)>>11); 		//MSB AMBIENT					
-		
-		NRF_LOG_INFO("PPG_25Hz[%d]:%ld AMB_25HZ[%d]:%ld" ,indiceAmostra,filaDeAmostras[indiceAmostra].vetor[0],indiceAmostra,filaDeAmostras[indiceAmostra].vetor[1]);
+		amostraPPG25Hz[i25].dadosPPG.PPGlsb = PPGlsb;
+		amostraPPG25Hz[i25].dadosPPG.PPGmsb = PPGmsb;
+		amostraPPG25Hz[i25].dadosPPG.ambientelsb = AMBlsb;
+		amostraPPG25Hz[i25].dadosPPG.ambientemsb = AMBmsb;	
+		if (i25>=24){
+				resample_PPG_32Hz(i25, amostraPPG25Hz, amostraPPG32Hz);
+				i25=0;
+		}
+		i25++;
 
-	
-		indiceAmostra++;
-		*numeroAmostra=indiceAmostra;
-	
-		ControlLoop((uint32_t)(((dadosFila.dados.valorPPG)&0x7FFFF)>>3), &sControlLoopParams.ledPower, &sControlLoopParams.adcGain,sControlLoopParams);
-	
+}
+
+amostraACC amostraACC100Hz[100];
+dadosBbACC amostraACC128Hz[16];
+uint8_t i100 =0;
+
+void amazenar_ACC_100Hz(uint8_t ACCXlsb, uint8_t ACCXmsb, uint8_t ACCYlsb, uint8_t ACCYmsb, uint8_t ACCZlsb, uint8_t ACCZmsb){
+
+		amostraACC100Hz[i100].dadosACC.eixoXlsb = ACCXlsb;
+		amostraACC100Hz[i100].dadosACC.eixoXmsb = ACCXmsb;
+		amostraACC100Hz[i100].dadosACC.eixoYlsb = ACCYlsb;
+		amostraACC100Hz[i100].dadosACC.eixoYmsb = ACCYmsb;
+		amostraACC100Hz[i100].dadosACC.eixoZlsb = ACCZlsb;
+		amostraACC100Hz[i100].dadosACC.eixoZmsb = ACCZmsb;
+		if (i100>=100){
+				resample_ACC_128Hz(i100, amostraACC100Hz, amostraACC128Hz);
+				i100=0;
+		}
+		i100++;
+}
+
+
+void limpa_PPG_25Hz(void){
+		i25 = 0;
+		
+		memset(amotraPPG25Hz,0,sizeof(amotraPPG25Hz));
+
 }
 
 #else
@@ -3315,8 +3030,9 @@ void amazenar_PPG(uint8_t * numeroAmostra, dadosBbPPG * bufferPPG){
 				indiceAmostra=0;
 		}
 		*numeroAmostra=indiceAmostra;
-//		ControlLoop((uint32_t)(((dadosFila.dados.valorPPG)&0x7FFFF)>>3), &sControlLoopParams.ledPower, &sControlLoopParams.adcGain,sControlLoopParams);
 		
+//		amazenar_PPG_25Hz((dadosFila.dados.valorPPG>>3),((dadosFila.dados.valorPPG&0x7FFFF)>>11),(dadosFila.dados.valorAMB>>3),((dadosFila.dados.valorAMB&0x7FFFF)>>11));
+				
 }
 
 #endif
@@ -3474,10 +3190,7 @@ int main(void)
 		}
 		utils_setup();
 		measurement_setup();
-    profile_setup();
-		
-//		config_interrupt();		
-			
+    profile_setup();	
 				
 #ifdef WDT_ATIVO
 		//Configure WDT.
@@ -3493,8 +3206,6 @@ int main(void)
     dev_ctx.read_reg = platform_read;
     dev_ctx.handle = &spi_event_handler;
 		
-
-
 #ifdef RESAMPLE_1S
 
 		lis2dw12_all_sources_t all_source;
@@ -3518,15 +3229,12 @@ int main(void)
 		dadosBbACC	amostrasACC;
     uint8_t indiceAmostraPPG=0;
 		uint8_t indiceAmostraACC=0;
-		lis2dw12_status_t statusLIS2DW12;
 		
 #endif
-
-
 		
-
-		
-		
+		uint8_t interrupcoesAFE;
+						
+		uint16_t contador=0;
     // Enter main loop.
 		for (;;){
 				check_nv_update_request();
@@ -3535,11 +3243,10 @@ int main(void)
 				switch(OperationMode){
 						case RUNNING:{
 //								partI[0]=0;	
-								tempo=0;
+								//tempo=0;
 							 /*
 								* Read status register
   				      */
-
 
 #ifdef RESAMPLE_1S
 								if(!nrf_gpio_pin_read(AFE_IRQ)){
@@ -3550,10 +3257,16 @@ int main(void)
 #else
 								if(!nrf_gpio_pin_read(AFE_IRQ)){
 			
-										amazenar_PPG(&indiceAmostraPPG, &amostrasPPG);
-										
+								MAX30110_verifica_interrupcao(&interrupcoesAFE);
+
+									if (interrupcoesAFE&0x10) //proximidade
+												NRF_LOG_INFO("Interrupcao Proximidade");								
+
+									if (interrupcoesAFE&0x40) //amostra pronta
+												amazenar_PPG(&indiceAmostraPPG, &amostrasPPG);
+																			
 								}		
-							
+					
 #endif							
 						
 								if(nrf_gpio_pin_read(ACC_IRQ)){
@@ -3590,6 +3303,7 @@ int main(void)
 						
 										run_biblioteca_phillips(amostrasPPG, amostrasACC,&BPM,&sensor_contact_detected);
 								
+								
 										memset(&amostrasACC,0,sizeof(dadosBbACC));
 										memset(&amostrasPPG,0,sizeof(dadosBbPPG));
 										
@@ -3602,7 +3316,7 @@ int main(void)
 										flag_timer_bb_phillips=false;
 										indiceAmostraPPG=0;
 										indiceAmostraACC=0;
-									
+													
 #endif										
 								}			
 		
@@ -3621,7 +3335,6 @@ int main(void)
 								break;
 				}
 			
-			
 				if(solicitacaoDesligamento&&!nrf_gpio_pin_read(USB)){
 						set_led(LED4);
 						set_cor(vermelho);
@@ -3639,7 +3352,6 @@ int main(void)
 void spi_init(void)
 {
 		nrf_drv_spi_config_t spi_config = NRF_DRV_SPI_DEFAULT_CONFIG;
-//		ret_code_t err_code;
 		
 		spi_config.ss_pin   = NRF_DRV_SPI_PIN_NOT_USED;
     spi_config.miso_pin = SPI_MISO_PIN;
@@ -3654,7 +3366,6 @@ void spi_init(void)
  int32_t MAX30110_escritaSPI(uint8_t reg, uint8_t *bufp, uint16_t len)
 {         
     uint8_t tx_buf[] = {reg, 0x00, *bufp};
-//    uint16_t length = sizeof(tx_buf);
 
 		mLisPacketTransferComplete = false;
     APP_ERROR_CHECK(nrf_drv_spi_transfer(&mLisSpiInstance, tx_buf, 3, NULL, 0));
@@ -3666,7 +3377,8 @@ void spi_init(void)
 }
  
  int32_t MAX30110_leituraSPI(uint8_t reg, uint8_t *bufp, uint16_t len)
-{ 	uint8_t tx_buf[]={reg,0x80};
+{
+		uint8_t tx_buf[]={reg,0x80};
 		uint8_t rx_buf[3];
 		len+=2;
     mLisPacketTransferComplete = false;
@@ -3681,7 +3393,8 @@ void spi_init(void)
 }
 
  int32_t MAX30110_leituraFilaSPI(uint8_t reg, uint8_t *bufp, uint16_t len)
-{ 	uint8_t tx_buf[]={reg,0x80};
+{
+		uint8_t tx_buf[]={reg,0x80};
 		uint8_t rx_buf[len+2];
 		len+=2;
     mLisPacketTransferComplete = false;
@@ -3742,6 +3455,7 @@ bool lis2dw12_config (void){
     dev_ctx.read_reg = platform_read;
     dev_ctx.handle = &spi_event_handler;
 		nrf_gpio_pin_set(AFE_nSS);
+	
 	 /*
     * Check device ID
     */
@@ -3811,16 +3525,14 @@ bool lis2dw12_config (void){
 
 }
 bool MAX30110_ConfiguraSensorPPG ( void ) {
-			
-
-	
+				
 		MAX30110_estruturaConfiguracao_t configuracao = {
 				.correnteLed1 = 5.0,
 				.correnteLed2 = 5.0,
 				.ativaInterrupcoes = {
 						.ledForaConformidade=0,
-						.interrrupcaoProxiidade=0,
-						.cancelamentoLuzAmbienteTransbordou=1,
+						.interrrupcaoProxiidade=0,//1,
+						.cancelamentoLuzAmbienteTransbordou=0,
 						.amostraPpgPronta=1,
 						.filaQuaseCheia=1,
 						.vddAnalogicoOk=0
@@ -3829,7 +3541,7 @@ bool MAX30110_ConfiguraSensorPPG ( void ) {
 						.habilitarFila = 1,
 						.modoBaixoConsumo = 1,
 						.pinoOsciladorExterno = 0,
-						.desligar=0
+						.desligar = 0
 				},
 				.escalaAdc = MAX30110_ESCALA_ADC_12UA,
 				.fila = {
@@ -3843,11 +3555,12 @@ bool MAX30110_ConfiguraSensorPPG ( void ) {
 				.tempoEstabilizacaoLed = MAX30110_TEMPO_ESTABILIZACAO_20MS,
 				.tempoIntegracao = MAX30110_TEMPO_INTEGRACAO_104US,//MAX30110_TEMPO_INTEGRACAO_52US,
 				.tipoDadosFila  = {
-						.FD1= MAX30110_LED1_AND_LED2,  //MAX30110_LED1_AND_LED2
-						.FD2= MAX30110_DIRECT_AMBIENT, //MAX30110_DIRECT_AMBIENT
-						.FD3=	MAX30110_NONE,
-						.FD4= MAX30110_NONE
-				} 
+						.FD1 = MAX30110_LED1_AND_LED2,  //MAX30110_LED1_AND_LED2
+						.FD2 = MAX30110_DIRECT_AMBIENT, //MAX30110_DIRECT_AMBIENT
+						.FD3 = MAX30110_NONE,
+						.FD4 = MAX30110_NONE
+				}
+
 		};
 		
 		sControlLoopParams.enabled  = true;

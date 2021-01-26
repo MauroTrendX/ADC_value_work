@@ -39,3 +39,16 @@
 .\_build\buffer_services.o: ..\..\components\libraries\log\src\nrf_log_internal.h
 .\_build\buffer_services.o: ..\..\components\libraries\log\nrf_log_instance.h
 .\_build\buffer_services.o: ..\..\components\libraries\log\nrf_log_types.h
+.\_build\buffer_services.o: ..\Inc\armazenamento_treino.h
+.\_build\buffer_services.o: ..\..\components\libraries\util\app_util_bds.h
+.\_build\buffer_services.o: ..\..\components\ble\common\ble_srv_common.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble_types.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble_err.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble_gap.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble_hci.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble_ranges.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble_l2cap.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble_gatt.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble_gattc.h
+.\_build\buffer_services.o: ..\..\components\softdevice\s332\headers\ble_gatts.h

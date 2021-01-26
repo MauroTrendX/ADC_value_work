@@ -141,6 +141,8 @@ typedef struct {
 	MAX30110_configuracaoFilaStruct_t fila;
 	MAX30110_configuracoesSistema_t configuracoesSistema;
 	MAX30110_tipoDadosFila_t tipoDadosFila;
+	float correnteProximidade;
+	uint8_t limiteInterrupcaoProximidade;
 }MAX30110_estruturaConfiguracao_t;
 
 /*
@@ -213,4 +215,6 @@ MAX30110_retorno_t MAX30110_lerEstado ( MAX30110_interruptStatusRegistersUnion_t
 MAX30110_retorno_t MAX30110_testeProximidade ( void );
 MAX30110_retorno_t MAX30110_shutdown ( MAX30110_estruturaConfiguracao_t* configuracao );
 void ControlLoop( uint32_t ppg, uint16_t *pwr, uint8_t *gain,g4_PPGControlLoopConfig_t sControlLoopParams);
+MAX30110_retorno_t MAX30110_verifica_interrupcao (uint8_t * p_interrupcao);
+
 /******************************************************************************/
