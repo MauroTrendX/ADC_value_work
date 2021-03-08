@@ -183,7 +183,7 @@ static uint8_t csc_measurement_encode(ble_cscs_t      * p_cscs,
         {
             flags |= CSC_MEAS_FLAG_MASK_WHEEL_REV_DATA_PRESENT;
             len += uint32_encode(p_csc_measurement->cumulative_wheel_revs, &p_encoded_buffer[len]);
-        //    len += uint16_encode(p_csc_measurement->last_wheel_event_time, &p_encoded_buffer[len]);
+            len += uint16_encode(p_csc_measurement->last_wheel_event_time, &p_encoded_buffer[len]);
         }
     }
 
@@ -193,8 +193,8 @@ static uint8_t csc_measurement_encode(ble_cscs_t      * p_cscs,
         if (p_csc_measurement->is_crank_rev_data_present)
         {
             flags |= CSC_MEAS_FLAG_MASK_CRANK_REV_DATA_PRESENT;
-           // len += uint16_encode(p_csc_measurement->cumulative_crank_revs, &p_encoded_buffer[len]);
-           // len += uint16_encode(p_csc_measurement->last_crank_event_time, &p_encoded_buffer[len]);
+            len += uint16_encode(p_csc_measurement->cumulative_crank_revs, &p_encoded_buffer[len]);
+            len += uint16_encode(p_csc_measurement->last_crank_event_time, &p_encoded_buffer[len]);
         }
     }
 
