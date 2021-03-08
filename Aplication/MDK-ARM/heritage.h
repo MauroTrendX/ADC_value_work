@@ -181,7 +181,7 @@ volatile int16_t filter_coef_den = 2500;
 void ADS018_Time_Update(void);//prototype
 void ADS018_Set_Result_C(ADS018_mem_data_Type *pin, ADS018_res_data_Type *pout);//prototype
 void ADS018_Set_Result(ADS018_res_data_Type *pin, ADS018_res_data_Type *pout, int len);//prototype
-void ADS018_Cycle(int16_t vel,uint16_t *dir,int16_t *counter);//prototype
+void ADS018_Cycle(int16_t vel);//prototype
 void ADS018_res_data_clear(ADS018_res_data_Type *p);//prototype
 void init_vars();//prototype
 void init_varc();//prototype
@@ -209,9 +209,6 @@ void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2);
 	if (ADS018_sample_frequency > 26.0) filter_type = 1; //fs=50Hz
   //init high pass parameter
   filter_coef_num = (int16_t)((ADS018_sample_frequency - FILTER_HPF_CF) * 100);
-	NRF_LOG_INFO("filter_coef_num : %d ",filter_coef_num);
-	NRF_LOG_INFO("ADS018_sample_frequency"); 
-	 NRF_LOG_INFO("FILTER_HPF_CF : %d ", FILTER_HPF_CF);
   filter_coef_den = (int16_t)(ADS018_sample_frequency*100);
 	ADS018_SCycle_Tout_Limit = (uint32_t)(ADS018_Rotation_Max_N / ADS018_Cycle_S_n);//mudado338
  }
@@ -299,7 +296,7 @@ void ADS018_Set_Result(ADS018_res_data_Type *pin, ADS018_res_data_Type *pout, in
 
 
 
-void ADS018_Cycle(int16_t vel,uint16_t *dir,int16_t *counter)
+void ADS018_Cycle(int16_t vel)
 {
 	// count cycles and set direction
  // y transitions

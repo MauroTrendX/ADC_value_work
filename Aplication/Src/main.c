@@ -224,18 +224,10 @@ static uint16_t   glob_crank_rev_degrees     = 0;
 //testes
 volatile uint16_t IN_dummy=0;//just for the operation of the function filter
 volatile uint16_t OUT_dummy=0;//just for the operation of the function filter
-uint16_t out_dir=0;//just for the operation of function ADS018_Cycle
-int16_t out_Cyclecounter=0;//just for the operation of function ADS018_Cycle
-volatile int16_t value_for_simu=10;//just for project debugging purposes
 volatile int16_t value_for_simu_F=0;//just for project debugging purposes
-volatile int flag_for_simu=0;//just for project debugging purposes
-volatile int limit_for_simu=10;//just for project debugging purposes
-volatile int limit_neg_for_simu=-10;//just for project debugging purposes
-volatile int32_t transfer_rpm=0;
 //testes advertising=====================================================================================================================
 volatile uint32_t ADS018_ShowCounter_AdvQuit   = 2;
 volatile uint32_t ADS018_ShowCounter_SetMean   = 47;//originally 47.
-volatile int  i=0;//just for a tiny counter in function seno
 //MIXING THE DATA LIS2DW12
 volatile int16_t global_mixer ;
 //FUNCTION PROTOTYPES===================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
@@ -800,52 +792,52 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
     }
 }
 
-//uint8_t get_percent_batt(nrf_saadc_value_t sample){
-//		
-//		int8_t temp=(sample-455)*100/120;
-//		
-//		if(temp>90){
-//				avisoBateriaFraca=false;
-//				return percent_batt=100;}
-//		else if(temp<90&&temp>80){
-//				avisoBateriaFraca=false;
-//				return percent_batt=90;}
-//		else if(temp<80&&temp>70){
-//				avisoBateriaFraca=false;
-//				return percent_batt=80;}
-//		else if(temp<70&&temp>60){
-//				avisoBateriaFraca=false;
-//				return percent_batt=70;}
-//		else if(temp<60&&temp>50){
-//				avisoBateriaFraca=false;
-//				return percent_batt=60;}
-//		else if(temp<50&&temp>40){
-//				avisoBateriaFraca=false;
-//				return percent_batt=50;}
-//		else if(temp<40&&temp>30){
-//				avisoBateriaFraca=false;
-//				return percent_batt=40;}
-//		else if(temp<30&&temp>20){
-//				avisoBateriaFraca=false;
-//				return percent_batt=30;}
-//		else if(temp<20&&temp>10){
-//				avisoBateriaFraca=false;
-//				return percent_batt=20;}
-//		else if(temp>5&&temp<10){
-//				avisoBateriaFraca=true;
-//				return percent_batt=10;
-//		}
-//		else if(temp>1&&temp<=5){
-//				avisoBateriaFraca=true;
-//				return percent_batt=5;
-//		}
-//		else if(temp<=1){
-//				solicitacaoDesligamento=true;
-//				return percent_batt=0;
-//		}
-//		else
-//				return percent_batt;
-//}
+uint8_t get_percent_batt(nrf_saadc_value_t sample){
+		
+		int8_t temp=(sample-455)*100/120;
+		
+		if(temp>90){
+				avisoBateriaFraca=false;
+				return percent_batt=100;}
+		else if(temp<90&&temp>80){
+				avisoBateriaFraca=false;
+				return percent_batt=90;}
+		else if(temp<80&&temp>70){
+				avisoBateriaFraca=false;
+				return percent_batt=80;}
+		else if(temp<70&&temp>60){
+				avisoBateriaFraca=false;
+				return percent_batt=70;}
+		else if(temp<60&&temp>50){
+				avisoBateriaFraca=false;
+				return percent_batt=60;}
+		else if(temp<50&&temp>40){
+				avisoBateriaFraca=false;
+				return percent_batt=50;}
+		else if(temp<40&&temp>30){
+				avisoBateriaFraca=false;
+				return percent_batt=40;}
+		else if(temp<30&&temp>20){
+				avisoBateriaFraca=false;
+				return percent_batt=30;}
+		else if(temp<20&&temp>10){
+				avisoBateriaFraca=false;
+				return percent_batt=20;}
+		else if(temp>5&&temp<10){
+				avisoBateriaFraca=true;
+				return percent_batt=10;
+		}
+		else if(temp>1&&temp<=5){
+				avisoBateriaFraca=true;
+				return percent_batt=5;
+		}
+		else if(temp<=1){
+				solicitacaoDesligamento=true;
+				return percent_batt=0;
+		}
+		else
+				return percent_batt;
+}
 
 
 
@@ -859,18 +851,19 @@ static void battery_level_update(void)
 		
 
 		nrf_drv_saadc_sample_convert(0, &sample);
-//	
-//    err_code = ble_bas_battery_level_update(&m_bas, get_percent_batt(sample), BLE_CONN_HANDLE_ALL);
-//    if ((err_code != NRF_SUCCESS) &&
-//        (err_code != NRF_ERROR_INVALID_STATE) &&
-//        (err_code != NRF_ERROR_RESOURCES) &&
-//        (err_code != NRF_ERROR_BUSY) &&
-//        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
-//       )
-//    {
-//        APP_ERROR_HANDLER(err_code);
-//    }
-//		NRF_LOG_INFO("Nivel da bateria: %d ",percent_batt);
+	
+    err_code = ble_bas_battery_level_update(&m_bas, get_percent_batt(sample), BLE_CONN_HANDLE_ALL);
+    if ((err_code != NRF_SUCCESS) &&
+        (err_code != NRF_ERROR_INVALID_STATE) &&
+        (err_code != NRF_ERROR_RESOURCES) &&
+        (err_code != NRF_ERROR_BUSY) &&
+        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
+       )
+		
+    {
+        APP_ERROR_HANDLER(err_code);
+    }
+    NRF_LOG_INFO("Nivel da bateria: %d",percent_batt);
 }
 
 
@@ -886,22 +879,6 @@ static void battery_level_meas_timeout_handler(void * p_context)
     UNUSED_PARAMETER(p_context);
     battery_level_update();
 }
-//function for generating random sine wave values,
- void simu_cycle_speed(volatile int *flag,volatile int16_t *value, int lim,int limneg){	 
-	 int8_t flag_local=0;
-	 int16_t value_local;
-	 flag_local=*flag;
-	 value_local=*value;	 
-	 if (0<value_local<lim){
-		 value_local--;
-	 }
-	 if(limneg<value_local<=0){
-		 value_local++;
-	 }
-	 	 *flag=flag_local;
-   	 *value=value_local;
- }
-
 //function for collecting reading from lis2dw12
 void retira_valor (void){//=================================================================================================================Apagar depois do teste=============================================================================================================================================================
 	static axis3bit16_t raw_acceleration;
@@ -954,8 +931,8 @@ static void csc_sim_measurement(ble_cscs_meas_t * p_measurement)
     m_cumulative_wheel_revs += wheel_revolution_mm / WHEEL_CIRCUMFERENCE_MM;
     wheel_revolution_mm     %= WHEEL_CIRCUMFERENCE_MM;
     p_measurement->cumulative_wheel_revs = m_cumulative_wheel_revs;
-    p_measurement->last_wheel_event_time =
-    event_time + (event_time_inc * (mm_per_sec - wheel_revolution_mm) / mm_per_sec);
+    //p_measurement->last_wheel_event_time =
+    //event_time + (event_time_inc * (mm_per_sec - wheel_revolution_mm) / mm_per_sec);
     
     // Calculate simulated cadence values.
     p_measurement->is_crank_rev_data_present = true;
@@ -967,9 +944,9 @@ static void csc_sim_measurement(ble_cscs_meas_t * p_measurement)
     cumulative_crank_revs += crank_rev_degrees / DEGREES_PER_REVOLUTION;
     crank_rev_degrees     %= DEGREES_PER_REVOLUTION;
     
-    p_measurement->cumulative_crank_revs = cumulative_crank_revs;
-    p_measurement->last_crank_event_time =
-    event_time + (event_time_inc * (degrees_per_sec - crank_rev_degrees) / degrees_per_sec);
+    //p_measurement->cumulative_crank_revs = cumulative_crank_revs;
+    //p_measurement->last_crank_event_time =
+    //event_time + (event_time_inc * (degrees_per_sec - crank_rev_degrees) / degrees_per_sec);
     
     event_time += event_time_inc;
     glob_wheel_revolution_mm= wheel_revolution_mm;
@@ -1027,18 +1004,7 @@ static void csc_meas_timeout_handler(void * p_context)//changes in the character
     ble_cscs_meas_t cscs_measurement;
     UNUSED_PARAMETER(p_context);
     csc_sim_measurement(&cscs_measurement);
-	  //mudanças valores testes
-	 //ADS018_res_data_f_len
 	  cscs_measurement.cumulative_wheel_revs=ADS018_res_data_c.rotation;
-	  cscs_measurement.last_wheel_event_time=0x9;//tava o ADS018_Cycle_Flag
-	  cscs_measurement.cumulative_crank_revs=0x9;
-	  cscs_measurement.last_crank_event_time=0x9;
-//	  uint32_t    cumulative_wheel_revs;                                  /**< Cumulative Wheel Revolutions. *///for testing reasons, should be the same value as the variable being tested
-//    uint16_t    last_wheel_event_time;                                  /**< Last Wheel Event Time. */
-//    uint16_t    cumulative_crank_revs;                                  /**< Cumulative Crank Revolutions. */
-//    uint16_t    last_crank_event_time;                                  /**< Last Crank Event Time. */
-	
-	
 	  err_code = ble_cscs_measurement_send(&m_cscs, &cscs_measurement);
 
     if ((err_code != NRF_SUCCESS) &&
@@ -1079,10 +1045,8 @@ static void csc_meas_timeout_handler(void * p_context)//changes in the character
 
 static void biblioteca_phillips_handler(void * p_context)
 {			
-  
 		  UNUSED_PARAMETER(p_context);
 			flag_timer_bb_phillips=true;
-	
 }
 	
 
@@ -1108,13 +1072,11 @@ static void timers_init(void)
                                 APP_TIMER_MODE_REPEATED,
                                  csc_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
-	
-	
-	
-		err_code = app_timer_create(&m_biblioteca_phillips_id,
-                                APP_TIMER_MODE_REPEATED,
-                                biblioteca_phillips_handler);
-    APP_ERROR_CHECK(err_code);
+		
+//		err_code = app_timer_create(&m_biblioteca_phillips_id,
+//                                APP_TIMER_MODE_REPEATED,
+//                                biblioteca_phillips_handler);
+//    APP_ERROR_CHECK(err_code);
 		
 		err_code = app_timer_create(&m_adv_update,
                                 APP_TIMER_MODE_REPEATED,
@@ -1826,7 +1788,7 @@ static void services_init(void)
 {
     ret_code_t         err_code;
     //ble_hrs_init_t     hrs_init;
-    //ble_bas_init_t     bas_init;
+    ble_bas_init_t     bas_init;
     ble_dis_init_t     dis_init;
 	  ble_sensor_location_t sensor_location;
 	
@@ -1836,9 +1798,7 @@ static void services_init(void)
 	  ble_cscs_init_t       cscs_init;
 	
     ble_dfu_buttonless_init_t dfus_init = {0};
-	
     nrf_ble_qwr_init_t qwr_init = {0};
-		
     uint8_t            body_sensor_location;
 
     // Initialize Queued Write Module.
@@ -1878,20 +1838,20 @@ static void services_init(void)
     err_code = ble_cscs_init(&m_cscs, &cscs_init);
     APP_ERROR_CHECK(err_code);
    // Initialize Battery Service.
-//    memset(&bas_init, 0, sizeof(bas_init));
+    memset(&bas_init, 0, sizeof(bas_init));
 
-//    bas_init.evt_handler          = NULL;
-//    bas_init.support_notification = true;
-//    bas_init.p_report_ref         = NULL;
-//    bas_init.initial_batt_level   = 100;
+    bas_init.evt_handler          = NULL;
+    bas_init.support_notification = true;
+    bas_init.p_report_ref         = NULL;
+    bas_init.initial_batt_level   = 100;
 
-//    // Here the sec level for the Battery Service can be changed/increased.
-//    bas_init.bl_rd_sec        = SEC_OPEN;
-//    bas_init.bl_cccd_wr_sec   = SEC_OPEN;
-//    bas_init.bl_report_rd_sec = SEC_OPEN;
+    // Here the sec level for the Battery Service can be changed/increased.
+    bas_init.bl_rd_sec        = SEC_OPEN;
+    bas_init.bl_cccd_wr_sec   = SEC_OPEN;
+    bas_init.bl_report_rd_sec = SEC_OPEN;
 
-//    err_code = ble_bas_init(&m_bas, &bas_init);
-//    APP_ERROR_CHECK(err_code);
+    err_code = ble_bas_init(&m_bas, &bas_init);
+    APP_ERROR_CHECK(err_code);
 
     // Initialize Device Information Service.
     memset(&dis_init, 0, sizeof(dis_init));
@@ -2894,23 +2854,17 @@ static void advertising_init(void)//aqui as métricas começam com um valor
 void get_accel(void)
 
 {
-   	retira_valor();
-//		simu_cycle_speed(&flag_for_simu,&value_for_simu,limit_for_simu,limit_neg_for_simu);
-//		if (value_for_simu<-8){
-//			value_for_simu=10;
-//		}
+  	retira_valor();
 	  ADS018_Time_Update();
 	  filter(global_mixer,IN_dummy,(int16_t *)&value_for_simu_F,(int16_t *)&OUT_dummy);
-	
 }
+
 void cycle_treat(void)
 {
-	
-	ADS018_Cycle(value_for_simu_F,&out_dir,&out_Cyclecounter);
+	ADS018_Cycle(value_for_simu_F);
 	ADS018_Update_SCycle();
 	ADS018_Cycle_Flag=0;
 	if (ADS018_ShowCounter == ADS018_ShowCounter_SetMean) ADS018_Set_Mean_Data(); 
-	
 }
 
 void HR_advdata_manuf_data_update(void * p_context)//changes in the service.
@@ -3416,8 +3370,3 @@ bool lis2dw12_config (void){
 
 }
 
-
-
-
-//teste corrente, verificar com adição do value_for_simu_F e com adição do zeramento do ADS018_Cycle_Flag após a aquisição. Na característica enviar
-//ADS018_res_data.rotation (saída do Set_Mean).
