@@ -166,8 +166,8 @@ typedef struct ble_cscs_meas_s
 {
     bool        is_wheel_rev_data_present;                              /**< True if Wheel Revolution Data is present in the measurement. */
     bool        is_crank_rev_data_present;                              /**< True if Crank Revolution Data is present in the measurement. */
-    uint32_t    cumulative_wheel_revs;                                  /**< Cumulative Wheel Revolutions. */
-    uint16_t    last_wheel_event_time;                                  /**< Last Wheel Event Time. */
+    uint32_t    cumulative_wheel_revs;                                  /**< Cumulative Wheel Revolutions. *///for testing reasons, should be the same value as the variable being tested
+    uint16_t    last_wheel_event_time;                                  /**< Last Wheel Event Time. *///
     uint16_t    cumulative_crank_revs;                                  /**< Cumulative Crank Revolutions. */
     uint16_t    last_crank_event_time;                                  /**< Last Crank Event Time. */
 } ble_cscs_meas_t;

@@ -146,14 +146,15 @@
 .\_build\main.o: ..\..\integration\nrfx\legacy\nrf_drv_pwm.h
 .\_build\main.o: ..\..\modules\nrfx\drivers\include\nrfx_pwm.h
 .\_build\main.o: ..\..\modules\nrfx\hal/nrf_pwm.h
-.\_build\main.o: ..\Inc\MAX30110_API.h
 .\_build\main.o: ..\Inc\zonas_cardiacas.h
 .\_build\main.o: ..\Inc\Controle_LEDs.h
-.\_build\main.o: ..\Inc\biblioteca_phillips.h
 .\_build\main.o: ..\Inc\ble_rus.h
 .\_build\main.o: ..\Inc\ble_rtcs.h
 .\_build\main.o: ..\Inc\ble_uds.h
 .\_build\main.o: ..\Inc\buffer_services.h
+.\_build\main.o: ..\..\components\ble\ble_services\ble_cscs\ble_cscs.h
+.\_build\main.o: ..\..\components\ble\ble_services\ble_cscs\ble_sc_ctrlpt.h
+.\_build\main.o: ..\..\components\ble\common\ble_sensor_location.h
 .\_build\main.o: ..\Inc\armazenamento_treino.h
 .\_build\main.o: ..\..\components\libraries\util\app_util_bds.h
 .\_build\main.o: ..\..\integration\nrfx\legacy\nrf_drv_wdt.h
@@ -171,3 +172,5 @@
 .\_build\main.o: ..\Inc\lis2dw12_reg.h
 .\_build\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 .\_build\main.o: ..\..\components\libraries\delay\nrf_delay.h
+.\_build\main.o: ..\MDK-ARM\heritage.h
+.\_build\main.o: ..\MDK-ARM\trigonometry.h

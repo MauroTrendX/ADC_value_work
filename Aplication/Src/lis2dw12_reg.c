@@ -18,7 +18,7 @@
  */
 
 #include "lis2dw12_reg.h"
-
+#include "nrf_log.h"
 /**
   * @defgroup  LIS2DW12
   * @brief     This file provides a set of functions needed to drive the
@@ -43,7 +43,7 @@
   * @param  reg   register to read
   * @param  data  pointer to buffer that store the data read(ptr)
   * @param  len   number of consecutive register to read
-  * @retval          interface status (MANDATORY: return 0 -> no Error)
+  * @retval       interface status (MANDATORY: return 0 -> no Error)
   *
   */
 int32_t lis2dw12_read_reg(stmdev_ctx_t* ctx, uint8_t reg, uint8_t* data,
@@ -688,7 +688,7 @@ int32_t lis2dw12_temperature_raw_get(stmdev_ctx_t *ctx, uint8_t *buff)
   * @retval          interface status (MANDATORY: return 0 -> no Error)
   *
   */
-int32_t lis2dw12_acceleration_raw_get(stmdev_ctx_t *ctx, uint8_t *buff)
+int32_t lis2dw12_acceleration_raw_get(stmdev_ctx_t *ctx, uint8_t *buff)//=================================================================================================================================================================================================================================================================================================================== isso pode dar um baita erro brabo.
 {
   int32_t ret;
   ret = lis2dw12_read_reg(ctx, LIS2DW12_OUT_X_L, buff, 6);

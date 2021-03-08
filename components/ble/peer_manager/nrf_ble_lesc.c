@@ -145,7 +145,7 @@ ret_code_t nrf_ble_lesc_keypair_generate(void)
     m_keypair_generated       = false;
     m_lesc_oobd_own_generated = false;
 
-    NRF_LOG_DEBUG("Generating ECC key pair");
+    //NRF_LOG_DEBUG("Generating ECC key pair");
     err_code = nrf_crypto_ecc_key_pair_generate(&m_keygen_context,
                                                 &g_nrf_crypto_ecc_secp256r1_curve_info,
                                                 &m_private_key,

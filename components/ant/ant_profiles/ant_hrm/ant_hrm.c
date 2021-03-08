@@ -88,7 +88,7 @@ static ret_code_t ant_hrm_init(ant_hrm_profile_t          * p_profile,
     p_profile->page_3 = DEFAULT_ANT_HRM_PAGE3();
     p_profile->page_4 = DEFAULT_ANT_HRM_PAGE4();
 
-    NRF_LOG_INFO("ANT HRM channel %u init", p_profile->channel_number);
+//    NRF_LOG_INFO("ANT HRM channel %u init", p_profile->channel_number);
     return ant_channel_init(p_channel_config);
 }
 
@@ -261,7 +261,7 @@ ret_code_t ant_hrm_disp_open(ant_hrm_profile_t * p_profile)
 {
     ASSERT(p_profile != NULL);
 
-    NRF_LOG_INFO("ANT HRM channel %u open", p_profile->channel_number);
+//    NRF_LOG_INFO("ANT HRM channel %u open", p_profile->channel_number);
     return sd_ant_channel_open(p_profile->channel_number);
 }
 
@@ -273,7 +273,7 @@ ret_code_t ant_hrm_sens_open(ant_hrm_profile_t * p_profile)
     // Fill tx buffer for the first frame
     ant_message_send(p_profile);
 
-    NRF_LOG_INFO("ANT HRM channel %u open", p_profile->channel_number);
+//    NRF_LOG_INFO("ANT HRM channel %u open", p_profile->channel_number);
     return sd_ant_channel_open(p_profile->channel_number);
 }
 

@@ -151,7 +151,7 @@ ret_code_t nrf_sdh_ble_default_cfg_set(uint8_t conn_cfg_tag, uint32_t * p_ram_st
     }
 
     // Configure the maximum ATT MTU.
-#if (NRF_SDH_BLE_GATT_MAX_MTU_SIZE != 23)
+#if (NRF_SDH_BLE_GATT_MAX_MTU_SIZE != 27)
     memset(&ble_cfg, 0x00, sizeof(ble_cfg));
     ble_cfg.conn_cfg.conn_cfg_tag                 = conn_cfg_tag;
     ble_cfg.conn_cfg.params.gatt_conn_cfg.att_mtu = NRF_SDH_BLE_GATT_MAX_MTU_SIZE;

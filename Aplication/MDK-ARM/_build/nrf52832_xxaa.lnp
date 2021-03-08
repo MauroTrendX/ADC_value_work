@@ -3,16 +3,17 @@
 ".\_build\lis2dw12_reg.o"
 ".\_build\fxi.o"
 ".\_build\fxi_image.o"
-".\_build\max30110_api.o"
 ".\_build\zonas_cardiacas.o"
 ".\_build\controle_leds.o"
-".\_build\biblioteca_phillips.o"
-".\_build\acc_interface.o"
 ".\_build\ble_rtcs.o"
 ".\_build\ble_rus.o"
 ".\_build\ble_uds.o"
 ".\_build\buffer_services.o"
 ".\_build\reamostragem.o"
+".\_build\ble_rsc.o"
+".\_build\ble_cscs.o"
+".\_build\ads018.o"
+".\_build\filter.o"
 ".\_build\boards.o"
 ".\_build\bsp.o"
 ".\_build\bsp_btn_ble.o"
@@ -40,6 +41,7 @@
 ".\_build\ble_bas.o"
 ".\_build\ble_dis.o"
 ".\_build\ble_hrs.o"
+".\_build\ble_sc_ctrlpt.o"
 ".\_build\nrf_crypto_aead.o"
 ".\_build\nrf_crypto_aes.o"
 ".\_build\nrf_crypto_aes_shared.o"
@@ -144,6 +146,6 @@
 ".\_build\arm_startup_nrf52.o"
 ".\_build\system_nrf52.o"
 --library_type=microlib --strict --scatter ".\_build\nrf52832_xxaa.sct"
---any_placement best_fit --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--any_placement best_fit --show-parent-lib --show-full-path --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
 --list ".\_build\nrf52832_xxaa.map" -o .\_build\nrf52832_xxaa.axf

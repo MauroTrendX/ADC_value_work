@@ -96,16 +96,14 @@
 
 #include "nrf_drv_pwm.h"
 
-#include "MAX30110_API.h"
-
 #include "zonas_cardiacas.h"
 #include "Controle_LEDs.h"
-#include "biblioteca_phillips.h"
 
 #include "ble_rus.h"
 #include "ble_rtcs.h"
 #include "ble_uds.h"
 #include "buffer_services.h"
+#include "ble_cscs.h"
 
 #include "armazenamento_treino.h"
 
@@ -124,18 +122,18 @@
 
 #else
 
-#define DEVICE_NAME                         "mbeat" 		                            /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                         "Exe15" 		                            /**< Name of device. Will be included in the advertising data. */
 
 #endif
 
-#define MANUFACTURER_NAME                   "Trendx"    							              /**< Manufacturer. Will be passed to Device Information Service. */
+#define MANUFACTURER_NAME                   "TrendX"    							              /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                    300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 
 #define FIRMWARE_VERSION 										"1.0.9"
 
 #define APP_ADV_DURATION                    18000                                   /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
 
-#define APP_COMPANY_IDENTIFIER          		0x07D0
+#define APP_COMPANY_IDENTIFIER          		0x02B6
 
 #define APP_BLE_CONN_CFG_TAG                1                                       /**< A tag identifying the SoftDevice BLE configuration. */
 #define APP_BLE_OBSERVER_PRIO               3                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
@@ -149,7 +147,7 @@
 #define SENSOR_CONTACT_DETECTED_INTERVAL    APP_TIMER_TICKS(5000)                   /**< Sensor Contact Detected toggle interval (ticks). */
 
 #define MIN_CONN_INTERVAL                   MSEC_TO_UNITS(30, UNIT_1_25_MS)        /**< Minimum acceptable connection interval (0.4 seconds). */
-#define MAX_CONN_INTERVAL                   MSEC_TO_UNITS(60, UNIT_1_25_MS)        /**< Maximum acceptable connection interval (0.65 second). */
+#define MAX_CONN_INTERVAL                   MSEC_TO_UNITS(70, UNIT_1_25_MS)        /**< Maximum acceptable connection interval (0.65 second). *///original was 60 not 70
 #define SLAVE_LATENCY                       0                                       /**< Slave latency. */
 #define CONN_SUP_TIMEOUT                    MSEC_TO_UNITS(4000, UNIT_10_MS)         /**< Connection supervisory timeout (4 seconds). */
 
@@ -175,6 +173,9 @@
 #include "lis2dw12_reg.h"
 
 #include "nrf_delay.h"
+#include "heritage.h"
+#include "trigonometry.h"
+
 
 #define SPI_INSTANCE  0 /**< SPI instance index. */
 #define ACC_CS_PIN 07 //pino para seleção do acelerometro
@@ -186,8 +187,77 @@
 #define APP_TICK_EVENT_INTERVAL  2000 /**< 2 second's tick event interval in timer tick units. */
 #define HRM_CHANNEL_NUMBER       0x00 /**< Channel number assigned to HRM profile. */
 #define ANTPLUS_NETWORK_NUMBER   0    /**< Network number. */
+#define MIN_RUNNING_SPEED               3                                       /**< speed threshold to set the running bit. */
+
+#define SPEED_AND_CADENCE_MEAS_INTERVAL 500                                        /**< Speed and cadence measurement interval (milliseconds). */
+#define KPH_TO_MM_PER_SEC               278                                         /**< Constant to convert kilometers per hour into millimeters per second. */
+#define WHEEL_CIRCUMFERENCE_MM          2100                                        /**< Simulated wheel circumference in millimeters. */
+#define RPM_TO_DEGREES_PER_SEC          6                                           /**< Constant to convert revolutions per minute into degrees per second. */
+#define DEGREES_PER_REVOLUTION          360                                         /**< Constant used in simulation for calculating crank speed. */
+#define MIN_SPEED_KPH                   3                                          /**< Minimum speed in kilometers per hour for use in the simulated measurement function. */
+#define MAX_SPEED_KPH                   10                                          /**< Maximum speed in kilometers per hour for use in the simulated measurement function. */
+#define SPEED_KPH_INCREMENT             1                                           /**< Value by which speed is incremented/decremented for each call to the simulated measurement function. */
+#define MIN_CRANK_RPM                   8                                          /**< Minimum cadence in RPM for use in the simulated measurement function. */
+#define MAX_CRANK_RPM                   12                                         /**< Maximum cadence in RPM for use in the simulated measurement function. */
+#define CRANK_RPM_INCREMENT             3                                           /**< Value by which cadence is incremented/decremented in the simulated measurement function. */
 
 static ant_hrm_measurement_t  m_ant_hrm_measurement;    
+
+static uint16_t          m_conn_handle = BLE_CONN_HANDLE_INVALID;                   /**< Handle of the current connection. */
+static sensorsim_cfg_t   m_battery_sim_cfg;                                         /**< Battery Level sensor simulator configuration. */
+static sensorsim_state_t m_battery_sim_state;                                       /**< Battery Level sensor simulator state. */
+
+static sensorsim_cfg_t   m_speed_kph_sim_cfg;                                       /**< Speed simulator configuration. */
+static sensorsim_state_t m_speed_kph_sim_state;                                     /**< Speed simulator state. */
+static sensorsim_cfg_t   m_crank_rpm_sim_cfg;                                       /**< Crank simulator configuration. */
+static sensorsim_state_t m_crank_rpm_sim_state;                                     /**< Crank simulator state. */
+
+static uint32_t m_cumulative_wheel_revs;                                            /**< Cumulative wheel revolutions. */
+
+static  bool     m_auto_calibration_in_progress;                                     /**< Set when an autocalibration is in progress. */
+
+static uint16_t   glob_cumulative_crank_revs = 0;
+static uint16_t   glob_event_time            = 0;
+static uint16_t   glob_wheel_revolution_mm   = 0;
+static uint16_t   glob_wheel_revolution_mm_F = 0;//filtered variable to be the output of filter fnction 
+static uint16_t   glob_crank_rev_degrees     = 0;
+//testes
+volatile uint16_t IN_dummy=0;//just for the operation of the function filter
+volatile uint16_t OUT_dummy=0;//just for the operation of the function filter
+uint16_t out_dir=0;//just for the operation of function ADS018_Cycle
+int16_t out_Cyclecounter=0;//just for the operation of function ADS018_Cycle
+volatile int16_t value_for_simu=10;//just for project debugging purposes
+volatile int16_t value_for_simu_F=0;//just for project debugging purposes
+volatile int flag_for_simu=0;//just for project debugging purposes
+volatile int limit_for_simu=10;//just for project debugging purposes
+volatile int limit_neg_for_simu=-10;//just for project debugging purposes
+volatile int32_t transfer_rpm=0;
+//testes advertising=====================================================================================================================
+volatile uint32_t ADS018_ShowCounter_AdvQuit   = 2;
+volatile uint32_t ADS018_ShowCounter_SetMean   = 47;//originally 47.
+volatile int  i=0;//just for a tiny counter in function seno
+//MIXING THE DATA LIS2DW12
+volatile int16_t global_mixer ;
+//FUNCTION PROTOTYPES===================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
+void get_accel(void);
+void retira_valor (void); //protótipo pra função retira_valor
+void cycle_treat(void);
+//======================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
+static ble_sensor_location_t supported_locations[] =                                /**< Supported location for the sensor location. */
+{
+	
+    BLE_SENSOR_LOCATION_FRONT_WHEEL,
+    BLE_SENSOR_LOCATION_LEFT_CRANK,
+    BLE_SENSOR_LOCATION_RIGHT_CRANK,
+    BLE_SENSOR_LOCATION_LEFT_PEDAL,
+    BLE_SENSOR_LOCATION_RIGHT_PEDAL,
+    BLE_SENSOR_LOCATION_FRONT_HUB,
+    BLE_SENSOR_LOCATION_REAR_DROPOUT,
+    BLE_SENSOR_LOCATION_CHAINSTAY,
+    BLE_SENSOR_LOCATION_REAR_WHEEL,
+    BLE_SENSOR_LOCATION_REAR_HUB
+	
+};
 
 /** @snippet [ANT HRM TX Instance] */
 void ant_hrm_evt_handler(ant_hrm_profile_t * p_profile, ant_hrm_evt_t event);
@@ -310,12 +380,15 @@ static void profile_setup(void)
 }
 
 typedef union{
-  int16_t i16bit[3];
-  uint8_t u8bit[6];
+  int16_t i16bit[3];//y,x,z
+  uint8_t u8bit[6];//yh,yl,xh,xl,zh,zl
 } axis3bit16_t;
-
-
+//para retirar amostra de aceleração para teste
+static axis3bit16_t get_raw_data;//will be used as global to get the value in the fuction retira_valor
+uint8_t indiceAmostraACC=0;
 stmdev_ctx_t dev_ctx;
+void amazenar_ACC(uint8_t * numeroAmostra, dadosBbACC * bufferACC);//protótipo
+dadosBbACC	amostrasACC_2;
 
 const nrf_drv_spi_t mLisSpiInstance = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);  /**< SPI instance. */
 static volatile bool spi_xfer_done;  /**< Flag used to indicate that SPI instance completed the transfer. */
@@ -325,6 +398,7 @@ static volatile bool mLisPacketTransferComplete = false;
 volatile bool flagEstadoLed = true;
 
 static uint8_t whoamI, rst;
+
 
 //variaveis  utilizadas na gestão da bateria e carregamento USB
 static uint8_t percent_batt=100;
@@ -342,7 +416,8 @@ NRF_BLE_GATT_DEF(m_gatt);                                           /**< GATT mo
 NRF_BLE_QWR_DEF(m_qwr);                                             /**< Context for the Queued Write module.*/
 BLE_ADVERTISING_DEF(m_advertising);                                 /**< Advertising module instance. */
 APP_TIMER_DEF(m_battery_timer_id);                                  /**< Battery timer. */
-APP_TIMER_DEF(m_heart_rate_timer_id);                               /**< Heart rate measurement timer. */
+APP_TIMER_DEF(m_rsc_meas_timer_id);                                             /**< RSC measurement timer. */
+APP_TIMER_DEF(m_csc_meas_timer_id);                                                 /**< CSC measurement timer. */
 APP_TIMER_DEF(m_biblioteca_phillips_id);                           	/**< Biblioteca Phillips timer. */
 APP_TIMER_DEF(m_adv_update);                           							/**< update adv data */
 APP_TIMER_DEF(m_tick_timer);                       								  /**< Timer used to update cumulative operating time. */
@@ -351,15 +426,19 @@ APP_TIMER_DEF(m_tick_timer);                       								  /**< Timer used to 
 BLE_UDS_DEF(m_uds);                                                 /**< User data service instance. */
 BLE_RUS_DEF(m_rus);                                                 /**< RAE user service instance. */
 BLE_RTCS_DEF(m_rtcs);                                               /**< RAE treshhold calibration service instance. */
+BLE_CSCS_DEF(m_cscs);                                               /**< Cycling speed and cadence service instance. */
 
 
 
-static uint16_t m_conn_handle         = BLE_CONN_HANDLE_INVALID;       /**< Handle of the current connection. */
+
 //static bool     m_rr_interval_enabled = false;                       /**< Flag for enabling and disabling the registration of new RR interval measurements (the purpose of disabling this is just to test sending HRM without RR interval data. */
 
 static ble_uuid_t m_adv_uuids[] =                                   /**< Universally unique service identifiers. */
 {
-    {BLE_UUID_HEART_RATE_SERVICE,           BLE_UUID_TYPE_BLE}
+    {BLE_UUID_HEART_RATE_SERVICE,           BLE_UUID_TYPE_BLE},
+		{BLE_UUID_CYCLING_SPEED_AND_CADENCE,  BLE_UUID_TYPE_BLE},
+//    {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
+//    {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}
 };
 
 volatile bool flag_timer_bb_phillips=false;
@@ -399,52 +478,35 @@ volatile hr_module_nv_buf_update_flags_t hr_module_nv_buf_update_flags = {
 };
 
 
-void HR_advdata_manuf_data_update(void * p_context);
+void HR_advdata_manuf_data_update(void * p_context);//protótipo
 
 #define MANUF_ID		0x07D0	/*< Manufacturer's ID, need to change from Polar Corporation ID to a vacant one */
-#define N_USER_FIELD	13		/*< Length of user data in bytes */
+#define N_USER_FIELD	17		/*< Length of user data in bytes */
 
 typedef struct{
-	uint8_t		user_id;		/*< user_id > */		//@Including USER ID
-	uint8_t		sexo;	/*< battery_level > */
-	uint8_t		cor;			/*< age > */
-	uint8_t		hr;				/*< hr > */
-	uint8_t		perc;			/*< percentual da fraquencia cardiaca maxima*/
-	uint8_t		letra1;			/*< Rotation field, unused */
-	uint8_t		letra2;			/*< Heart Rate field, unused */
-	uint8_t		letra3;			/*< Heart Rate field, unused */
-	uint8_t		letra4;			/*< Power field, unused */
-	uint8_t		letra5;			/*< Power field, unused */
-	uint8_t		letra6;			/*< kCal fields, can be populated with module information further along */
-	uint8_t		idade;			/*< kCal fields, can be populated with module information further along */
-	uint8_t		peso;
+	uint8_t		Major;		/*< user_id > */		//@Including USER ID
+	uint8_t		Minor;	/*< battery_level > */
+	uint8_t		Datatype;			/*< age > */
+	uint8_t		BikeID;				/*< hr > */
+	uint16_t		RPM;			/*< percentual da fraquencia cardiaca maxima*/
+	uint16_t		HR;			/*< Rotation field, unused */
+	uint16_t		Power;			/*< Heart Rate field, unused */
+	uint16_t		Kcal;			/*< Heart Rate field, unused */
+	uint8_t		Minutes;			/*< Power field, unused */
 	uint8_t		seconds;		/*< Seconds field, check if needs to be used */
-	uint16_t	trip;			/*< Trip field, unused */
+	uint16_t	trip;			/*< Trip field, unused *///depois mudar para uint16_t
 	uint8_t		gear;			/*< Gear field, unused */
-} hr_wrist_band_adv_user_data_t;
+	} hr_wrist_band_adv_user_data_t;
 
 
-#ifdef MYBEAT_V1
-
+//verificar os tipos de dados pra ver se bate.
 volatile hr_wrist_band_adv_user_data_t HR_advertising_data = {
-		0x00,0x00,0x00,0x00
+		0x06,0x30,0x00,0x05,0x0000,0x0000,0x0000,0x0000,0x00,0x00,0x0000,0x00
 };
 
-volatile ble_advdata_manuf_data_t hr_adv_manuf_data = {MANUF_ID, {4, (uint8_t *)&HR_advertising_data}};
-volatile hr_wrist_band_adv_user_data_t *pHR_adv_user_data = (hr_wrist_band_adv_user_data_t *)&HR_advertising_data;
-
-#else
-
-
-volatile hr_wrist_band_adv_user_data_t HR_advertising_data = {
-		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x0000,0x00,0x0000,0x00
-};
 
 ble_advdata_manuf_data_t hr_adv_manuf_data = {MANUF_ID, {N_USER_FIELD, (uint8_t *)&HR_advertising_data}};
 hr_wrist_band_adv_user_data_t *pHR_adv_user_data = (hr_wrist_band_adv_user_data_t *)&HR_advertising_data;
-
-#endif
-
 
 static bool app_shutdown_handler(nrf_pwr_mgmt_evt_t event)
 {
@@ -613,25 +675,7 @@ static void ble_dfu_evt_handler(ble_dfu_buttonless_evt_type_t event)
 
 uint8_t OperationMode=1;
 
-void MAX30110_sleep(void){
 
-		MAX30110_estruturaConfiguracao_t configuracao = {
-				.ativaInterrupcoes = {
-						.ledForaConformidade=0,
-						.interrrupcaoProxiidade=0,
-						.cancelamentoLuzAmbienteTransbordou=0,
-						.amostraPpgPronta=0,
-						.filaQuaseCheia=0,
-						.vddAnalogicoOk=0
-				},
-				.configuracoesSistema = {
-				.desligar=1
-				}
-		};
-
-		MAX30110_shutdown( &configuracao );
-
-}
 void lis2dw12_sleep(void){
 		lis2dw12_data_rate_set(&dev_ctx, LIS2DW12_XL_ODR_OFF);
 		nrf_delay_ms(5);
@@ -639,8 +683,6 @@ void lis2dw12_sleep(void){
 
 bool mybeat_sleep(void){
 		lis2dw12_sleep();
-		MAX30110_sleep();
-		terminate_biblioteca_phillips();
 		return true;
 }
 
@@ -758,72 +800,54 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
     }
 }
 
-uint8_t get_percent_batt(nrf_saadc_value_t sample){
-		
-		int8_t temp=(sample-455)*100/120;
-		
-		if(temp>90){
-				avisoBateriaFraca=false;
-				return percent_batt=100;}
-		else if(temp<90&&temp>80){
-				avisoBateriaFraca=false;
-				return percent_batt=90;}
-		else if(temp<80&&temp>70){
-				avisoBateriaFraca=false;
-				return percent_batt=80;}
-		else if(temp<70&&temp>60){
-				avisoBateriaFraca=false;
-				return percent_batt=70;}
-		else if(temp<60&&temp>50){
-				avisoBateriaFraca=false;
-				return percent_batt=60;}
-		else if(temp<50&&temp>40){
-				avisoBateriaFraca=false;
-				return percent_batt=50;}
-		else if(temp<40&&temp>30){
-				avisoBateriaFraca=false;
-				return percent_batt=40;}
-		else if(temp<30&&temp>20){
-				avisoBateriaFraca=false;
-				return percent_batt=30;}
-		else if(temp<20&&temp>10){
-				avisoBateriaFraca=false;
-				return percent_batt=20;}
-		else if(temp>5&&temp<10){
-				avisoBateriaFraca=true;
-				return percent_batt=10;
-		}
-		else if(temp>1&&temp<=5){
-				avisoBateriaFraca=true;
-				return percent_batt=5;
-		}
-		else if(temp<=1){
-				solicitacaoDesligamento=true;
-				return percent_batt=0;
-		}
-		else
-				return percent_batt;
-}
+//uint8_t get_percent_batt(nrf_saadc_value_t sample){
+//		
+//		int8_t temp=(sample-455)*100/120;
+//		
+//		if(temp>90){
+//				avisoBateriaFraca=false;
+//				return percent_batt=100;}
+//		else if(temp<90&&temp>80){
+//				avisoBateriaFraca=false;
+//				return percent_batt=90;}
+//		else if(temp<80&&temp>70){
+//				avisoBateriaFraca=false;
+//				return percent_batt=80;}
+//		else if(temp<70&&temp>60){
+//				avisoBateriaFraca=false;
+//				return percent_batt=70;}
+//		else if(temp<60&&temp>50){
+//				avisoBateriaFraca=false;
+//				return percent_batt=60;}
+//		else if(temp<50&&temp>40){
+//				avisoBateriaFraca=false;
+//				return percent_batt=50;}
+//		else if(temp<40&&temp>30){
+//				avisoBateriaFraca=false;
+//				return percent_batt=40;}
+//		else if(temp<30&&temp>20){
+//				avisoBateriaFraca=false;
+//				return percent_batt=30;}
+//		else if(temp<20&&temp>10){
+//				avisoBateriaFraca=false;
+//				return percent_batt=20;}
+//		else if(temp>5&&temp<10){
+//				avisoBateriaFraca=true;
+//				return percent_batt=10;
+//		}
+//		else if(temp>1&&temp<=5){
+//				avisoBateriaFraca=true;
+//				return percent_batt=5;
+//		}
+//		else if(temp<=1){
+//				solicitacaoDesligamento=true;
+//				return percent_batt=0;
+//		}
+//		else
+//				return percent_batt;
+//}
 
-//#define SIMULA_BPM
-#ifdef SIMULA_BPM
-uint8_t BPM_SIMU=50;
-bool sentido=true;
 
-void simu_hr(void){
-		if(sentido)
-		{	
-				BPM_SIMU+=5;
-				if(BPM_SIMU>=200)
-						sentido=false;
-		}else
-		{
-				BPM_SIMU-=5;
-				if(BPM_SIMU<=50)
-						sentido=true;
-		}
-}
-#endif
 
 /**@brief Function for performing battery measurement and updating the Battery Level characteristic
  *        in Battery Service.
@@ -833,23 +857,19 @@ static void battery_level_update(void)
     ret_code_t err_code;
 		nrf_saadc_value_t sample;
 		
-#ifdef SIMULA_BPM	
-		simu_hr();
-#endif
 
-	
 		nrf_drv_saadc_sample_convert(0, &sample);
-	
-    err_code = ble_bas_battery_level_update(&m_bas, get_percent_batt(sample), BLE_CONN_HANDLE_ALL);
-    if ((err_code != NRF_SUCCESS) &&
-        (err_code != NRF_ERROR_INVALID_STATE) &&
-        (err_code != NRF_ERROR_RESOURCES) &&
-        (err_code != NRF_ERROR_BUSY) &&
-        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
-       )
-    {
-        APP_ERROR_HANDLER(err_code);
-    }
+//	
+//    err_code = ble_bas_battery_level_update(&m_bas, get_percent_batt(sample), BLE_CONN_HANDLE_ALL);
+//    if ((err_code != NRF_SUCCESS) &&
+//        (err_code != NRF_ERROR_INVALID_STATE) &&
+//        (err_code != NRF_ERROR_RESOURCES) &&
+//        (err_code != NRF_ERROR_BUSY) &&
+//        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
+//       )
+//    {
+//        APP_ERROR_HANDLER(err_code);
+//    }
 //		NRF_LOG_INFO("Nivel da bateria: %d ",percent_batt);
 }
 
@@ -866,8 +886,97 @@ static void battery_level_meas_timeout_handler(void * p_context)
     UNUSED_PARAMETER(p_context);
     battery_level_update();
 }
+//function for generating random sine wave values,
+ void simu_cycle_speed(volatile int *flag,volatile int16_t *value, int lim,int limneg){	 
+	 int8_t flag_local=0;
+	 int16_t value_local;
+	 flag_local=*flag;
+	 value_local=*value;	 
+	 if (0<value_local<lim){
+		 value_local--;
+	 }
+	 if(limneg<value_local<=0){
+		 value_local++;
+	 }
+	 	 *flag=flag_local;
+   	 *value=value_local;
+ }
+
+//function for collecting reading from lis2dw12
+void retira_valor (void){//=================================================================================================================Apagar depois do teste=============================================================================================================================================================
+	static axis3bit16_t raw_acceleration;
+	lis2dw12_acceleration_raw_get(&dev_ctx, raw_acceleration.u8bit);
+	get_raw_data.u8bit[0]=raw_acceleration.u8bit[2];//YLSB
+	get_raw_data.u8bit[1]=raw_acceleration.u8bit[3];//YMSB
+	global_mixer=raw_acceleration.i16bit[1]>>2;
+}
+//===========================================================================================================================================================================================================================================================================================================================
+///function for allocating the reading in a 16bit format
+void combina_valor (void){//=================================================================================================================Apagar depois do teste=============================================================================================================================================================
+// volatile int16_t main_mixer=0x0;
+// main_mixer=(main_mixer | get_raw_data.u8bit[1]);//=((data_raw_acceleration.i16bit[2]>>4)&0xFFFF);
+// main_mixer=(main_mixer	<<8) | get_raw_data.u8bit[0];
+// global_mixer=main_mixer;	
+// NRF_LOG_INFO("accel raw :%d",global_mixer);
+ //nrf_delay_ms(100); 
+}
+//===========================================================================================================================================================================================================================================================================================================================
+///TESTE
+	void spi_event_handler(nrf_drv_spi_evt_t const * p_event,
+                       void *                    p_context)
+{
+    mLisPacketTransferComplete = true;
+}
+
+/**@brief Function for populating simulated cycling speed and cadence measurements.
+ */
+static void csc_sim_measurement(ble_cscs_meas_t * p_measurement)
+{   
+	  static uint16_t cumulative_crank_revs = 0;
+    static uint16_t event_time            = 0;
+    static  uint16_t wheel_revolution_mm  = 0;
+    static uint16_t crank_rev_degrees     = 0;
+
+  	uint16_t mm_per_sec;
+    uint16_t degrees_per_sec;
+    uint16_t event_time_inc;
+
+    // Per specification event time is in 1/1024th's of a second.
+    event_time_inc = (1024 * SPEED_AND_CADENCE_MEAS_INTERVAL) / 1000;
+
+    // Calculate simulated wheel revolution values.
+    p_measurement->is_wheel_rev_data_present = true;
+
+    mm_per_sec = KPH_TO_MM_PER_SEC * sensorsim_measure(&m_speed_kph_sim_state,
+                                                       &m_speed_kph_sim_cfg);
+
+    wheel_revolution_mm     += mm_per_sec * SPEED_AND_CADENCE_MEAS_INTERVAL / 1000;
+    m_cumulative_wheel_revs += wheel_revolution_mm / WHEEL_CIRCUMFERENCE_MM;
+    wheel_revolution_mm     %= WHEEL_CIRCUMFERENCE_MM;
+    p_measurement->cumulative_wheel_revs = m_cumulative_wheel_revs;
+    p_measurement->last_wheel_event_time =
+    event_time + (event_time_inc * (mm_per_sec - wheel_revolution_mm) / mm_per_sec);
+    
+    // Calculate simulated cadence values.
+    p_measurement->is_crank_rev_data_present = true;
+    
+    degrees_per_sec = RPM_TO_DEGREES_PER_SEC * sensorsim_measure(&m_crank_rpm_sim_state,
+                                                                    &m_crank_rpm_sim_cfg);
+    
+    crank_rev_degrees     += degrees_per_sec * SPEED_AND_CADENCE_MEAS_INTERVAL / 1000;
+    cumulative_crank_revs += crank_rev_degrees / DEGREES_PER_REVOLUTION;
+    crank_rev_degrees     %= DEGREES_PER_REVOLUTION;
+    
+    p_measurement->cumulative_crank_revs = cumulative_crank_revs;
+    p_measurement->last_crank_event_time =
+    event_time + (event_time_inc * (degrees_per_sec - crank_rev_degrees) / degrees_per_sec);
+    
+    event_time += event_time_inc;
+    glob_wheel_revolution_mm= wheel_revolution_mm;
+}
 
 static bool sensor_contact_detected = false;
+
 /**@brief Function for handling the Heart rate measurement timer timeout.
  *
  * @details This function will be called each time the heart rate measurement timer expires.
@@ -884,18 +993,7 @@ static void heart_rate_meas_timeout_handler(void * p_context)
     UNUSED_PARAMETER(p_context);
 
     cnt++;
-		#ifdef SIMULA_BPM
-		    err_code = ble_hrs_heart_rate_measurement_send(&m_hrs, (uint16_t) BPM_SIMU);
-    if ((err_code != NRF_SUCCESS) &&
-        (err_code != NRF_ERROR_INVALID_STATE) &&
-        (err_code != NRF_ERROR_RESOURCES) &&
-        (err_code != NRF_ERROR_BUSY) &&
-        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
-       )
-    {
-        APP_ERROR_HANDLER(err_code);
-    }
-		#else
+
 		    err_code = ble_hrs_heart_rate_measurement_send(&m_hrs, (uint16_t) BPM);
     if ((err_code != NRF_SUCCESS) &&
         (err_code != NRF_ERROR_INVALID_STATE) &&
@@ -906,11 +1004,69 @@ static void heart_rate_meas_timeout_handler(void * p_context)
     {
         APP_ERROR_HANDLER(err_code);
     }
-		#endif
-		
+
 		ble_hrs_sensor_contact_detected_update(&m_hrs, sensor_contact_detected);
 				
 }
+//teste
+
+
+
+
+/**@brief Function for handling the Cycling Speed and Cadence measurement timer timeouts.
+ *
+ * @details This function will be called each time the cycling speed and cadence
+ *          measurement timer expires.
+ *
+ * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
+ *                       app_start_timer() call to the timeout handler.
+ */
+static void csc_meas_timeout_handler(void * p_context)//changes in the characteristic.
+{
+    uint32_t        err_code;
+    ble_cscs_meas_t cscs_measurement;
+    UNUSED_PARAMETER(p_context);
+    csc_sim_measurement(&cscs_measurement);
+	  //mudanças valores testes
+	 //ADS018_res_data_f_len
+	  cscs_measurement.cumulative_wheel_revs=ADS018_res_data_c.rotation;
+	  cscs_measurement.last_wheel_event_time=0x9;//tava o ADS018_Cycle_Flag
+	  cscs_measurement.cumulative_crank_revs=0x9;
+	  cscs_measurement.last_crank_event_time=0x9;
+//	  uint32_t    cumulative_wheel_revs;                                  /**< Cumulative Wheel Revolutions. *///for testing reasons, should be the same value as the variable being tested
+//    uint16_t    last_wheel_event_time;                                  /**< Last Wheel Event Time. */
+//    uint16_t    cumulative_crank_revs;                                  /**< Cumulative Crank Revolutions. */
+//    uint16_t    last_crank_event_time;                                  /**< Last Crank Event Time. */
+	
+	
+	  err_code = ble_cscs_measurement_send(&m_cscs, &cscs_measurement);
+
+    if ((err_code != NRF_SUCCESS) &&
+        (err_code != NRF_ERROR_INVALID_STATE) &&
+        (err_code != NRF_ERROR_RESOURCES) &&
+        (err_code != NRF_ERROR_BUSY) &&
+        (err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
+       )
+    {
+        APP_ERROR_HANDLER(err_code);
+    }
+    if (m_auto_calibration_in_progress)
+    {
+        err_code = ble_sc_ctrlpt_rsp_send(&(m_cscs.ctrl_pt), BLE_SCPT_SUCCESS);
+        if ((err_code != NRF_SUCCESS) &&
+            (err_code != NRF_ERROR_INVALID_STATE) &&
+            (err_code != NRF_ERROR_RESOURCES)
+           )
+        {
+            APP_ERROR_HANDLER(err_code);
+        }
+        if (err_code != NRF_ERROR_RESOURCES)
+        {
+            m_auto_calibration_in_progress = false;
+        }
+    }
+}
+
 
 /**@brief Function for handling the biblioteca phillips.
  *
@@ -947,12 +1103,14 @@ static void timers_init(void)
                                 APP_TIMER_MODE_REPEATED,
                                 battery_level_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
-
-    err_code = app_timer_create(&m_heart_rate_timer_id,
+    //create cscs timer
+    err_code = app_timer_create(&m_csc_meas_timer_id,
                                 APP_TIMER_MODE_REPEATED,
-                                heart_rate_meas_timeout_handler);
+                                 csc_meas_timeout_handler);
     APP_ERROR_CHECK(err_code);
-		
+	
+	
+	
 		err_code = app_timer_create(&m_biblioteca_phillips_id,
                                 APP_TIMER_MODE_REPEATED,
                                 biblioteca_phillips_handler);
@@ -970,8 +1128,6 @@ static void timers_init(void)
 
 		
 }
-
-
 /**@brief Function for the GAP initialization.
  *
  * @details This function sets up all the necessary GAP (Generic Access Profile) parameters of the
@@ -1017,6 +1173,7 @@ static void gatt_evt_handler(nrf_ble_gatt_t * p_gatt, nrf_ble_gatt_evt_t const *
     }
 
     ble_hrs_on_gatt_evt(&m_hrs, p_evt);
+
 }
 
 
@@ -1235,6 +1392,36 @@ static void maximum_recommended_heart_rate_write_handler(ble_uds_t *p_uds, uint3
 	hr_module_nv_buf_update_flags.resting_heart_rate = true;
 	update_nv_mem_buf_request = true;
 }
+
+
+/**@brief Function for handling Speed and Cadence Control point events
+ *
+ * @details Function for handling Speed and Cadence Control point events.
+ *          This function parses the event and in case the "set cumulative value" event is received,
+ *          sets the wheel cumulative value to the received value.
+ */
+ble_scpt_response_t sc_ctrlpt_event_handler(ble_sc_ctrlpt_t     * p_sc_ctrlpt,
+                                            ble_sc_ctrlpt_evt_t * p_evt)
+{
+    switch (p_evt->evt_type)
+    {
+        case BLE_SC_CTRLPT_EVT_SET_CUMUL_VALUE:
+            m_cumulative_wheel_revs = p_evt->params.cumulative_value;
+            break;
+
+        case BLE_SC_CTRLPT_EVT_START_CALIBRATION:
+            m_auto_calibration_in_progress = true;
+            break;
+
+        default:
+            // No implementation needed.
+            break;
+    }
+    return (BLE_SCPT_SUCCESS);
+}
+
+
+
 
 static void aerobic_threshold_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 /* Conversão do valor de entrada para uint8_t */
@@ -1638,17 +1825,20 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
 static void services_init(void)
 {
     ret_code_t         err_code;
-    ble_hrs_init_t     hrs_init;
-    ble_bas_init_t     bas_init;
+    //ble_hrs_init_t     hrs_init;
+    //ble_bas_init_t     bas_init;
     ble_dis_init_t     dis_init;
-		
-    ble_uds_init_t uds_init;
+	  ble_sensor_location_t sensor_location;
+	
+   //ble_uds_init_t uds_init;
     ble_rus_init_t rus_init;
     ble_rtcs_init_t rtcs_init;
+	  ble_cscs_init_t       cscs_init;
 	
     ble_dfu_buttonless_init_t dfus_init = {0};
 	
     nrf_ble_qwr_init_t qwr_init = {0};
+		
     uint8_t            body_sensor_location;
 
     // Initialize Queued Write Module.
@@ -1657,37 +1847,51 @@ static void services_init(void)
     err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
 
-    // Initialize Heart Rate Service.
-    body_sensor_location = BLE_HRS_BODY_SENSOR_LOCATION_WRIST;
+		
+		
+		
+		// Initialize Cycling Speed and Cadence Service.
+    memset(&cscs_init, 0, sizeof(cscs_init));
 
-    memset(&hrs_init, 0, sizeof(hrs_init));
+    cscs_init.evt_handler = NULL;
+    cscs_init.feature     = BLE_CSCS_FEATURE_WHEEL_REV_BIT | BLE_CSCS_FEATURE_CRANK_REV_BIT |
+                            BLE_CSCS_FEATURE_MULTIPLE_SENSORS_BIT;
 
-    hrs_init.evt_handler                 = NULL;
-    hrs_init.is_sensor_contact_supported = true;
-    hrs_init.p_body_sensor_location      = &body_sensor_location;
+    // Here the sec level for the Cycling Speed and Cadence Service can be changed/increased.
+    cscs_init.csc_meas_cccd_wr_sec  = SEC_OPEN;
+    cscs_init.csc_feature_rd_sec    = SEC_OPEN;
+    cscs_init.csc_location_rd_sec   = SEC_OPEN;
+    cscs_init.sc_ctrlpt_cccd_wr_sec = SEC_OPEN;
+    cscs_init.sc_ctrlpt_wr_sec      = SEC_OPEN;
 
-    // Here the sec level for the Heart Rate Service can be changed/increased.
-    hrs_init.hrm_cccd_wr_sec = SEC_OPEN;
-    hrs_init.bsl_rd_sec      = SEC_OPEN;
+    cscs_init.ctrplt_supported_functions = BLE_SRV_SC_CTRLPT_CUM_VAL_OP_SUPPORTED
+                                           | BLE_SRV_SC_CTRLPT_SENSOR_LOCATIONS_OP_SUPPORTED
+                                           | BLE_SRV_SC_CTRLPT_START_CALIB_OP_SUPPORTED;
+    cscs_init.ctrlpt_evt_handler            = sc_ctrlpt_event_handler;
+    cscs_init.list_supported_locations      = supported_locations;
+    cscs_init.size_list_supported_locations = sizeof(supported_locations) /
+                                              sizeof(ble_sensor_location_t);
 
-    err_code = ble_hrs_init(&m_hrs, &hrs_init);
+    sensor_location           = BLE_SENSOR_LOCATION_FRONT_WHEEL;                 // initializes the sensor location to add the sensor location characteristic.
+    cscs_init.sensor_location = &sensor_location;
+
+    err_code = ble_cscs_init(&m_cscs, &cscs_init);
     APP_ERROR_CHECK(err_code);
+   // Initialize Battery Service.
+//    memset(&bas_init, 0, sizeof(bas_init));
 
-    // Initialize Battery Service.
-    memset(&bas_init, 0, sizeof(bas_init));
+//    bas_init.evt_handler          = NULL;
+//    bas_init.support_notification = true;
+//    bas_init.p_report_ref         = NULL;
+//    bas_init.initial_batt_level   = 100;
 
-    bas_init.evt_handler          = NULL;
-    bas_init.support_notification = true;
-    bas_init.p_report_ref         = NULL;
-    bas_init.initial_batt_level   = 100;
+//    // Here the sec level for the Battery Service can be changed/increased.
+//    bas_init.bl_rd_sec        = SEC_OPEN;
+//    bas_init.bl_cccd_wr_sec   = SEC_OPEN;
+//    bas_init.bl_report_rd_sec = SEC_OPEN;
 
-    // Here the sec level for the Battery Service can be changed/increased.
-    bas_init.bl_rd_sec        = SEC_OPEN;
-    bas_init.bl_cccd_wr_sec   = SEC_OPEN;
-    bas_init.bl_report_rd_sec = SEC_OPEN;
-
-    err_code = ble_bas_init(&m_bas, &bas_init);
-    APP_ERROR_CHECK(err_code);
+//    err_code = ble_bas_init(&m_bas, &bas_init);
+//    APP_ERROR_CHECK(err_code);
 
     // Initialize Device Information Service.
     memset(&dis_init, 0, sizeof(dis_init));
@@ -1704,39 +1908,39 @@ static void services_init(void)
     err_code = ble_dis_init(&dis_init);
     APP_ERROR_CHECK(err_code);
 
-//introduce RAE User Profile Service (ble_rus) here.
-    memset(&uds_init, 0, sizeof(uds_init));
+////introduce RAE User Profile Service (ble_rus) here.
+//    memset(&uds_init, 0, sizeof(uds_init));
 
-    uds_init.first_name_write_handler																				= first_name_write_handler;
-    uds_init.last_name_write_handler																				= last_name_write_handler;
-    uds_init.email_address_write_handler																		= email_address_write_handler;
-    uds_init.age_write_handler																							= age_write_handler;
-    uds_init.date_of_birth_write_handler																		= date_of_birth_write_handler;
-    uds_init.gender_write_handler																						= gender_write_handler;
-    uds_init.weight_write_handler																						= weight_write_handler;
-    uds_init.height_write_handler																						= height_write_handler;
-    uds_init.VO2_max_write_handler																					= VO2_max_write_handler;
-    uds_init.heart_rate_max_write_handler																		= heart_rate_max_write_handler;
-    uds_init.resting_heart_write_handler																		= resting_heart_rate_write_handler;   				//@Including USER ID
-    uds_init.maximum_recommended_heart_rate_write_handler										= maximum_recommended_heart_rate_write_handler;		//@Including AEROBIC THRESHOLD
-    uds_init.aerobic_threshold_write_handler																= aerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
-    uds_init.anaerobic_threshold_write_handler															= anaerobic_threshold_write_handler;  					//@Including NAME
-    uds_init.sport_type_for_aerobic_and_anaerobic_thresholds_write_handler	= sport_type_for_aerobic_and_anaerobic_thresholds_write_handler;			//@Including FITNESS INDEX
-    uds_init.date_of_threshold_assessment_write_handler				 				   		= date_of_threshold_assessment_write_handler;
-    uds_init.waist_circumference_write_handler															= waist_circumference_write_handler;
-    uds_init.fat_burn_heart_rate_lower_limit_write_handler									= fat_burn_heart_rate_lower_limit_write_handler;
-    uds_init.fat_burn_heart_rate_upper_limit_write_handler									= fat_burn_heart_rate_upper_limit_write_handler;
-    uds_init.aerobic_heart_rate_lower_limit_write_handler										= aerobic_heart_rate_lower_limit_write_handler;
-    uds_init.aerobic_heart_rate_upper_limit_write_handler										= aerobic_heart_rate_upper_limit_write_handler;
-    uds_init.anaerobic_heart_rate_lower_limit_write_handler									= anaerobic_heart_rate_lower_limit_write_handler;
-    uds_init.five_zone_heart_rate_limits_write_handler											= five_zone_heart_rate_limits_write_handler;
-    uds_init.three_zone_heart_rate_limits_write_handler											= three_zone_heart_rate_limits_write_handler;
-    uds_init.two_zone_heart_rate_limits_write_handler												= two_zone_heart_rate_limits_write_handler;
-    uds_init.language_write_handler																					= language_write_handler;
-    uds_init.fitnes_index_write_handler																			= fitnes_index_write_handler;
+//    uds_init.first_name_write_handler																				= first_name_write_handler;
+//    uds_init.last_name_write_handler																				= last_name_write_handler;
+//    uds_init.email_address_write_handler																		= email_address_write_handler;
+//    uds_init.age_write_handler																							= age_write_handler;
+//    uds_init.date_of_birth_write_handler																		= date_of_birth_write_handler;
+//    uds_init.gender_write_handler																						= gender_write_handler;
+//    uds_init.weight_write_handler																						= weight_write_handler;
+//    uds_init.height_write_handler																						= height_write_handler;
+//    uds_init.VO2_max_write_handler																					= VO2_max_write_handler;
+//    uds_init.heart_rate_max_write_handler																		= heart_rate_max_write_handler;
+//    uds_init.resting_heart_write_handler																		= resting_heart_rate_write_handler;   				//@Including USER ID
+//    uds_init.maximum_recommended_heart_rate_write_handler										= maximum_recommended_heart_rate_write_handler;		//@Including AEROBIC THRESHOLD
+//    uds_init.aerobic_threshold_write_handler																= aerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
+//    uds_init.anaerobic_threshold_write_handler															= anaerobic_threshold_write_handler;  					//@Including NAME
+//    uds_init.sport_type_for_aerobic_and_anaerobic_thresholds_write_handler	= sport_type_for_aerobic_and_anaerobic_thresholds_write_handler;			//@Including FITNESS INDEX
+//    uds_init.date_of_threshold_assessment_write_handler				 				   		= date_of_threshold_assessment_write_handler;
+//    uds_init.waist_circumference_write_handler															= waist_circumference_write_handler;
+//    uds_init.fat_burn_heart_rate_lower_limit_write_handler									= fat_burn_heart_rate_lower_limit_write_handler;
+//    uds_init.fat_burn_heart_rate_upper_limit_write_handler									= fat_burn_heart_rate_upper_limit_write_handler;
+//    uds_init.aerobic_heart_rate_lower_limit_write_handler										= aerobic_heart_rate_lower_limit_write_handler;
+//    uds_init.aerobic_heart_rate_upper_limit_write_handler										= aerobic_heart_rate_upper_limit_write_handler;
+//    uds_init.anaerobic_heart_rate_lower_limit_write_handler									= anaerobic_heart_rate_lower_limit_write_handler;
+//    uds_init.five_zone_heart_rate_limits_write_handler											= five_zone_heart_rate_limits_write_handler;
+//    uds_init.three_zone_heart_rate_limits_write_handler											= three_zone_heart_rate_limits_write_handler;
+//    uds_init.two_zone_heart_rate_limits_write_handler												= two_zone_heart_rate_limits_write_handler;
+//    uds_init.language_write_handler																					= language_write_handler;
+//    uds_init.fitnes_index_write_handler																			= fitnes_index_write_handler;
 
-		err_code = ble_uds_init(&m_uds, &uds_init);
-		APP_ERROR_CHECK(err_code);
+//		err_code = ble_uds_init(&m_uds, &uds_init);
+//		APP_ERROR_CHECK(err_code);
 
     //introduce RAE User Profile Service (ble_rus) here.
     memset(&rus_init, 0, sizeof(rus_init));
@@ -1770,6 +1974,41 @@ static void services_init(void)
     APP_ERROR_CHECK(err_code);		
 		
 }
+
+
+
+
+/**@brief Function for initializing the sensor simulators.
+ */
+static void sensor_simulator_init(void)
+{
+//    m_battery_sim_cfg.min          = MIN_BATTERY_LEVEL;
+//    m_battery_sim_cfg.max          = MAX_BATTERY_LEVEL;
+//    m_battery_sim_cfg.incr         = BATTERY_LEVEL_INCREMENT;
+//    m_battery_sim_cfg.start_at_max = true;
+
+    sensorsim_init(&m_battery_sim_state, &m_battery_sim_cfg);
+
+    m_speed_kph_sim_cfg.min          = MIN_SPEED_KPH;
+    m_speed_kph_sim_cfg.max          = MAX_SPEED_KPH;
+    m_speed_kph_sim_cfg.incr         = SPEED_KPH_INCREMENT;
+    m_speed_kph_sim_cfg.start_at_max = false;
+
+    sensorsim_init(&m_speed_kph_sim_state, &m_speed_kph_sim_cfg);
+
+    m_crank_rpm_sim_cfg.min          = MIN_CRANK_RPM;
+    m_crank_rpm_sim_cfg.max          = MAX_CRANK_RPM;
+    m_crank_rpm_sim_cfg.incr         = CRANK_RPM_INCREMENT;
+    m_crank_rpm_sim_cfg.start_at_max = false;
+
+    sensorsim_init(&m_crank_rpm_sim_state, &m_crank_rpm_sim_cfg);
+
+    m_cumulative_wheel_revs        = 0;
+    m_auto_calibration_in_progress = false;
+}
+
+
+
 
 /******************************************************************************/
 /******************************************************************************/
@@ -1993,24 +2232,32 @@ void check_nv_update_request (void){
 static void application_timers_start(void)
 {
     ret_code_t err_code;
+	   uint32_t csc_meas_timer_ticks;
 	
     // Start application timers.
     err_code = app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
 		
-    err_code = app_timer_start(m_heart_rate_timer_id, HEART_RATE_MEAS_INTERVAL, NULL);
-    APP_ERROR_CHECK(err_code);
+//    err_code = app_timer_start(m_heart_rate_timer_id, HEART_RATE_MEAS_INTERVAL, NULL);
+//    APP_ERROR_CHECK(err_code);
+	  
+//		err_code = app_timer_start(m_biblioteca_phillips_id, APP_TIMER_TICKS(64), NULL);
+//    APP_ERROR_CHECK(err_code);
 	
-		err_code = app_timer_start(m_biblioteca_phillips_id, APP_TIMER_TICKS(64), NULL);
-    APP_ERROR_CHECK(err_code);
-	
-		err_code = app_timer_start(m_adv_update, APP_TIMER_TICKS(341), NULL);
-    APP_ERROR_CHECK(err_code);
+		err_code = app_timer_start(m_adv_update, APP_TIMER_TICKS(49), NULL);////APP_TIMER_TICKS(341)//err_code = app_timer_start(m_adv_update, APP_TIMER_TICKS(4400), NULL);//APP_TIMER_TICKS(341)
+	  APP_ERROR_CHECK(err_code);
+	  //mudado338
 	
     // Schedule a timeout event every 2 seconds
     err_code = app_timer_start(m_tick_timer, APP_TICK_EVENT_INTERVAL, NULL);
     APP_ERROR_CHECK(err_code);
 	
+	//start timer for Cadence Speed
+	csc_meas_timer_ticks = APP_TIMER_TICKS(SPEED_AND_CADENCE_MEAS_INTERVAL);//500
+
+    err_code = app_timer_start(m_csc_meas_timer_id, csc_meas_timer_ticks, NULL);
+    APP_ERROR_CHECK(err_code);
+
 }
 
 
@@ -2027,7 +2274,7 @@ static void application_timers_start(void)
 static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
 {
     ret_code_t err_code;
-
+    
     if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
     {
         err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
@@ -2559,7 +2806,7 @@ void bsp_event_handler(bsp_event_t event)
             break;
 #ifdef WDT_ATIVO
 		//		case BSP_EVENT_KEY_0:
-    //        nrf_drv_wdt_channel_feed(m_channel_id);
+            nrf_drv_wdt_channel_feed(m_channel_id);
     //        break;
 #endif				
 		
@@ -2603,10 +2850,9 @@ static void peer_manager_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
-
 /**@brief Function for initializing the Advertising functionality.
  */
-static void advertising_init(void)
+static void advertising_init(void)//aqui as métricas começam com um valor
 {
     ret_code_t             err_code;
     ble_advertising_init_t init;
@@ -2620,26 +2866,19 @@ static void advertising_init(void)
     init.advdata.uuids_complete.p_uuids  	= m_adv_uuids;
 	
     init.config.ble_adv_fast_enabled  		= true;
-    init.config.ble_adv_fast_interval 		= APP_ADV_INTERVAL;
+    init.config.ble_adv_fast_interval 		= APP_ADV_INTERVAL;//originalmente setado como 300.
     init.config.ble_adv_fast_timeout  		= 0;
 	
-		HR_advertising_data.user_id       = (uint8_t)get_user_id();
-		HR_advertising_data.sexo 		 		  = (uint8_t)get_gender_metric();
-		HR_advertising_data.cor 		     	= (uint8_t)get_color();
-		HR_advertising_data.hr        		=  BPM;
-		HR_advertising_data.perc          = (uint8_t)get_hr_percent();
-		HR_advertising_data.letra1        = ((uint8_t)(get_first_name_metric()>>56));//primeira Letra do nome - m 
-		HR_advertising_data.letra2        = ((uint8_t)(get_first_name_metric()>>48));//segunda Letra do nome - y 
-		HR_advertising_data.letra3        = ((uint8_t)(get_first_name_metric()>>40));//terceira Letra do nome - b 
-		HR_advertising_data.letra4        = ((uint8_t)(get_first_name_metric()>>32));//quarta Letra do nome - e 
-		HR_advertising_data.letra5        = ((uint8_t)(get_first_name_metric()>>24));//quinta Letra do nome -  a
-		HR_advertising_data.letra6        = ((uint8_t)(get_first_name_metric()>>16));//sexta Letra do nome - t
-		HR_advertising_data.idade         = (uint8_t)get_age_metric();
-		HR_advertising_data.peso          = (uint8_t)(get_weight_metric()/200);
-			
+		HR_advertising_data.RPM       = 0x0000;//(uint8_t)get_user_id();
+		HR_advertising_data.HR 		 		= 0x7777;//(uint8_t)get_gender_metric();
+		HR_advertising_data.Power 		= 0x4444;//(uint8_t)get_color();
+		HR_advertising_data.Kcal      = 0x5555;// BPM;
+		HR_advertising_data.Minutes   = 0xAC;//(uint8_t)get_hr_percent();
+		HR_advertising_data.seconds   = 0xAC;//((uint8_t)(get_first_name_metric()>>56));//primeira Letra do nome - m 
+		HR_advertising_data.trip      = 0x3333;//((uint8_t)(get_first_name_metric()>>48));//segunda Letra do nome - y 
     init.evt_handler = on_adv_evt;
 		
-		init.advdata.p_manuf_specific_data 		= &hr_adv_manuf_data;
+		init.srdata.p_manuf_specific_data 		= &hr_adv_manuf_data;
 
     err_code = ble_advertising_init(&m_advertising, &init);
     APP_ERROR_CHECK(err_code);
@@ -2651,78 +2890,56 @@ static void advertising_init(void)
 				
 }
 
-#ifdef MYBEAT_V1
-void HR_advdata_manuf_data_update(void * p_context)
-{		
-		UNUSED_PARAMETER(p_context);
-		ble_advdata_t advdata;
-		ret_code_t           err_code;
-		ble_advdata_manuf_data_t 		  adv_manuf_data;
-//		hr_module_metric_info_t *pointer = get_metrics();
-		
-	
-		pHR_adv_user_data->user_id       = (uint8_t)get_user_id();   //@Including USER ID
-		pHR_adv_user_data->sexo 		 		 = 0x00;//@Including battery_level (broadcasting)
-		pHR_adv_user_data->cor 		     	 = (uint8_t)get_age_metric();//@Including Color, Perc and Name.
-		pHR_adv_user_data->hr        		 =  BPM;
-	
-		memset(&advdata, 0, sizeof(advdata));
 
-    advdata.name_type               = BLE_ADVDATA_FULL_NAME;
-    advdata.include_appearance      = false;//true;
-    advdata.flags                   = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-    advdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
-    advdata.uuids_complete.p_uuids  = m_adv_uuids;
-		adv_manuf_data.data.p_data        = (uint8_t*)pHR_adv_user_data;
-		adv_manuf_data.data.size          = 4;
-		adv_manuf_data.company_identifier = 0x07D0; 
-		advdata.p_manuf_specific_data     = &adv_manuf_data;
+void get_accel(void)
+
+{
+   	retira_valor();
+//		simu_cycle_speed(&flag_for_simu,&value_for_simu,limit_for_simu,limit_neg_for_simu);
+//		if (value_for_simu<-8){
+//			value_for_simu=10;
+//		}
+	  ADS018_Time_Update();
+	  filter(global_mixer,IN_dummy,(int16_t *)&value_for_simu_F,(int16_t *)&OUT_dummy);
 	
-		err_code=ble_advertising_advdata_update(&m_advertising, &advdata, NULL);
-		APP_ERROR_CHECK(err_code);
-
-		nrf_drv_wdt_channel_feed(m_channel_id);
-
+}
+void cycle_treat(void)
+{
+	
+	ADS018_Cycle(value_for_simu_F,&out_dir,&out_Cyclecounter);
+	ADS018_Update_SCycle();
+	ADS018_Cycle_Flag=0;
+	if (ADS018_ShowCounter == ADS018_ShowCounter_SetMean) ADS018_Set_Mean_Data(); 
+	
 }
 
-#else
-
-void HR_advdata_manuf_data_update(void * p_context)
+void HR_advdata_manuf_data_update(void * p_context)//changes in the service.
 {		
 		UNUSED_PARAMETER(p_context);
 		ble_advdata_t advdata;
+	  ble_advdata_t srdata;
 		ret_code_t           err_code;
-		ble_advdata_manuf_data_t 		  adv_manuf_data;
-	
-		pHR_adv_user_data->user_id       = (uint8_t)get_user_id();
-		pHR_adv_user_data->sexo 		 		 = (uint8_t)get_gender_metric();
-		pHR_adv_user_data->cor 		     	 = (uint8_t)get_color();
-		
-		#ifdef SIMULA_BPM
-		pHR_adv_user_data->hr        		 =  BPM_SIMU;
-		#else
-		pHR_adv_user_data->hr        		 =  BPM;
-		#endif
-		pHR_adv_user_data->perc          = (uint8_t)get_hr_percent();
-		pHR_adv_user_data->letra1        = ((uint8_t)(get_first_name_metric()>>56));//primeira Letra do nome - m 
-		pHR_adv_user_data->letra2        = ((uint8_t)(get_first_name_metric()>>48));//segunda Letra do nome - y 
-		pHR_adv_user_data->letra3        = ((uint8_t)(get_first_name_metric()>>40));//terceira Letra do nome - b 
-		pHR_adv_user_data->letra4        = ((uint8_t)(get_first_name_metric()>>32));//quarta Letra do nome - e 
-		pHR_adv_user_data->letra5        = ((uint8_t)(get_first_name_metric()>>24));//quinta Letra do nome -  a
-		pHR_adv_user_data->letra6        = ((uint8_t)(get_first_name_metric()>>16));//sexta Letra do nome - t
-		pHR_adv_user_data->idade         = (uint8_t)get_age_metric();
-		pHR_adv_user_data->peso          = (uint8_t)(get_weight_metric()/200);
-	
+		ble_advdata_manuf_data_t 		   adv_manuf_data;
+    //ADS018_res_data_f_len=0xB;//testar posição do len no advertising.
+	 	pHR_adv_user_data->RPM         = global_mixer; //ADS018_res_data_c.rotation;//(uint8_t)get_user_id();
+		pHR_adv_user_data->HR 		 		 = 0xAA;//(uint8_t)get_gender_metric();
+		pHR_adv_user_data->Power 		   = value_for_simu_F;//(uint8_t)get_color();//terá de ser valor aleatório sem biblioteca
+		pHR_adv_user_data->Kcal        = 0xAA;//  BPM;aleatório
+		pHR_adv_user_data->Minutes     = 0xAA;//uint8_t)get_hr_percent();====================================================================================================================================================================================================================
+		pHR_adv_user_data->seconds     = 0xAF;//((uint8_t)(get_first_name_metric()>>56));//primeira Letra do nome - m 
+		pHR_adv_user_data->trip        = ADS018_res_data_c.rotation;//((uint8_t)(get_first_name_metric()>>48));//segunda Letra do nome - y 
+    
+    	   
 		memset(&advdata, 0, sizeof(advdata));
 
     advdata.name_type               = BLE_ADVDATA_FULL_NAME;
     advdata.include_appearance      = false;//true;
     advdata.flags                   = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-    advdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
-    advdata.uuids_complete.p_uuids  = m_adv_uuids;
+    srdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
+    srdata.uuids_complete.p_uuids  = m_adv_uuids;
 		adv_manuf_data.data.p_data        = (uint8_t*)pHR_adv_user_data;
 		adv_manuf_data.data.size          = N_USER_FIELD;
-		adv_manuf_data.company_identifier = 0x07D0; 
+		adv_manuf_data.company_identifier = 0x02BE; //07D0
 		advdata.p_manuf_specific_data     = &adv_manuf_data;
 	
 		err_code=ble_advertising_advdata_update(&m_advertising, &advdata, NULL);
@@ -2733,7 +2950,7 @@ void HR_advdata_manuf_data_update(void * p_context)
 		ant_hrm_measurement_update(&m_ant_hrm_measurement, (uint32_t)BPM);
 }
 
-#endif
+
 
 
 /**@brief Function for initializing buttons and leds.
@@ -2812,94 +3029,12 @@ static void idle_state_handle(void)
  * @brief SPI user event handler.
  * @param event
  */
-void spi_event_handler(nrf_drv_spi_evt_t const * p_event,
-                       void *                    p_context)
-{
-    mLisPacketTransferComplete = true;
-}
+//void spi_event_handler(nrf_drv_spi_evt_t const * p_event,
+//                       void *                    p_context)
+//{
+//    mLisPacketTransferComplete = true;
+//}
 
-//#define RESAMPLE_1S
-
-#ifdef RESAMPLE_1S
-
-void resample_PPG_32Hz (uint8_t numeroAmostraEntrada, amostraPPG * dadosPPG_25Hz,dadosBbPPG * amostra32Hz ){
-		
-		amostraPPG dadosPPGresample[32];
-
-		float passo=0;
-		uint8_t temporario=0;
-	
-		memset(&dadosPPGresample,0,sizeof(dadosPPGresample));
-		volatile uint8_t x25 = 0;
-		
-		passo=((float)numeroAmostraEntrada/((float)31.0));
-		dadosPPGresample[0].vetor[0] = dadosPPG_25Hz[0].vetor[0];
-		dadosPPGresample[0].vetor[1] = dadosPPG_25Hz[0].vetor[1];
-		
-		for(uint8_t x32=1;x32<32; x32++){
-				x25=(uint8_t)(passo*(float)x32);
-				dadosPPGresample[x32].vetor[0] = dadosPPG_25Hz[x25].vetor[0] + ((dadosPPG_25Hz[x25+1].vetor[0] - dadosPPG_25Hz[x25].vetor[0]) * ((passo*(float)x32) - (float)(x25)));
-				dadosPPGresample[x32].vetor[1] = dadosPPG_25Hz[x25].vetor[1] + ((dadosPPG_25Hz[x25+1].vetor[1] - dadosPPG_25Hz[x25].vetor[1]) * ((passo*(float)x32) - (float)(x25)));
-		}
-		
-		uint8_t u=0;
-		
-		for(uint8_t i=0; i<16; i++){
-				amostra32Hz[i].amostra1=dadosPPGresample[u];
-				u++;
-				amostra32Hz[i].amostra2=dadosPPGresample[u];
-				u++;
-		}
-		
-}
-
-void resample_ACC_128Hz (uint8_t numeroAmostraEntrada, amostraACC * dadosACC_100Hz,dadosBbACC * amostra128Hz ){
-		
-		amostraACC dadosACCresample[128];
-
-		float passo=0;
-		uint8_t temporario=0;
-	
-		memset(&dadosACCresample,0,sizeof(dadosACCresample));
-		volatile uint8_t x100 = 0;
-		
-		passo=((float)numeroAmostraEntrada-1.0/((float)127.0));
-		dadosACCresample[0].vetor[0] = dadosACC_100Hz[0].vetor[0];
-		dadosACCresample[0].vetor[1] = dadosACC_100Hz[0].vetor[1];
-		dadosACCresample[0].vetor[2] = dadosACC_100Hz[0].vetor[2];
-	
-		for(uint8_t x128=1;x128<128; x128++){
-				x100=(uint8_t)(passo*(float)x128);
-				dadosACCresample[x128].vetor[0] = dadosACC_100Hz[x100].vetor[0] + ((dadosACC_100Hz[x100+1].vetor[0] - dadosACC_100Hz[x100].vetor[0]) * ((passo*(float)x128) - (float)(x100)));
-				dadosACCresample[x128].vetor[1] = dadosACC_100Hz[x100].vetor[1] + ((dadosACC_100Hz[x100+1].vetor[1] - dadosACC_100Hz[x100].vetor[1]) * ((passo*(float)x128) - (float)(x100)));
-				dadosACCresample[x128].vetor[2] = dadosACC_100Hz[x100].vetor[2] + ((dadosACC_100Hz[x100+1].vetor[2] - dadosACC_100Hz[x100].vetor[2]) * ((passo*(float)x128) - (float)(x100)));
-
-		}
-		
-		uint8_t u=0;
-		
-		for(uint8_t i=0; i<16; i++){
-				amostra128Hz[i].amostra1=dadosACCresample[u];
-				u++;
-				amostra128Hz[i].amostra2=dadosACCresample[u];
-				u++;
-				amostra128Hz[i].amostra3=dadosACCresample[u];
-				u++;
-				amostra128Hz[i].amostra4=dadosACCresample[u];
-				u++;
-				amostra128Hz[i].amostra5=dadosACCresample[u];
-				u++;
-				amostra128Hz[i].amostra6=dadosACCresample[u];
-				u++;
-				amostra128Hz[i].amostra7=dadosACCresample[u];
-				u++;
-				amostra128Hz[i].amostra8=dadosACCresample[u];
-				u++;
-		}
-		
-}
-
-#else
 
 dadosBbPPG bufferPPG;
 
@@ -2919,7 +3054,7 @@ void resample_PPG (uint8_t numeroAmostra, dadosBbPPG *dadosPPG ){
 		bufferPPG=*dadosPPG;
 		
 }
-#endif
+
 
 dadosBbACC PPG_historico;
 
@@ -2953,89 +3088,6 @@ void resample_ACC (uint8_t numeroAmostra, dadosBbACC *dadosACC ){
 	
 }
 
-g4_PPGControlLoopConfig_t    sControlLoopParams;
-
-
-#ifdef RESAMPLE_1S
-
-amostraPPG amostraPPG25Hz[25];
-dadosBbPPG amostraPPG32Hz[16];
-uint8_t i25 =0;
-void amazenar_PPG_25Hz(uint8_t PPGlsb, uint8_t PPGmsb, uint8_t AMBlsb, uint8_t AMBmsb){
-
-		amostraPPG25Hz[i25].dadosPPG.PPGlsb = PPGlsb;
-		amostraPPG25Hz[i25].dadosPPG.PPGmsb = PPGmsb;
-		amostraPPG25Hz[i25].dadosPPG.ambientelsb = AMBlsb;
-		amostraPPG25Hz[i25].dadosPPG.ambientemsb = AMBmsb;	
-		if (i25>=24){
-				resample_PPG_32Hz(i25, amostraPPG25Hz, amostraPPG32Hz);
-				i25=0;
-		}
-		i25++;
-
-}
-
-amostraACC amostraACC100Hz[100];
-dadosBbACC amostraACC128Hz[16];
-uint8_t i100 =0;
-
-void amazenar_ACC_100Hz(uint8_t ACCXlsb, uint8_t ACCXmsb, uint8_t ACCYlsb, uint8_t ACCYmsb, uint8_t ACCZlsb, uint8_t ACCZmsb){
-
-		amostraACC100Hz[i100].dadosACC.eixoXlsb = ACCXlsb;
-		amostraACC100Hz[i100].dadosACC.eixoXmsb = ACCXmsb;
-		amostraACC100Hz[i100].dadosACC.eixoYlsb = ACCYlsb;
-		amostraACC100Hz[i100].dadosACC.eixoYmsb = ACCYmsb;
-		amostraACC100Hz[i100].dadosACC.eixoZlsb = ACCZlsb;
-		amostraACC100Hz[i100].dadosACC.eixoZmsb = ACCZmsb;
-		if (i100>=100){
-				resample_ACC_128Hz(i100, amostraACC100Hz, amostraACC128Hz);
-				i100=0;
-		}
-		i100++;
-}
-
-
-void limpa_PPG_25Hz(void){
-		i25 = 0;
-		
-		memset(amotraPPG25Hz,0,sizeof(amotraPPG25Hz));
-
-}
-
-#else
-
-void amazenar_PPG(uint8_t * numeroAmostra, dadosBbPPG * bufferPPG){
-		uint8_t indiceAmostra = *numeroAmostra;
-		MAX30110_dados24BitsFIFO_t dadosFila;
-		MAX30110_leFila( &dadosFila, 2 );
-
-		NRF_LOG_INFO("2C:%ld,%ld",((dadosFila.dados.valorPPG)&0x7FFFF)>>3,((dadosFila.dados.valorAMB)&0x7FFFF)>>3);//,dadosFila.dados.valorAMB);
-									
-		if(indiceAmostra==0){
-				//verificar mascara de bits bit [0] msb [2] lsb da fifo
-				bufferPPG->amostra1.dadosPPG.PPGlsb=(uint8_t)(dadosFila.dados.valorPPG>>3); 					//LSB PPG
-				bufferPPG->amostra1.dadosPPG.PPGmsb=(uint8_t)((dadosFila.dados.valorPPG&0x7FFFF)>>11); 					//MSB PPG 
-				bufferPPG->amostra1.dadosPPG.ambientelsb=(uint8_t)(dadosFila.dados.valorAMB>>3); 		//LSB AMBIENT
-				bufferPPG->amostra1.dadosPPG.ambientemsb=(uint8_t)((dadosFila.dados.valorAMB&0x7FFFF)>>11); 		//MSB AMBIENT					
-				indiceAmostra++;
-		}
-		else if(indiceAmostra==1){
-				bufferPPG->amostra2.dadosPPG.PPGlsb=(uint8_t)(dadosFila.dados.valorPPG>>3); 					//LSB PPG
-				bufferPPG->amostra2.dadosPPG.PPGmsb=(uint8_t)((dadosFila.dados.valorPPG&0x7FFFF)>>11); 					//MSB PPG 
-				bufferPPG->amostra2.dadosPPG.ambientelsb=(uint8_t)(dadosFila.dados.valorAMB>>3); 		//LSB AMBIENT
-				bufferPPG->amostra2.dadosPPG.ambientemsb=(uint8_t)((dadosFila.dados.valorAMB&0x7FFFF)>>11); 		//MSB AMBIENT			
-				indiceAmostra++;
-		}
-		else{
-				indiceAmostra=0;
-		}
-		*numeroAmostra=indiceAmostra;
-		
-//		amazenar_PPG_25Hz((dadosFila.dados.valorPPG>>3),((dadosFila.dados.valorPPG&0x7FFFF)>>11),(dadosFila.dados.valorAMB>>3),((dadosFila.dados.valorAMB&0x7FFFF)>>11));
-				
-}
-
-#endif
 
 void amazenar_ACC(uint8_t * numeroAmostra, dadosBbACC * bufferACC){
 		uint8_t indiceAmostra = *numeroAmostra;
@@ -3126,7 +3178,6 @@ void amazenar_ACC(uint8_t * numeroAmostra, dadosBbACC * bufferACC){
 		}	
 	
 		*numeroAmostra=indiceAmostra;
-	
 }
 
 void check_init(bool code_error1, bool code_error2){
@@ -3149,49 +3200,62 @@ void check_init(bool code_error1, bool code_error2){
  */
 int main(void)
 {	
-	
+	  ble_cscs_meas_t cscs_measurement;
+	  //void teste;
 		bool erase_bonds;
 		ret_code_t err_code;
-	// Initialize.
+	  //Initialize.
     log_init();
-	
+    
     err_code = ble_dfu_buttonless_async_svci_init();
     APP_ERROR_CHECK(err_code);
-	
+    
     timers_init();
+    
     button_and_leds_init(&erase_bonds);
+    
 		power_management_init();
+    
     ble_stack_init();
+    
     gap_params_init();
+    
     gatt_init();
+    
 		buff_init();
+    
 		buff_load();
+    
 		load_user_info_metrics();
+    
+	  services_init();
+    
 		advertising_init();
-    services_init();
+    
+    sensor_simulator_init();//somente para o teste RPM
+    
     conn_params_init();
+    
     peer_manager_init();
+    
 		spi_init();
+    
 		pwm_init();
+    	
 		saadc_init();
 
+		lis2dw12_config();
+		
+		filter_init(global_mixer, glob_wheel_revolution_mm);//ADICIONADO===================================================================
+
 		// Start execution.
-		NRF_LOG_INFO("Heart Rate Sensor example started.");
-    advertising_start(erase_bonds);
+		advertising_start(erase_bonds);
+
     application_timers_start();	
 
-		if(nrf_gpio_pin_read(USB)){
-				OperationMode = CHARGERING;
-		}
-		else{
-				check_init(lis2dw12_config(),MAX30110_ConfiguraSensorPPG());
-				init_biblioteca_phillips();
-				OperationMode = RUNNING;							
-		}
 		utils_setup();
 		measurement_setup();
     profile_setup();	
-				
 #ifdef WDT_ATIVO
 		//Configure WDT.
     nrf_drv_wdt_config_t config = NRF_DRV_WDT_DEAFULT_CONFIG;
@@ -3205,147 +3269,20 @@ int main(void)
     dev_ctx.write_reg = platform_write;
     dev_ctx.read_reg = platform_read;
     dev_ctx.handle = &spi_event_handler;
-		
-#ifdef RESAMPLE_1S
-
-		lis2dw12_all_sources_t all_source;
-    uint8_t ppgsample;
-    uint8_t acceleration_mg[6];
-		uint8_t partI[22];
-		uint8_t tempo=0;
-		uint32_t contagemAmostral=0;
-		amostraPPG amostrasFilaPPG[25];
-		uint8_t indiceFilaPPG=0;
-		dadosBbPPG	amostrasPPG[16];
-		dadosBbACC	amostrasACC;
-    uint8_t indiceAmostraPPG=0;
-		uint8_t indiceAmostraACC=0;
-		lis2dw12_status_t statusLIS2DW12;
-		
-#else
-				    
+   
 		uint8_t tempo=0;
 		dadosBbPPG	amostrasPPG;
 		dadosBbACC	amostrasACC;
     uint8_t indiceAmostraPPG=0;
 		uint8_t indiceAmostraACC=0;
-		
-#endif
-		
-		uint8_t interrupcoesAFE;
-						
-		uint16_t contador=0;
-    // Enter main loop.
+//Enter main loop========================================================================================
 		for (;;){
-				check_nv_update_request();
-
-		
-				switch(OperationMode){
-						case RUNNING:{
-//								partI[0]=0;	
-								//tempo=0;
-							 /*
-								* Read status register
-  				      */
-
-#ifdef RESAMPLE_1S
-								if(!nrf_gpio_pin_read(AFE_IRQ)){
-			
-										amazenar_PPG(&indiceFilaPPG, amostrasFilaPPG);	
-								}							
-							
-#else
-								if(!nrf_gpio_pin_read(AFE_IRQ)){
-			
-								MAX30110_verifica_interrupcao(&interrupcoesAFE);
-
-									if (interrupcoesAFE&0x10) //proximidade
-												NRF_LOG_INFO("Interrupcao Proximidade");								
-
-									if (interrupcoesAFE&0x40) //amostra pronta
-												amazenar_PPG(&indiceAmostraPPG, &amostrasPPG);
-																			
-								}		
-					
-#endif							
-						
-								if(nrf_gpio_pin_read(ACC_IRQ)){
-						
-										amazenar_ACC(&indiceAmostraACC,&amostrasACC);
-										
-								}
-			
-								if(flag_timer_bb_phillips)
-								{		
-#ifdef RESAMPLE_1S
-
-										resample_PPG (&indiceFilaPPG,amostrasFilaPPG ,amostrasPPG );
-										resample_ACC (indiceAmostraACC, &amostrasACC );
-						
-										run_biblioteca_phillips(amostrasPPG[indiceAmostraPPG++], amostrasACC,&BPM,&sensor_contact_detected);
-										
-										if(indiceAmostraPPG>15)
-												indiceAmostraPPG=0;
-									
-										memset(&amostrasACC,0,sizeof(dadosBbACC));
-										memset(&amostrasPPG,0,sizeof(dadosBbPPG));
-
-										calcular_zona_atual(BPM);
-					
-										flag_timer_bb_phillips=false;
-										indiceAmostraPPG=0;
-										indiceAmostraACC=0;	
-									
-#else
-
-										resample_PPG (indiceAmostraPPG, &amostrasPPG );
-										resample_ACC (indiceAmostraACC, &amostrasACC );
-						
-										run_biblioteca_phillips(amostrasPPG, amostrasACC,&BPM,&sensor_contact_detected);
-								
-								
-										memset(&amostrasACC,0,sizeof(dadosBbACC));
-										memset(&amostrasPPG,0,sizeof(dadosBbPPG));
-										
-										#ifdef SIMULA_BPM	
-										calcular_zona_atual(BPM_SIMU);
-										#else
-										calcular_zona_atual(BPM);
-										#endif
-										
-										flag_timer_bb_phillips=false;
-										indiceAmostraPPG=0;
-										indiceAmostraACC=0;
-													
-#endif										
-								}			
-		
-						}
-								break;
-						case CHARGERING:{
-								get_status_carregador();
-								if(!nrf_gpio_pin_read(USB)){
-										solicitacaoDesligamento=true;
-								}
-						}
-								break;
-						case SLEEP:{
-							sleep_mybeat();
-						}
-								break;
-				}
-			
-				if(solicitacaoDesligamento&&!nrf_gpio_pin_read(USB)){
-						set_led(LED4);
-						set_cor(vermelho);
-						nrf_delay_ms(350);
-						OperationMode=SLEEP;
-				}
-				else if(nrf_gpio_pin_read(USB)){
-						MAX30110_sleep();
-						OperationMode=CHARGERING;
-				}
-				idle_state_handle();
+		check_nv_update_request();
+		if(nrf_gpio_pin_read(26)){
+		  get_accel();
+		  cycle_treat();
+		}
+		idle_state_handle();
 		}
 }
 
@@ -3359,57 +3296,11 @@ void spi_init(void)
     spi_config.sck_pin  = SPI_SCK_PIN;
     APP_ERROR_CHECK(nrf_drv_spi_init(&mLisSpiInstance, &spi_config, spi_event_handler, NULL));
 
-    NRF_LOG_INFO("SPI example started.");
-
-}
-
- int32_t MAX30110_escritaSPI(uint8_t reg, uint8_t *bufp, uint16_t len)
-{         
-    uint8_t tx_buf[] = {reg, 0x00, *bufp};
-
-		mLisPacketTransferComplete = false;
-    APP_ERROR_CHECK(nrf_drv_spi_transfer(&mLisSpiInstance, tx_buf, 3, NULL, 0));
-    // Check for successful transfer
-    while (!mLisPacketTransferComplete) ;
-
-    return 0;
-    
-}
+    //NRF_LOG_INFO("SPI example started.");
  
- int32_t MAX30110_leituraSPI(uint8_t reg, uint8_t *bufp, uint16_t len)
-{
-		uint8_t tx_buf[]={reg,0x80};
-		uint8_t rx_buf[3];
-		len+=2;
-    mLisPacketTransferComplete = false;
-    APP_ERROR_CHECK(nrf_drv_spi_transfer(&mLisSpiInstance,tx_buf, 2, rx_buf, len));
-    // Check for successful transfer
-    while (!mLisPacketTransferComplete) ;
-		
-		*bufp=rx_buf[2];
-    	
-    return 0;
-
 }
 
- int32_t MAX30110_leituraFilaSPI(uint8_t reg, uint8_t *bufp, uint16_t len)
-{
-		uint8_t tx_buf[]={reg,0x80};
-		uint8_t rx_buf[len+2];
-		len+=2;
-    mLisPacketTransferComplete = false;
-    APP_ERROR_CHECK(nrf_drv_spi_transfer(&mLisSpiInstance,tx_buf, 2, rx_buf, len));
-    // Check for successful transfer
-    while (!mLisPacketTransferComplete) ;
-		
-		for(uint8_t i=0; i<len; i++){
-		    bufp[i]=rx_buf[i+2];
-    }
-    	
-    return 0;
-
-}
-
+ 
 
 static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp,
                                uint16_t len)
@@ -3461,14 +3352,14 @@ bool lis2dw12_config (void){
     */
     lis2dw12_device_id_get(&dev_ctx, &whoamI);
     if (whoamI != LIS2DW12_ID)
-   	{		NRF_LOG_INFO("Identidade LIS2DW12 = %x", whoamI);
-	      NRF_LOG_INFO("Falha de identidade LIS2DW12");
+   	{		//NRF_LOG_INFO("Identidade LIS2DW12 = %x", whoamI);
+	      //NRF_LOG_INFO("Falha de identidade LIS2DW12");
         /* manage here device not found */
 				nrf_delay_ms(10);
 				return false;
 	  }
     else{
-        NRF_LOG_INFO("Identidade LIS2DW12 = %x", whoamI);
+       // NRF_LOG_INFO("Identidade LIS2DW12 = %x", whoamI);
     }
 
 	 /*
@@ -3516,68 +3407,17 @@ bool lis2dw12_config (void){
 	 /*
     * Set Output Data Rate
     */
-    lis2dw12_data_rate_set(&dev_ctx, LIS2DW12_XL_ODR_100Hz);//LIS2DW12_XL_ODR_100Hz);
+    lis2dw12_data_rate_set(&dev_ctx, LIS2DW12_XL_ODR_50Hz );
 		nrf_gpio_pin_set (ACC_nSS);
 
-  	NRF_LOG_INFO("LIS2DW12 configurado");
+  	//NRF_LOG_INFO("LIS2DW12 configurado");
 		nrf_delay_ms(10);
 		return true;
 
 }
-bool MAX30110_ConfiguraSensorPPG ( void ) {
-				
-		MAX30110_estruturaConfiguracao_t configuracao = {
-				.correnteLed1 = 5.0,
-				.correnteLed2 = 5.0,
-				.ativaInterrupcoes = {
-						.ledForaConformidade=0,
-						.interrrupcaoProxiidade=0,//1,
-						.cancelamentoLuzAmbienteTransbordou=0,
-						.amostraPpgPronta=1,
-						.filaQuaseCheia=1,
-						.vddAnalogicoOk=0
-				},
-				.configuracoesSistema = {
-						.habilitarFila = 1,
-						.modoBaixoConsumo = 1,
-						.pinoOsciladorExterno = 0,
-						.desligar = 0
-				},
-				.escalaAdc = MAX30110_ESCALA_ADC_12UA,
-				.fila = {
-						.modoLimpaEstado = MAX30110_MODO_LIMPA_ESTADO_E_LER_FILA,
-						.quantidadeAmostras = 25,
-						.tipoFilaQuaseCheia = MAX30110_TIPO_FILA_QUASE_CHEIA_UMA_VEZ,
-						.sobrescreverFila = MAX30110_SOBRESCREVER_FILA_LIGADO
-				},
-				.frequenciaAmostras = MAX30110_FREQ_AMOSTRA_25SPS,
-				.quantidadeMediaAmostra = MAX30110_QUANTIDADE_MEDIA_1_AMOSTRA,
-				.tempoEstabilizacaoLed = MAX30110_TEMPO_ESTABILIZACAO_20MS,
-				.tempoIntegracao = MAX30110_TEMPO_INTEGRACAO_104US,//MAX30110_TEMPO_INTEGRACAO_52US,
-				.tipoDadosFila  = {
-						.FD1 = MAX30110_LED1_AND_LED2,  //MAX30110_LED1_AND_LED2
-						.FD2 = MAX30110_DIRECT_AMBIENT, //MAX30110_DIRECT_AMBIENT
-						.FD3 = MAX30110_NONE,
-						.FD4 = MAX30110_NONE
-				}
 
-		};
-		
-		sControlLoopParams.enabled  = true;
-		sControlLoopParams.adcGain  = ((configuracao.escalaAdc)-1);
-		sControlLoopParams.ledPower = 40;  /* convert from % to ledPower [0..1023] *///40;   /* ~4% */
-		sControlLoopParams.thLow    = 45; 
-		sControlLoopParams.thHigh   = 90;
-		sControlLoopParams.ledMin   = 10; 
-		sControlLoopParams.ledMax   = 60;	
 
-		if( MAX30110_configura( &configuracao ) != MAX30110_SUCESSO ) {
-				nrf_delay_ms(10);
-				NRF_LOG_INFO("Falha na configuração do MAX30110");
-				return false;
-		}
-		nrf_delay_ms(10);
-		NRF_LOG_INFO("Sucesso na configuração do MAX30110");
-		return true;
-		
-}
+
+
+//teste corrente, verificar com adição do value_for_simu_F e com adição do zeramento do ADS018_Cycle_Flag após a aquisição. Na característica enviar
+//ADS018_res_data.rotation (saída do Set_Mean).
