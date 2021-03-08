@@ -181,7 +181,7 @@ volatile int16_t filter_coef_den = 2500;
 void ADS018_Time_Update(void);//prototype
 void ADS018_Set_Result_C(ADS018_mem_data_Type *pin, ADS018_res_data_Type *pout);//prototype
 void ADS018_Set_Result(ADS018_res_data_Type *pin, ADS018_res_data_Type *pout, int len);//prototype
-void ADS018_Cycle(int16_t vel,uint16_t *dir,int16_t *counter);//prototype
+void ADS018_Cycle(int16_t vel);//prototype
 void ADS018_res_data_clear(ADS018_res_data_Type *p);//prototype
 void init_vars();//prototype
 void init_varc();//prototype
@@ -299,7 +299,7 @@ void ADS018_Set_Result(ADS018_res_data_Type *pin, ADS018_res_data_Type *pout, in
 
 
 
-void ADS018_Cycle(int16_t vel,uint16_t *dir,int16_t *counter)
+void ADS018_Cycle(int16_t vel)
 {
 	// count cycles and set direction
  // y transitions

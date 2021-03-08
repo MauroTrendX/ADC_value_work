@@ -224,8 +224,6 @@ static uint16_t   glob_crank_rev_degrees     = 0;
 //testes
 volatile uint16_t IN_dummy=0;//just for the operation of the function filter
 volatile uint16_t OUT_dummy=0;//just for the operation of the function filter
-uint16_t out_dir=0;//just for the operation of function ADS018_Cycle
-int16_t out_Cyclecounter=0;//just for the operation of function ADS018_Cycle
 volatile int16_t value_for_simu=10;//just for project debugging purposes
 volatile int16_t value_for_simu_F=0;//just for project debugging purposes
 volatile int flag_for_simu=0;//just for project debugging purposes
@@ -240,7 +238,7 @@ volatile int  i=0;//just for a tiny counter in function seno
 volatile int16_t global_mixer ;
 //FUNCTION PROTOTYPES===================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
 void get_accel(void);
-void retira_valor (void); //protótipo pra função retira_valor
+void get_value (void); //protótipo pra função get_value
 void cycle_treat(void);
 //======================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
 static ble_sensor_location_t supported_locations[] =                                /**< Supported location for the sensor location. */
@@ -384,7 +382,7 @@ typedef union{
   uint8_t u8bit[6];//yh,yl,xh,xl,zh,zl
 } axis3bit16_t;
 //para retirar amostra de aceleração para teste
-static axis3bit16_t get_raw_data;//will be used as global to get the value in the fuction retira_valor
+static axis3bit16_t get_raw_data;//will be used as global to get the value in the fuction get_value
 uint8_t indiceAmostraACC=0;
 stmdev_ctx_t dev_ctx;
 void amazenar_ACC(uint8_t * numeroAmostra, dadosBbACC * bufferACC);//protótipo
@@ -887,7 +885,7 @@ static void battery_level_meas_timeout_handler(void * p_context)
     battery_level_update();
 }
 //function for collecting reading from lis2dw12
-void retira_valor (void){//=================================================================================================================Apagar depois do teste=============================================================================================================================================================
+void get_value (void){//=================================================================================================================Apagar depois do teste=============================================================================================================================================================
 	static axis3bit16_t raw_acceleration;
 	lis2dw12_acceleration_raw_get(&dev_ctx, raw_acceleration.u8bit);
 	get_raw_data.u8bit[0]=raw_acceleration.u8bit[2];//YLSB
@@ -2868,7 +2866,7 @@ static void advertising_init(void)//aqui as métricas começam com um valor
 void get_accel(void)
 
 {
-   	retira_valor();
+   	get_value();
 	  ADS018_Time_Update();
 	  filter(global_mixer,IN_dummy,(int16_t *)&value_for_simu_F,(int16_t *)&OUT_dummy);
 	
@@ -2876,7 +2874,7 @@ void get_accel(void)
 void cycle_treat(void)
 {
 	
-	ADS018_Cycle(value_for_simu_F,&out_dir,&out_Cyclecounter);
+	ADS018_Cycle(value_for_simu_F);
 	ADS018_Update_SCycle();
 	ADS018_Cycle_Flag=0;
 	if (ADS018_ShowCounter == ADS018_ShowCounter_SetMean) ADS018_Set_Mean_Data(); 
