@@ -3359,12 +3359,47 @@ void power_manage(void)
 
 
 void callback(nrf_fstorage_evt_t * p_evt);
+
 NRF_FSTORAGE_DEF(nrf_fstorage_t my_instance) =
 {
     .evt_handler    = callback,
     .start_addr     = 0xFD000,
     .end_addr       = 0xFFFFF,
 };
+
+void callback(nrf_fstorage_evt_t * p_evt)
+{
+	
+    if (p_evt->result != NRF_SUCCESS)
+    {
+        NRF_LOG_INFO("--> Event received: ERROR while executing an fstorage operation.");
+        return;
+    }
+
+    switch (p_evt->id)
+    {
+        case NRF_FSTORAGE_EVT_WRITE_RESULT:
+        {
+            NRF_LOG_INFO("--> Event received: wrote %d bytes at address 0x%x.",
+                         p_evt->len, p_evt->addr);
+        } break;
+
+        case NRF_FSTORAGE_EVT_ERASE_RESULT:
+        {
+            NRF_LOG_INFO("--> Event received: erased %d page from address 0x%x.",
+                         p_evt->len, p_evt->addr);
+        } break;
+
+        default:
+            break;
+    }
+		
+		
+	
+	
+	
+}
+
 
 void normal_operation(void)
 {
@@ -3518,11 +3553,18 @@ int main(void)
 		teste.eng_value[0]=0;
 		teste.eng_value[1]=10;
 		
+		 nrf_fstorage_init(
+        &my_instance,       /* You fstorage instance, previously defined. */
+        &nrf_fstorage_sd,   /* Name of the backend. */
+        NULL                /* Optional parameter, backend-dependant. */
+    );
+		
 						ADS018_Cal_Set((ADS018_cal_Type *)&(teste),
 																	(float *)&ADS018_Cal_A,//m
 																	(float *)&ADS018_Cal_B, //yo
 																	(int16_t *)&ADS018_Cal_ADC_Zero, //yo/m
 																	(int16_t *)&ADS018_Cal_ADC_Delta);//x-x0
+																	
 //Enter main loop========================================================================================
 for (;;){
 #ifdef MAUROTESTE
