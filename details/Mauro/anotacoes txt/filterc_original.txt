@@ -1,0 +1,106 @@
+//#include "filter.h"
+
+//void ADS018_Cycle(void)
+//{
+//	// count cycles and set direction
+//	// y transitions
+//	ADS018_y = ADS018_raw_Yaccel_F;//essa aceleração será a aceleração nossa., pode ser qualquer coisa
+//	switch (ADS018_stt_flag_y){//outra variável dummy ela só é usada aqui, só definir em algum canto
+//        case  0: // wait top transition
+//                 if (ADS018_y > 0){
+//                	 ADS018_stt_flag_y = 1;
+//                 }
+//        	     break;
+//        case  1: // confirm top transition
+//                 if (ADS018_y > ADS018_cyle_bac_limit_y){//cycle bac é um define, só definir tbm
+//	                 ADS018_last_flag_y = ADS018_flag_y;//idem, só definir só uso aqui.
+//                	 ADS018_flag_y = 1;
+//                	 ADS018_stt_flag_y = 2;
+//                 }
+//                 else{
+//                	 ADS018_stt_flag_y = 0;
+//                 }
+//        	     break;
+//        case  2: // wait botton transition
+//                 if (ADS018_y < 0){
+//           	         ADS018_stt_flag_y = 3;
+//                 }
+//        	     break;
+//        case  3: // confirm botton transition
+//                 if (ADS018_y < ADS018_cyle_fro_limit_y){
+//                     ADS018_last_flag_y = ADS018_flag_y;
+//           	         ADS018_flag_y = 0;
+//           	         ADS018_stt_flag_y = 0;
+//                 }
+//                 else{
+//           	         ADS018_stt_flag_y = 2;
+//                 }
+//        	     break;
+//        default: break;
+//	}
+
+//    if(ADS018_last_flag_y != ADS018_flag_y){ // y orientation changed
+//    	ADS018_last_flag_y = ADS018_flag_y;
+//    	if(ADS018_SCycle_Tout_Count != 0){
+//    		ADS018_SCycle_Tout_Count = 0;
+//    		ADS018_SCycle_Tout_Num = 3;
+//    	}
+//        switch (ADS018_Cycle_Stt){
+//        case  0: //init
+//        	     if(ADS018_flag_y == 1){ // wait transition (-) -> (+)
+//       	    	     ADS018_Cycle_Flag = 0;
+//       	    	     ADS018_Cycle_Dir = 1; // direction ccw
+//        	         ADS018_Cycle_Stt = 1;
+//                     ADS018_Cycle_Last_S = 0;
+//                     ADS018_Cycle_S = 1;
+//        	    	 ADS018_Cycle_S_Cmd = 1; //signal initial transition
+//        	     }
+//    	         break;
+//        case  1: //on top
+//             	 if(ADS018_flag_y == 0){
+//             		 ADS018_Cycle_Last_S = 1;
+//             		 ADS018_Cycle_S = 0;
+//             		 ADS018_Cycle_S_Cmd = 2;
+//             		 ADS018_Cycle_Stt = 2;
+//        	     }
+//    	         break;
+//        case  2: //on botton
+//             	 if(ADS018_flag_y == 1){
+//             		ADS018_Cycle_Last_S = 0;
+//             		ADS018_Cycle_S = 1;
+//    	    		ADS018_Cycle_S_Cmd = 2;
+//             		ADS018_Cycle_Stt = 1;
+//             		ADS018_Cycle_Flag = 1;
+//             		ADS018_CyleCounter++;
+//        	     }
+//    	         break;
+//        default: break;
+//        }
+//    }
+//    else{
+//    	if(ADS018_Cycle_Stt != 0){
+//    	    ADS018_SCycle_Tout_Count++;
+//    	    if (ADS018_SCycle_Tout_Count > ADS018_SCycle_Tout_Limit){
+//    		    ADS018_SCycle_Tout_Count = 0;
+//    	        ADS018_Cycle_Stt = 0;
+//    		    ADS018_SCycle_Stt = 0;
+//    		    ADS018_SCycle_Tout_Num--;
+//    		    ADS018_SCycle_Tout_Cmd = 1;
+//    	    }
+//    	}
+//    	else{
+//    		if (ADS018_SCycle_Tout_Num != 0){
+//        	    ADS018_SCycle_Tout_Count++;
+//        	    if (ADS018_SCycle_Tout_Count > ADS018_SCycle_Tout_Limit){
+//    			    ADS018_SCycle_Tout_Count = 0;
+//        	        ADS018_Cycle_Stt = 0;
+//        		    ADS018_SCycle_Stt = 0;
+//    			    ADS018_SCycle_Tout_Num--;
+//    			    ADS018_SCycle_Tout_Cmd = 1;
+//        	    }
+//    		}
+//    	}
+
+//    }
+
+//}

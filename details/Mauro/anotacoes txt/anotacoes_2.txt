@@ -1,0 +1,104 @@
+mem data_c é igual a soma dele  com mem_data_s
+
+ADS018_mem_data_c.n += ADS018_mem_data_s[ADS018_Cycle_Last_S].n
+=====OU ele já tem um valor que é somado 
+negado! Pois mem_data_c só é setado pra zero ou usado nessa própria soma.
+========OU mem_data_s já tem esse valor
+quando uso init vars eu zero ele. mas isso eu só faço depois da soma.
+incremento ele se ADS018_SCycle_Stt==1**********Olhar
+incremento ele se ADS018_SCycle_Stt==2**********Olhar
+CONCLUSÃO
+primeiro trabalho com mem_data_s depois apago ele. e pra colocar algum valor nele eu preciso alterar o ADS018_SCycle_Stt,
+PERGUNTA
+quem seta ADS018_SCycle_Stt para 1 ou para 2;
+pra 2 ele nunca vai ser setado, logo só é setado pra 1.
+pra que ele seja setado pra 1, ADS018_Cycle_S_Cmd precisa ser 1.
+PERGUNTA
+quem seta ADS018_Cycle_S_Cmd para 1.
+
+
+==================================================================================-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=--=-=-=-=-=-=-=-=-
+
+
+000000000244,mem_data_c.n depois do init vars: 0
+000000000244,mem_data_c.n depois do init varc: 0
+000000000244,mem_data_c.n depois do init_f vars: 0
+000000000305,mem_data_c.n depois do remove_f: 0
+000000000305,mem_data_c.n depois do acc_f: 0
+000000000305,mem_data_c.n depois do insert_f: 0
+000000000305,mem_data_c.n depois do insert_zero: 0
+000000000305,linha 470 do cycle.h
+000000005859,mem_data_c.n depois do init vars: 0
+000000005859,mem_data_c.n depois do init varc: 0
+000000005859,mem_data_c.n depois do init_f vars: 0
+000000005859,mem_data_c.n depois do remove_f: 0
+000000005920,mem_data_c.n depois do acc_f: 0
+000000005920,mem_data_c.n depois do insert_f: 0
+000000005920,mem_data_c.n depois do insert_zero: 0
+000000005920,linha 470 do cycle.h
+000000011291,mem_data_c.n depois do init vars: 0
+000000011291,mem_data_c.n depois do init varc: 0
+000000011291,mem_data_c.n depois do init_f vars: 0
+000000011291,mem_data_c.n depois do remove_f: 0
+000000011291,mem_data_c.n depois do acc_f: 0
+000000011352,mem_data_c.n depois do insert_f: 0
+000000011352,mem_data_c.n depois do insert_zero: 0
+000000011352,linha 470 do cycle.h
+000000014343,mem_data_c.n depois do init vars: 0
+000000014343,mem_data_c.n depois do init varc: 0
+000000014343,mem_data_c.n depois do init_f vars: 0
+000000014343,mem_data_c.n depois do remove_f: 0
+000000014404,mem_data_c.n depois do acc_f: 0
+000000014404,mem_data_c.n depois do insert_f: 0
+000000014404,mem_data_c.n depois do insert_zero: 0
+000000014404,linha 470 do cycle.h
+000000018554,mem_data_c.n depois do init vars: 0
+000000018554,mem_data_c.n depois do init varc: 0
+000000018554,mem_data_c.n depois do init_f vars: 0
+000000018554,mem_data_c.n depois do remove_f: 0
+000000018554,mem_data_c.n depois do acc_f: 0
+000000018615,mem_data_c.n depois do insert_f: 0
+000000018615,mem_data_c.n depois do insert_zero: 0
+000000018615,linha 470 do cycle.h
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+====================================================================
+linha 121 do app_error.c
+original:
+    __disable_irq();
+    while (loop);
+alterado
+    __disable_irq();
+    while (0);
+
+===========================================================================
+load depende de 
+
+ADS018_mem_data_c.fp
+ADS018_mem_data_c.fn
+
+pADS018_NV_buf->Kp
+pADS018_NV_buf->Kn
+
+Continuar da linha 10040
+
+==============================================================================
+15/03/2021
+
+loadc = ((pADS018_NV_buf->Kp*(pin->fp)) + (pADS018_NV_buf->Kn*(pin->fn)))/1000

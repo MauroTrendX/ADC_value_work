@@ -1,0 +1,3120 @@
+///* Lynx Tecnologia Eletronica Ltda
+// * PRODUTO: ADS018
+// * ARQUIVO: ads018.c
+// * DESCRICAO: Operação ADS018 - RAE
+// * Copyright (c) 2016 Lynx Tecnologia Eletronica Ltda. All Rights Reserved.
+// */
+
+///** @file
+// *
+// * @defgroup blinky_example_main main.c
+// * @{
+// * @ingroup blinky_example
+// * @brief Blinky Example Application main file.
+// *
+// */
+
+
+//#include <stdlib.h>
+//#include <stdbool.h>
+//#include <stdint.h>
+//#include <stdio.h>
+//#include <string.h>
+//#include <math.h>
+//#include "boards.h"
+//#include "nrf_delay.h"
+//#include "nrf_gpio.h"
+//#include "nrf_nvmc.h"
+//#include "nrf_drv_gpiote.h"
+//#include "nrf_adc.h"
+////#include "twi_master.h"
+//#include "nrf_uart.h"
+//#include "app_error.h"
+//#include "app_uart.h"
+//#include "nrf_soc.h"
+//#include "ble_gap.h"
+//#include "pstorage_platform.h"
+//#include "mma8653.h"
+//#include "ads1120.h"
+//#include "ads018_NV.h"
+//#include "ads018.h"
+//#include "softdevice_handler.h"
+
+
+//// ADC12 - VBAT/VAN MONITOR
+//volatile int32_t ADS018_adc_sample = 0;
+//volatile int32_t ADS018_adc_vbat = 0;
+//volatile int32_t ADS018_adc_van = 0;
+//volatile int32_t ADS018_adc_channel = ADS018_ADC_CH_VBAT;
+//volatile int32_t ADS018_adc_scan = 0;
+//volatile int32_t ADS018_adc_scan_counter = 0;
+//volatile int32_t ADS018_adc_scan_limit   = 1;
+//volatile int32_t ADS018_adc_eoc = 0;
+
+//// ACCELEROMETER
+//volatile float mma8x5x_Aslp_Rate = 1.56;       // !< SLEEP sample rate
+//volatile float mma8x5x_DR = 50.0;              // !< WAKE sample rate
+//volatile uint32_t mma8x5x_isr2_stt = 0;        // !< INT2 interrupt first service flag from power up
+//volatile uint8_t  mma8x5x_last_pl = 0;         // !< last PORTRAIT/LANDSCAPE code
+//volatile uint8_t  mma8x5x_pl = 0;              // !< PORTRAIT/LANDSCAPE code
+
+//// ROTATION
+//volatile int16_t ADS018_rotation_factor = 10*60*25; // !< rotation in [RPM/10]
+//volatile int16_t ADS018_Rotation_Min_N = 12;  // !< min rotation number of samples
+//volatile int16_t ADS018_Rotation_Max_N = 150; // !< max rotation number of samples
+
+////Mean for load calibration
+//volatile ADS018_meas_t ADS018_ADC_meas;
+
+//// LOAD
+//volatile int16_t ads1120_ADC  = 0;               // !< ads1120 ADC binary
+//volatile int16_t ads1120_ADCB = 0;               // !< ads1120 ADC binary balanced
+//volatile int16_t ads1120_ADCT = 0;               // !< ads1120 ADC binary balanced and tared
+
+//// SAMPLING TIME
+//volatile uint32_t ADS018_prescaler_counter = ADS018_PRESCALER_RELOAD_INIT; // !< prescaler counter
+//volatile uint32_t ADS018_prescaler_reload  = ADS018_PRESCALER_RELOAD_INIT; // !< prescaler reload
+//volatile uint32_t ADS018_int2_flag  = 0;                                   // !< int flag
+//volatile uint32_t ADS018_sample_counter = 0;                               // !< sample counter
+//volatile float ADS018_sample_frequency = 50.0;                             // !< sample frequency
+//volatile uint32_t ADS018_Operation_Exec_Flag = 0;                          // !< operation exec flag
+
+//// CYCLE
+//volatile int16_t ADS018_raw_Yaccel_F = 0;
+//volatile int16_t ADS018_y=0;
+//volatile int16_t ADS018_cyle_bac_limit_y = 500;
+//volatile int16_t ADS018_cyle_fro_limit_y =-500;
+//volatile uint16_t ADS018_last_flag_y=0;
+//volatile uint16_t ADS018_flag_y=0;
+//volatile uint16_t ADS018_stt_flag_y = 0;
+
+//volatile uint32_t ADS018_Cycle_S_n = ADS018_S_N;  // !< number of sectors where angular speed is constant
+//volatile uint32_t ADS018_Cycle_Dir = 0;        // !< 0:CW, 1:CCW
+//volatile uint32_t ADS018_Cycle_Stt = 0;        // !< state of cycle state machine
+//volatile uint32_t ADS018_Cycle_Flag = 0;       // !< 1: turn complete
+//volatile uint32_t ADS018_Cycle_S_Flag = 0;     // !< 1: sector complete
+//volatile uint32_t ADS018_Cycle_S = 0;          // !< 0..1: semi-sphere number, 0:front, 1:rear
+//volatile uint32_t ADS018_Cycle_S_Cmd = 0;      // !< 0..2: command
+//volatile uint32_t ADS018_Cycle_Last_S = 0;     // !< 0..1: semi-sphere number, 0:front, 1:rear
+//volatile uint32_t ADS018_Cycle_Result = 0;     // !< avaliacao do ciclo:
+//// !<  0: ciclo nao definido
+
+//volatile uint32_t ADS018_SCycle_Stt = 0;       // !< state of sector state machine
+//volatile uint32_t ADS018_SCycle_Tout_Count = 0;          // !< sample count for cyle timeout
+//volatile uint32_t ADS018_SCycle_Tout_Limit = 75;         // !< limit count for cyle timeout
+//volatile uint32_t ADS018_SCycle_Tout_Num = 3;            // !< number times update zero adv
+//volatile uint32_t ADS018_SCycle_Tout_Cmd = 0;            // !< command update to filter
+
+//// ENERGY AND POWER
+//volatile ADS018_mem_data_Type ADS018_mem_data_s[ADS018_S_N_MAX]={{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},
+//		{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};
+//volatile ADS018_mem_data_Type ADS018_mem_data_c={0,0,0,0};
+//volatile ADS018_res_data_Type ADS018_res_data_c={0,0,0,0,0};
+//volatile ADS018_res_data_Type ADS018_res_data={0,0,0,0,0};
+
+////// ENERGY AND POWER - FILTER
+//volatile uint32_t ADS018_f_limit = 88;
+//volatile uint32_t ADS018_res_data_f_stt = 0;
+//volatile uint32_t ADS018_res_data_f_in  = 0;
+//volatile uint32_t ADS018_res_data_f_out = 0;
+//volatile uint32_t ADS018_res_data_f_len = ADS018_F_LEN_MIN;
+//volatile uint32_t ADS018_res_data_cmd   = 0;
+//volatile ADS018_res_data_Type ADS018_res_data_m = {0,0,0,0,0};
+//volatile ADS018_res_data_Type ADS018_res_data_f[ADS018_F_N];
+
+//volatile float ADS018_load_factor;
+//volatile float ADS018_energy_factor;
+//volatile float ADS018_power_factor;
+//volatile float ADS018_CalA_n[ADS018_F_N];
+//volatile float ADS018_load_factor_n[ADS018_F_N];
+//volatile float ADS018_torque_factor_n[ADS018_F_N];
+//volatile float ADS018_energy_factor_n[ADS018_F_N];
+//volatile float ADS018_power_factor_n[ADS018_F_N];
+
+//// ADVERTISING
+//volatile uint32_t ADS018_SampleCounter = 0;
+//volatile uint32_t ADS018_Sec_Limit     = 50;
+//volatile uint32_t ADS018_Sec_Prescaler = 0;
+//volatile uint8_t ADS018_Sec_Counter = 0;
+//volatile uint8_t ADS018_Min_Counter = 0;
+//volatile uint32_t ADS018_CyleCounter = 0;
+//volatile float ADS018_Energy = 0;
+
+//volatile uint32_t ADS018_ShowCounter = 0;
+//volatile uint32_t ADS018_ShowLimit = 49; //show [(interval/sample interval)-1] = [360ms/20ms -1] = 18-1
+//volatile uint32_t ADS018_ShowCounter_AdvQuit   = 2;
+//volatile uint32_t ADS018_ShowCounter_SleepControl = 3;
+//volatile uint32_t ADS018_ShowCounter_Raw       = 43;
+//volatile uint32_t ADS018_ShowCounter_Rotation  = 44;
+//volatile uint32_t ADS018_ShowCounter_Load      = 45;
+//volatile uint32_t ADS018_ShowCounter_Cycle     = 46;
+//volatile uint32_t ADS018_ShowCounter_SetMean   = 47;
+//volatile uint32_t ADS018_ShowCounter_Adv       = 48;
+//volatile uint32_t ADS018_ShowCounter_AdvActive = 49;
+
+//volatile uint32_t nnnn=0;
+
+//volatile uint32_t ADS018_isr_counter = 0;        //int counter
+//volatile uint32_t ADS018_mean_counter = 0;       //mean sample counter
+//volatile uint32_t ADS018_acc_counter = 0;        //mean processing counter
+
+//volatile ADS018_raw_data_Type ADS018_raw    = {0, 0, 0, 0, 0.0};  //raw aquisition buffer
+//volatile ADS018_cycle_data_Type ADS018_cycle= {0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};    //cycle aquisition buffer
+//volatile ADS018_cycle_data_Type ADS018_mean = {0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};    //mean buffer
+//volatile ADS018_cycle_data_Type *pADS018_transfer;
+
+//volatile mma8x5x_regs_Type mma8x5x_regs = {
+//	     0,	// status
+//		{0,0,0,0,0,0}, // data[6]
+//	     0, // sysmod
+//	     0, // int_souce
+//		 MMA8653_ID, // WHO_AM_I
+//		 MMA8X5X_FS_8G , // xyz_data_cfg => range +/-8g
+//	     0,                            // pl_status
+//	     MMA8X5X_PL_CFG_DEFAULT,       // pl_cfg
+//	     MMA8X5X_PL_COUNT_DEFAULT,     // pl_count
+//	     MMA8X5X_PL_BF_ZCOMP_RO,          // pl_bf_zcomp - read only on MMA8653
+//	     MMA8X5X_PL_THS_REG_RO,           // pl_ths_reg - read only on MMA8653
+//	     MMA8X5X_MT_CFG_DEFAULT,       // ff_mt_cfg
+//	     0, // ff_mt_src
+//	     MMA8X5X_MT_THS_DEFAULT,       // ff_mt_ths
+//	     MMA8X5X_MT_COUNT_DEFAULT,     // ff_mt_count
+//	     MMA8X5X_ASLP_COUNT_DEFAULT,   // aslp_count
+//	     MMA8X5X_CTRL_REG1_DEFAULT,    // ctrl_reg1
+//	     MMA8X5X_CTRL_REG2_DEFAULT,    // ctrl_reg2
+//	     MMA8X5X_CTRL_REG3_DEFAULT,    // ctrl_reg3
+//	     MMA8X5X_CTRL_REG4_DEFAULT,    // ctrl_reg4
+//	     MMA8X5X_CTRL_REG5_DEFAULT,    // ctrl_reg5
+//	    {0,0,0}, // mma8x5x_offset_Type
+//};
+
+//volatile mma8x5x_setup_Type mma8x5x_setup = {
+//	MMA8653_I2C_ADDR,
+//	(mma8x5x_regs_Type*)&mma8x5x_regs
+//};
+
+//volatile uint8_t aslp_count = MMA8X5X_ASLP_COUNT_DEFAULT;
+
+//volatile ads1120_setup_Type ads1120_setup={
+//	0, //data
+//	0.0, //temperature
+//	0, //error
+//	{{ADS1120_CFG_REG0_DEFAULT, ADS1120_CFG_REG1_DEFAULT, ADS1120_CFG_REG2_DEFAULT, ADS1120_CFG_REG3_DEFAULT}}, //regs
+//	ADS1120_NCS_PIN, ADS1120_SCLK_PIN, ADS1120_MOSI_PIN, ADS1120_MISO_PIN, ADS1120_NDRDY //pins
+//};
+
+
+//volatile uint32_t ADS018_Error = 0;       //main error code
+
+//volatile static uint32_t ADS018_Print_Str_flag = 0;
+//volatile static uint32_t ADS018_Uart_Get_flag = 0;
+//volatile static char *ADS018_Print_Str_ptr;
+
+////TRM
+//volatile char ADS018_cbuf[256];
+//volatile char* ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//volatile int ADS018_cbuflen = 0;
+
+//volatile char* ADS018_Print_ptr;
+//volatile int ADS018_Print_len = 0;
+
+//volatile bool ADS018_uart_on = false;
+//volatile uint32_t ADS018_Print_Mask = 1;
+
+
+//volatile uint32_t ADS018_trm_session = 0;
+//volatile uint32_t ADS018_trm_escape  = 0;
+//volatile uint32_t ADS018_session = 0;
+//volatile uint32_t ADS018_last_session __attribute__ ((section(".noinit"))); //era inicializado com 0
+//volatile uint32_t ADS018_connected = 0;
+
+////BLE
+//volatile char *ADS018_BLE_Name="MW";
+//volatile uint16_t ADS018_BLE_Manuf_ID = 0xffff;
+//volatile uint16_t ADS018_BLE_Adv_Interval = 0x0237;
+
+////Setup NV memory
+//ADS018_NV_Type *pADS018_NV_buf;
+
+
+////Load convertion
+//volatile uint32_t ADS018_Cal_Index = 0; // 0:positive low, 1:negative low, 2:positive high, 3 positive: high
+//volatile float ADS018_Cal_A=1;
+//volatile float ADS018_Cal_B=0;
+//volatile int16_t ADS018_Cal_ADC_Zero = 0;
+//volatile int16_t ADS018_Cal_ADC_Delta = 1;
+
+////Power ON
+//volatile bool ADS018_PowerON = false;
+//volatile bool ADS018_Bootloader_OK = false;
+
+
+////auto-zero
+//volatile uint32_t ADS018_AZ_stt     = 0;
+//volatile uint32_t ADS018_AZ_counter = 0;
+//volatile uint32_t ADS018_AZ_tdebounce = ADS018_AZ_DEBOUNCE;
+//volatile uint32_t ADS018_AZ_n = ADS018_AZ_N_MAX;
+//volatile float ADS018_AZ_load = 0.0;
+//volatile float ADS018_AZ_mean = 0.0;
+//volatile float ADS018_AZ_sdev = 0.0;
+//volatile float ADS018_AZ_tol = 0.0;
+//volatile float ADS018_AZ_absmean = 0.0;
+//volatile int16_t ADS018_AZ_Tare __attribute__ ((section(".noinit"))); //era inicializado com 0
+//volatile float ADS018_tare = 0.0;
+//volatile uint32_t ADS018_AZ_flag = 0;
+
+//const float ADS018_Load_Unit_Factor[ADS018_N_LOAD_FACTOR]={1.0, 9.80665, 2.20462243}; //[N],[kgf],[lbf]
+//const char *pADS018_Load_Unit_Str[ADS018_N_LOAD_FACTOR]={"kgf","N","lbf"};
+
+//#define ADS018_USE_IIR 1
+//#ifdef ADS018_USE_IIR
+
+
+////-------------------------------------------- IIR COEF
+////IIR WAVE LOW PASS FILTER
+
+//// 2.2Hz - 25/50SPS
+////const int32_t ADS018_IIR_Coef[2][4]={
+////		{-28879, 18117, -29612, 8519},
+////		{-31655, 25494, -31786, 18651}
+////};
+
+////volatile ADS018_IIR_2ORDER_Type ADS018_IIR_E1={0,0,-31655,25494,0,0,0,0,0,0,0,0,0,0};
+////volatile ADS018_IIR_2ORDER_Type ADS018_IIR_E2={0,0,-31786,18651,0,0,0,0,0,0,0,0,0,0};
+
+//// 2.5Hz - 25/50SPS
+//const int32_t ADS018_IIR_Coef[2][6]={
+//		{-27938, 16175, 3436, -28916, 6259, 6883},
+//		{-31356, 24477, 5871, -31538, 17071, 12765}
+//}; //m1 m2 lambda
+
+//volatile int32_t filter_type = 0; //0:Low Pass 2.5Hz- fs:25Hz - 1:Low Pass 2.5Hz- fs:50Hz
+//volatile ADS018_IIR_2ORDER_Type ADS018_IIR_E1={0,0,-27938,16175,0,0,0,0,0,0,0,0,0,1000,0};
+//volatile ADS018_IIR_2ORDER_Type ADS018_IIR_E2={0,0,-28916,6259,0,0,0,0,0,0,0,0,0,1000,0};
+
+////high pass filter
+//#define FILTER_HPF_CF     0.3
+//volatile int32_t filter_lastyi = 0;
+//volatile int32_t filter_lastyo = 0;
+//volatile int16_t filter_coef_num = 2470;
+//volatile int16_t filter_coef_den = 2500;
+
+//void ADS018_IIR_Update(int16_t in, int16_t inp2, ADS018_IIR_2ORDER_Type *p, int16_t *pout, int16_t *pout2);
+//void filter_init(int16_t inputy, int16_t input2);
+//void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2);
+
+//void ADS018_IIR_Update(int16_t in, int16_t in2, ADS018_IIR_2ORDER_Type *p, int16_t *pout, int16_t *pout2)
+//{
+//   *pout2 = p->mem2;
+//   p->mem2 = in2;
+
+//   p->input = (in * 1000) / p->L;
+//   p->A = p->input + p->Q1;
+//   p->B = p->Q2;
+//   p->E = (p->A  * p->m1) / 32768;
+//   p->W = p->E + ((p->B * p->m2) / 32768);
+//   p->P1 = p->input - (p->B + p->W);
+//   p->P2 = p->A + p->W;
+//   p->D  = ((p->P2 + p->B) * p->L) / 2000;
+//   p->Q1 = p->P1;
+//   p->Q2 = p->P2;
+//   *pout = (int16_t)p->D;
+//}
+
+//void filter_init(int16_t inputy, int16_t input2)
+//{
+//	int16_t out1;
+//	int16_t out2;
+//	int16_t out3;
+//	int16_t out4;
+
+//	ADS018_IIR_E1.m1 = ADS018_IIR_Coef[filter_type][0];
+//	ADS018_IIR_E1.m2 = ADS018_IIR_Coef[filter_type][1];
+//	ADS018_IIR_E1.L  = ADS018_IIR_Coef[filter_type][2];
+//	ADS018_IIR_E2.m1 = ADS018_IIR_Coef[filter_type][3];
+//	ADS018_IIR_E2.m2 = ADS018_IIR_Coef[filter_type][4];
+//	ADS018_IIR_E2.L  = ADS018_IIR_Coef[filter_type][5];
+//	ADS018_IIR_E1.Q1 = 0;
+//	ADS018_IIR_E1.Q2 = 0;
+//	ADS018_IIR_E2.Q1 = 0;
+//	ADS018_IIR_E2.Q2 = 0;
+//	ADS018_IIR_Update(inputy, input2, (ADS018_IIR_2ORDER_Type *)&ADS018_IIR_E1, (int16_t *)&out1, (int16_t *)&out2);
+//	ADS018_IIR_Update(out1, out2, (ADS018_IIR_2ORDER_Type *)&ADS018_IIR_E2, (int16_t *)&out3, (int16_t *)&out4);
+//	filter_lastyi = inputy;
+//	filter_lastyo = inputy;
+//}
+
+//void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2)
+//{
+//	int16_t out1;
+//	int16_t out2;
+//	int16_t out3;
+//	int16_t out4;
+//	int32_t dy;
+
+//	//low pass filter
+//	ADS018_IIR_Update(inputy, input2, (ADS018_IIR_2ORDER_Type *)&ADS018_IIR_E1, (int16_t *)&out1, (int16_t *)&out2);
+//	ADS018_IIR_Update(out1, out2, (ADS018_IIR_2ORDER_Type *)&ADS018_IIR_E2, (int16_t *)&out3, (int16_t *)&out4);
+
+//	//high pass filter - 0.3Hz (25*100-0.3*100)/(25*100)
+//	dy = out3 - filter_lastyi;
+//	filter_lastyi = out3;
+//	out3 = (filter_coef_num*filter_lastyo/filter_coef_den)+dy;
+//	filter_lastyo = out3;
+
+//	(*outputy) = (int16_t)out3;
+//	(*output2) = (int16_t)out4;
+//}
+//#endif
+
+
+////--------------------------------------------routines
+
+//int16_t ADS018_Load_Balanced(int16_t load_adc);
+//float ADS018_Load_EU(int16_t load_adc);
+//float ADS018_LoadT_EU(int16_t load_adc);
+//void ADS018_Read_Load(void);
+
+////--------------------------------------------private routines
+//void ADS018_Time_Reset(void)
+//{
+//	ADS018_Sec_Prescaler = 0;
+//	ADS018_Sec_Counter = 0;
+//	ADS018_Min_Counter = 0;
+//	ADS018_SampleCounter = 0;
+//	ADS018_ShowCounter = 0;
+//	ADS018_CyleCounter = 0;
+//}
+
+//void ADS018_Time_Update(void)
+//{
+//	if (ADS018_SampleCounter == 0xffffffff) ADS018_SampleCounter=0;
+//	else ADS018_SampleCounter++;
+//	ADS018_ShowCounter++;
+//	if (ADS018_ShowCounter > ADS018_ShowLimit) ADS018_ShowCounter=0;
+//	ADS018_Sec_Prescaler++;
+//	if (ADS018_Sec_Prescaler >= ADS018_Sec_Limit){
+//		ADS018_Sec_Prescaler = 0;
+//		ADS018_Sec_Counter++;
+//		if (ADS018_Sec_Counter >= 60){
+//			ADS018_Sec_Counter = 0;
+//			ADS018_Min_Counter++;
+//			if (ADS018_Min_Counter >= 60) ADS018_Min_Counter = 0;
+//		}
+//	}
+//}
+
+
+////--------------------------------------------INT2 - ACCEL SAMPLE RATE
+
+//void ADS018_INT2_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+//{
+////	ADS018_RTS_1;
+//	if (ADS018_isr_counter == 0xffffffff) ADS018_isr_counter = 0;
+//	else ADS018_isr_counter++;
+
+//    ADS018_int2_flag  = 1;
+
+//    if (mma8x5x_start_sample()){};
+////	ADS018_RTS_0;
+//}
+
+
+///**
+// * @brief Function for configuring: INT2 pin for input
+// * and configures GPIOTE to give an interrupt on 1-0 change.
+// */
+//void ADS018_Config_INT2(void)
+//{
+//    ret_code_t err_code = NRF_SUCCESS;
+
+//    if (nrf_drv_gpiote_is_init()==false){
+//        err_code = nrf_drv_gpiote_init();
+//        APP_ERROR_CHECK(err_code);
+//    }
+
+//    if (err_code == NRF_SUCCESS){
+//        nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_HITOLO(false); // configure PORT EVENT
+//        err_code = nrf_drv_gpiote_in_init(ADS018_INT2_PIN, &in_config, ADS018_INT2_handler);
+//        APP_ERROR_CHECK(err_code);
+//        nrf_drv_gpiote_in_event_enable(ADS018_INT2_PIN, true);
+//    }
+//}
+
+
+////--------------------------------------------public routines
+
+//// Sleeping Control
+
+//volatile uint32_t ADS018_Sleep_cmd = 0;
+//volatile bool ADS018_Sleep_transfer_succeeded = true;
+
+//void ADS018_Sleep_Cmd_Set(uint32_t cmd)
+//{
+//	ADS018_Sleep_cmd = cmd;
+//}
+
+//void ADS018_Sleep_Exec(void)
+//{
+//	switch(ADS018_Sleep_cmd){
+//	    case  0: //do nothing
+//	    	     break;
+//	    case  1: //enable sleep
+//	    	     mma8x5x_setup.pregs->ctrl_reg2 = mma8x5x_setup.pregs->ctrl_reg2 | (MMA8X5X_SLPE_Msk);
+//	    	     break;
+//	    case  2: //disable sleep
+//	    	     mma8x5x_setup.pregs->ctrl_reg2 = mma8x5x_setup.pregs->ctrl_reg2 & (~(MMA8X5X_SLPE_Msk));
+//	    	     break;
+//	    default: break;
+//	}
+//	if (ADS018_Sleep_cmd != 0){
+//	    ADS018_Sleep_transfer_succeeded = mma8x5x_Standby();
+//        ADS018_Sleep_transfer_succeeded &= mma8x5x_update(MMA8X5X_CTRL_REG2, mma8x5x_setup.pregs->ctrl_reg2);
+//        ADS018_Sleep_transfer_succeeded &= mma8x5x_Active();
+//		ADS018_Sleep_cmd = 0;
+//	}
+//}
+
+
+
+///*
+// * new_zero and new_ref will be taken directly from the ADC output at the moment
+// * that a write will occurr, so there's no need for any arguments.
+// * Done like so for simplicity and speed.
+// * Needs to update the new balanced and tared values after this update.
+// */
+//void ADS018_Set_Cal_Adc_Zero(int16_t new_zero){
+//	ADS018_Set_Cal_ADC_Value_Zero(new_zero);
+//	//updates all the values used for calculations after updating via ble
+//	ADS018_Cal_Set((ADS018_cal_Type *)&(pADS018_NV_buf->Cal), (float *)&ADS018_Cal_A, (float *)&ADS018_Cal_B, (int16_t *)&ADS018_Cal_ADC_Zero, (int16_t *)&ADS018_Cal_ADC_Delta);
+//}
+
+//void ADS018_Set_Cal_Adc_Ref(int16_t new_ref){
+//	ADS018_Set_Cal_ADC_Value_Ref(new_ref);
+//	//updates all the values used for calculations after updating via ble
+//	ADS018_Cal_Set((ADS018_cal_Type *)&(pADS018_NV_buf->Cal), (float *)&ADS018_Cal_A, (float *)&ADS018_Cal_B, (int16_t *)&ADS018_Cal_ADC_Zero, (int16_t *)&ADS018_Cal_ADC_Delta);
+//}
+
+//void ADS018_Set_Cal_Eng_Ref(int16_t new_ref){
+//	ADS018_Set_Cal_Eng_Value_Ref(new_ref);
+//	//updates all the values used for calculations after updating via ble
+//	ADS018_Cal_Set((ADS018_cal_Type *)&(pADS018_NV_buf->Cal), (float *)&ADS018_Cal_A, (float *)&ADS018_Cal_B, (int16_t *)&ADS018_Cal_ADC_Zero, (int16_t *)&ADS018_Cal_ADC_Delta);
+//}
+
+//int16_t ADS018_Get_ADC_Unbal(void){
+//	return ((int16_t)ADS018_Meas_Get_Mean());
+//}
+
+//int16_t ADS018_Get_ADC_Bal(void){
+//	return (ADS018_Load_Balanced(ADS018_Meas_Get_Mean()));
+//}
+
+//int16_t ADS018_Get_Load(void){
+//	float  f = ADS018_Load_EU(ADS018_Meas_Get_Mean())*10;
+//	if (f>32000) f = 32000;
+//	else{
+//		if (f<-32000)f= -32000;
+//	}
+//	int16_t load = (int16_t)(f);
+
+//	return load;
+//}
+
+////--------------------------------------------NRF ADC
+///**
+// * @brief ADC interrupt handler.
+// */
+//void ADC_IRQHandler(void)
+//{
+//   nrf_adc_conversion_event_clean();
+//   ADS018_adc_sample = nrf_adc_result_get();
+//   switch (ADS018_adc_channel){
+//       case ADS018_ADC_CH_VAN : ADS018_adc_van  = ADS018_adc_sample; break;
+//       case ADS018_ADC_CH_VBAT: ADS018_adc_vbat = ADS018_adc_sample; break;
+//       default: break;
+//   }
+//   if (ADS018_adc_scan == 0){
+//	   // single conversion
+//       nrf_adc_stop();
+//       ADS018_adc_eoc = 1;
+//   }
+//   else{  // scan channels
+//	   if (ADS018_adc_scan_counter == ADS018_adc_scan_limit){
+//		   // end scan
+//		   ADS018_adc_scan = 0;
+//		   nrf_adc_stop();
+//		   ADS018_adc_eoc = 1;
+//	   }
+//	   else{
+//		   // start next channel
+//		   ADS018_adc_scan_counter++;
+//		   ADS018_adc_channel = ADS018_adc_scan_counter;
+//		   nrf_adc_input_select((1UL) << ADS018_adc_channel);
+//		   nrf_adc_start();
+//	   }
+//   }
+//}
+
+///**
+// * @brief ADC initialization.
+// */
+//void ADS018_NRF_Adc_Config(uint32_t irq_mode)
+//{
+//    const nrf_adc_config_t nrf_adc_config = NRF_ADC_CONFIG_DEFAULT;
+
+//    // Initialize and configure ADC
+//    ADS018_adc_eoc = 0;
+//    ADS018_adc_channel = ADS018_ADC_CH_VBAT;
+//    nrf_adc_configure( (nrf_adc_config_t *)&nrf_adc_config);
+//    nrf_adc_input_select((1UL) << ADS018_adc_channel);
+//    if (irq_mode!=0){ // enable irq
+//        nrf_adc_int_enable(ADC_INTENSET_END_Enabled << ADC_INTENSET_END_Pos);
+//        NVIC_SetPriority(ADC_IRQn, NRF_APP_PRIORITY_HIGH);
+//        NVIC_EnableIRQ(ADC_IRQn);
+//    }
+//    else{ //disable irq
+//    	nrf_adc_int_disable(ADC_INTENCLR_END_Disabled << ADC_INTENCLR_END_Pos);
+//    	NVIC_DisableIRQ(ADC_IRQn);
+//    }
+//}
+
+///**
+// * @brief Start and read ADC single conversion on input chn. Interrupt must be disabled.
+// */
+//int32_t ADS018_NRF_Adc_Read(int32_t chn)
+//{
+//	uint32_t tout=100000;
+//	if ((ADS018_ADC_CH_VAN<=chn) && (chn<=ADS018_ADC_CH_VBAT)){
+//	    ADS018_adc_channel = chn;
+//	}
+//	else ADS018_adc_channel = ADS018_ADC_CH_VBAT;
+//    nrf_adc_input_select((1UL) << ADS018_adc_channel);
+//    nrf_adc_start();
+//    while(nrf_adc_is_busy() && (tout!=0)){
+//    	tout--;
+//    };
+//    nrf_adc_conversion_event_clean();
+//    nrf_adc_stop();
+//    return (nrf_adc_result_get());
+//}
+
+///**
+// * @brief start ADC scan with interrupt service.
+// */
+//void ADS018_NRF_Adc_Scan(int32_t firstchn, int32_t lastchn)
+//{
+//	if (((ADS018_ADC_CH_VAN<=firstchn) && (firstchn<=ADS018_ADC_CH_VBAT)) &&
+//		((ADS018_ADC_CH_VAN<=lastchn) && (lastchn<=ADS018_ADC_CH_VBAT)) &&
+//		(firstchn<=lastchn)){
+//        ADS018_adc_scan = 1;
+//        ADS018_adc_scan_counter = firstchn;
+//        ADS018_adc_scan_limit   = lastchn;
+//        ADS018_adc_channel = ADS018_adc_scan_counter;
+//	    nrf_adc_input_select((1UL) << ADS018_adc_channel);
+//	    nrf_adc_start();
+//	    ADS018_adc_eoc = 0;
+//	}
+//}
+
+//// BATTERY LEVEL
+//// VADCREF = 1.2V
+//// ADC Input attenuation = 1/3
+//// ADC Resolution 10bit - ADC code 0-1023
+//// Min. VBat = 2.7V -> ADC code for min. bat = 2.7/3.6*1023 = 767 - 0%
+//// Max. VBat = 3.3V -> ADC code for min. bat = 3.3/3.6*1023 = 938 - 100%
+//// level code = 0-100
+
+//#define MIN_ADC_VBAT 767
+//#define MAX_ADC_VBAT 938
+
+//uint8_t ADS018_Bat_Level(int32_t adc)
+//{
+//	int level=0;
+//	if (ADS018_adc_vbat>=MIN_ADC_VBAT){
+//		if (ADS018_adc_vbat<=MAX_ADC_VBAT){
+//			level = (ADS018_adc_vbat-MIN_ADC_VBAT)*100;
+//			level = level/(MAX_ADC_VBAT-MIN_ADC_VBAT);
+//		}
+//		else{
+//			level=100;
+//		}
+//	}
+//	return ((uint8_t)level);
+//}
+
+//#define ADS018_BAT_UPDATE_RELOAD_DEFAULT 30
+
+//volatile uint32_t ADS018_Bat_Update_stt = 0;
+//volatile uint32_t ADS018_Bat_Update_counter = 0;
+//volatile uint32_t ADS018_Bat_Update_counterlimit = ADS018_BAT_UPDATE_RELOAD_DEFAULT;
+//volatile uint32_t ADS018_Bat_Update_flag = 0;
+//volatile uint8_t ADS018_Bat_Update_level = 0;
+//volatile uint32_t ADS018_Bat_Update_presc = 10;
+
+///* cmd = 0, reset
+// * cmd = 1, run
+// * cmd = 2, stop
+// */
+//void ADS018_Bat_Update(uint32_t cmd)
+//{
+//	switch(cmd){
+//	    case  0: // reset
+//	    	     ADS018_adc_vbat = ADS018_NRF_Adc_Read(ADS018_ADC_CH_VBAT);
+//                 ADS018_Bat_Update_level = ADS018_Bat_Level(ADS018_adc_vbat);
+//                 ADS018_Bat_Update_flag = 0;
+//                 ADS018_Bat_Update_stt = 0;
+//		         break;
+//	    case  1: // run
+//	    	     if (ADS018_Bat_Update_stt==0){ // on first execution after stopped
+//	                 ADS018_Bat_Update_counter = 0;
+//	                 ADS018_adc_vbat = ADS018_NRF_Adc_Read(ADS018_ADC_CH_VBAT);
+//                     ADS018_Bat_Update_level = ADS018_Bat_Level(ADS018_adc_vbat);
+//                     ADS018_Bat_Update_flag = 0;
+//                     ADS018_Bat_Update_stt = 1;
+//	    	     }
+//		         break;
+//	    case  2: // stop
+//	    	     ADS018_Bat_Update_stt = 0;
+//		         break;
+//	    default: // init
+//		         ADS018_Bat_Update_stt = 0;
+//		         break;
+//	}
+
+//	switch(ADS018_Bat_Update_stt){
+//        case  0: // stopped
+//	             break;
+//        case  1: // running
+//        	     ADS018_Bat_Update_counter++;
+//        	     if (ADS018_Bat_Update_counter>ADS018_Bat_Update_counterlimit){
+//        	    	 ADS018_Bat_Update_counter = 0;
+//        	    	 ADS018_adc_vbat = ADS018_NRF_Adc_Read(ADS018_ADC_CH_VBAT);
+//	                 ADS018_Bat_Update_level = ADS018_Bat_Level(ADS018_adc_vbat);
+//	                 ADS018_Bat_Update_flag = 1;
+//        	     }
+//	             break;
+//        default: // init
+//        	     ADS018_Bat_Update_stt = 0;
+//	             break;
+//	}
+//}
+
+//uint8_t ADS018_Bat_Update_Level_Get(void)
+//{
+//	return ADS018_Bat_Update_level;
+//}
+
+//uint32_t ADS018_Bat_Update_Flag_Get(void)
+//{
+//	uint32_t f = ADS018_Bat_Update_flag;
+//	if (f!=0) ADS018_Bat_Update_flag = 0;
+//	return f;
+//}
+
+////--------------------------------------------PINS
+
+//void ADS018_Config_PEN_Pin(void)
+//{
+//   // Configure PEN pin
+//    nrf_gpio_cfg(ADS018_PEN_PIN, NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//    		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+//    ADS018_PEN_1;
+//}
+
+//void ADS018_Config_CTS_Pin(void)
+//{
+//    nrf_gpio_cfg(ADS018_CTS_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_CONNECT,
+//		         NRF_GPIO_PIN_PULLDOWN, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+//}
+
+//#define ADS018_NC_PINS 12
+//const uint32_t ADS018_NC_Pins_Tab[ADS018_NC_PINS]={0,3,4,5,6,14,15,17,18,19,20,21};
+
+//void ADS018_Config_Pins(void)
+//{
+//	int i;
+
+//   // Configure LDOEN pin
+//    nrf_gpio_cfg(ADS018_LDOEN_PIN, NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//    		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+//    ADS018_LDOEN_0;
+
+//	// Configure NC pins as DISCONNECTED INPUT NO PULL
+//	for (i=0; i<ADS018_NC_PINS; i++){
+//	    nrf_gpio_cfg(ADS018_NC_Pins_Tab[i], NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//	    		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+//	}
+
+//    // Configure VAN pin
+//    nrf_gpio_cfg(1, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//    		NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+
+//    // Configure VBAT pin
+//    nrf_gpio_cfg(2, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//    		NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+
+//    // Configure CTS pin
+//    nrf_gpio_cfg(ADS018_CTS_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_CONNECT,
+//    		     NRF_GPIO_PIN_PULLDOWN, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+
+//    // Configure RTS pin
+//    nrf_gpio_cfg(ADS018_RTS_PIN, NRF_GPIO_PIN_DIR_OUTPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//    		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+//    ADS018_RTS_0;
+
+//    // Configure INT1 - START NO PULL, NO SENSE
+//    nrf_gpio_cfg(ADS018_INT1_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_CONNECT,
+//    		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+
+//    // Configure INT2 - START NO PULL, NO SENSE
+//    nrf_gpio_cfg(ADS018_INT2_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_CONNECT,
+//    		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+
+
+//}
+
+
+//void ADS018_Unconfig_Pins(void)
+//{
+//    // UNConfigure NDRDY - NO PULL, NO SENSE
+//    nrf_gpio_cfg(23, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//    		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+
+//    // UNConfigure MISO - NO PULL, NO SENSE
+//    nrf_gpio_cfg(28, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//    		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+
+//}
+
+
+////--------------------------------------------NRF POWER
+
+///**@brief Function for disabling all interrupts.
+// */
+//void ADS018_Interrupts_Disable(void)
+//{
+//    uint32_t interrupt_setting_mask;
+//    uint32_t irq;
+
+//    // Fetch the current interrupt settings.
+//    interrupt_setting_mask = NVIC->ISER[0];
+
+//    // Loop from interrupt 0 for disabling of all interrupts.
+//    for (irq = 0; irq < 32; irq++)
+//    {
+//        if (interrupt_setting_mask & (0x00000001 << irq))
+//        {
+////        	if (irq != GPIOTE_IRQn){
+//              NVIC_DisableIRQ((IRQn_Type)irq);
+//              NVIC_ClearPendingIRQ((IRQn_Type)irq);
+////        	}
+//        }
+//    }
+//}
+
+
+///**@brief Function for System OFF setup.
+// */
+//void ADS018_System_Off_Prepare(void)
+//{
+//    ADS018_Init_Advertising_Data();
+//	ADS018_LDOEN_0;           // Analog Power Off
+
+//	// WAKEUP setup
+//	nrf_drv_gpiote_in_event_disable(ADS018_INT2_PIN); // disable INT2 SENSE
+//	ADS018_Unconfig_Pins();
+//	ADS018_Interrupts_Disable(); //disable all interrupts
+//    nrf_gpio_cfg(ADS018_INT1_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_CONNECT,
+//    		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_SENSE_LOW);
+//    softdevice_handler_sd_disable();
+//    NRF_POWER->SYSTEMOFF = 1;
+//	while(1){};
+//}
+
+////--------------------------------------------UART
+//const char *pCRLF = "\r\n";
+
+//void ADS018_float_to_fp(float f, int dp, int *pi, int *pd)
+//{
+//	int i = (int)f;
+//	float ab = f;
+//	int j = i;
+//	if (f<0){
+//		ab = -f;
+//		j = -i;
+//	}
+//	j= (int)((ab-(1.0*j))*dp);
+//	*pd = j;
+//	*pi = i;
+//}
+
+
+///**
+// * @brief UART events handler.
+// */
+//void uart_events_handler(app_uart_evt_t * p_event)
+//{
+//    switch (p_event->evt_type)
+//    {
+//        case APP_UART_COMMUNICATION_ERROR: APP_ERROR_HANDLER(p_event->data.error_communication);
+//            break;
+
+//        case APP_UART_TX_EMPTY:
+//        	if (*ADS018_Print_Str_ptr != 0){
+//        		if (app_uart_put(*(uint8_t *)ADS018_Print_Str_ptr++)){};
+//        	}
+//        	else{
+//        		ADS018_Print_Str_flag = 1;
+//        	}
+//            break;
+
+//        case APP_UART_DATA:
+//        	ADS018_Uart_Get_flag = 1;
+//            break;
+
+//        default: break;
+//    }
+//}
+
+
+///**
+// * @brief UART initialization.
+// */
+//void ADS018_Uart_Config(void)
+//{
+//    uint32_t                     err_code;
+//    const app_uart_comm_params_t comm_params =
+//    {
+//    	ADS018_RX_PIN,
+//		ADS018_TX_PIN,
+//		ADS018_RTS_PIN,
+//		ADS018_CTS_PIN,
+//        NRF_UART_HWFC_DISABLED,
+//        NRF_UART_PARITY_EXCLUDED ,
+//        NRF_UART_BAUDRATE_38400
+//    };
+
+
+//    APP_UART_INIT(&comm_params,
+//                  uart_events_handler,
+//                  APP_IRQ_PRIORITY_LOW,
+//                  err_code);
+
+//    APP_ERROR_CHECK(err_code);
+
+//    nrf_uart_enable(NRF_UART0);
+//}
+
+
+
+
+//void ADS018_Uart_Unplug(void)
+//{
+//    nrf_gpio_cfg(ADS018_RX_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+//    nrf_gpio_cfg(ADS018_TX_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+//    nrf_gpio_cfg(ADS018_RTS_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+//    nrf_gpio_cfg(ADS018_CTS_PIN, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_DISCONNECT,
+//		     NRF_GPIO_PIN_NOPULL, NRF_GPIO_PIN_S0S1, NRF_GPIO_PIN_NOSENSE);
+//    nrf_uart_disable(NRF_UART0);
+//}
+
+//void ADS018_Print_Mask_Set(uint32_t mask)
+//{
+//	ADS018_Print_Mask = mask;
+//}
+
+//char ADS018_Key(void)
+//{
+//	uint8_t  rx_data=0;
+//	uint32_t error=0;
+
+//	ADS018_Uart_Get_flag = 0;
+//	while(ADS018_Uart_Get_flag == 0){};
+//	error = app_uart_get((uint8_t *)&rx_data);
+//	if (error == NRF_SUCCESS){
+//		ADS018_Print_Str_flag = 0;
+//	    error = app_uart_put(rx_data);
+//	    if (error == NRF_SUCCESS){
+//		    while(ADS018_Print_Str_flag == 0){};
+//	    }
+//	}
+//	return ((char)rx_data);
+//}
+
+//int ADS018_Get_Strln(char *p)
+//{
+//	char *pd = p;
+//	char rx_data;
+//	int i=0;
+//	int f=0;
+
+//	do{
+//		rx_data = ADS018_Key();
+//		if((rx_data != 0x0D) && (rx_data != 0)){
+//		    *pd++ = rx_data;
+//		    i++;
+//		}
+//		else f=1;
+//	}while (f==0);
+//	*pd = 0;
+//	if(rx_data == 0x0D){
+//		if (app_uart_put(rx_data)){}; //send LINEFEED after CR
+//	}
+//	return i;
+//}
+
+//void ADS018_Print_Str(char *p)
+//{
+//	if (ADS018_uart_on){
+//	    if (*p != 0){
+//	        ADS018_Print_Str_ptr = p;
+//	        ADS018_Print_Str_flag = 0;
+//	        if (app_uart_put(*(uint8_t *)ADS018_Print_Str_ptr++)){};
+//	        while (ADS018_Print_Str_flag == 0){};
+//	    }
+//	}
+//}
+
+
+//void ADS018_PrintInt(char *p, int i)
+//{
+//	if (ADS018_uart_on){
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,p,i);
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_Print_Str((char*)ADS018_pbuf);
+//	}
+//}
+
+////--------------------------------------------Operation
+//void ADS018_init_mean(void)
+//{
+//	ADS018_cycle.Cycle = 0; // init cycle counter
+//	ADS018_cycle.Rotation= 0.0; // init cycle rotation
+//	ADS018_cycle.Load    = 0.0; // init cycle load
+//	ADS018_cycle.Torque  = 0.0; // init cycle torque
+//	ADS018_cycle.Energy  = 0.0; // init cycle energy
+//	ADS018_cycle.Power   = 0.0; // init cycle power
+//	ADS018_mean.Cycle = 0; // init mean cycle counter
+//	ADS018_mean.Rotation= 0.0; // init mean rotation
+//	ADS018_mean.Load    = 0.0; // init mean load
+//	ADS018_mean.Torque  = 0.0; // init mean torque
+//	ADS018_mean.Energy  = 0.0; // init eman energy
+//	ADS018_mean.Power   = 0.0; // init mean power
+//	ADS018_mean_counter = 0;   // reset mean counter
+//}
+
+
+//int16_t ADS018_Load_Balanced(int16_t load_adc)
+//{
+//	return(load_adc - ADS018_Cal_ADC_Zero); // !< ads1120 ADC binary balanced
+//}
+
+//float ADS018_Load_EU(int16_t load_adc)
+//{
+//	return ((ADS018_Cal_A*load_adc) + ADS018_Cal_B);
+//}
+
+//float ADS018_LoadT_EU(int16_t load_adc)
+//{
+//	return (ADS018_Cal_A*(load_adc - ADS018_AZ_Tare) + ADS018_Cal_B);
+//}
+
+//void ADS018_Read_Load(void)
+//{
+//	ads1120_ADC   = ads1120_setup.data;   // read load in ADC
+//	ads1120_ADCB  = ADS018_Load_Balanced(ads1120_ADC);           // !< ads1120 ADC binary balanced
+//	ads1120_ADCT  = ads1120_ADCB - ADS018_AZ_Tare;               // !< ads1120 ADC binary balanced and tared
+//}
+
+//#define ADS018_USE_FN 1
+
+//void ADS018_Set_Result_C(ADS018_mem_data_Type *pin, ADS018_res_data_Type *pout)
+//{
+//#ifdef ADS018_USE_FN
+//	// calcula carga corrigida pela eficiencia usando carga positiva e negativa medida
+//	int32_t loadc = ((pADS018_NV_buf->Kp*(pin->fp)) + (pADS018_NV_buf->Kn*(pin->fn)))/1000;
+//#else
+//	// calcula carga corrigida pela eficiencia usando carga total medida
+//	int32_t loadc = (pADS018_NV_buf->Kp*(pin->f)/1000);
+//#endif
+
+//	//limita carga corrigida para valores positivos
+//	if (loadc<0){
+//		loadc = -1*loadc;
+////	    pout->load     = ADS018_load_factor_n[ADS018_Cycle_S_n] * loadc;
+//        if (ADS018_uart_on){
+//            pout->torque   = ADS018_torque_factor_n[ADS018_Cycle_S_n] * loadc;
+//        }
+//		loadc = 0;
+//		ADS018_Cycle_Result = 2;  // carga negativa forcada para zero mas considerada normal
+//	}
+//	else{
+////	    pout->load     = ADS018_load_factor_n[ADS018_Cycle_S_n] * loadc;
+//        if (ADS018_uart_on){
+//            pout->torque   = ADS018_torque_factor_n[ADS018_Cycle_S_n] * loadc;
+//        }
+//	}
+
+//	int32_t load = (pin->f);
+//	pout->load = ADS018_load_factor_n[ADS018_Cycle_S_n] * load;
+
+//    //inicia supondo n=0
+//	pout->rotation = 0;
+//	pout->energy   = 0;
+//	pout->power    = 0;
+
+//    //trata para n<>0
+//	if ((pin->n)>0){
+//		if((pin->n) > ADS018_Rotation_Max_N){
+//			pout->n = 0;
+//	        ADS018_Cycle_Result = 4; // rotacao abaixo do minimo 10 rpm
+//	    }
+//		else{
+//			if((pin->n) < ADS018_Rotation_Min_N){
+//				pout->n = 0;
+//		        ADS018_Cycle_Result = 3; // rotacao acima do maximo 125 rpm
+//			}
+//			else{
+//			    pout->n =(pin->n);
+//	            pout->rotation = ADS018_rotation_factor / (pin->n);
+//		        pout->energy   = ADS018_energy_factor_n[ADS018_Cycle_S_n] * loadc;
+//	            pout->power    = ADS018_power_factor_n[ADS018_Cycle_S_n] * loadc / (pin->n);
+//	            if (ADS018_Cycle_Result == 0) ADS018_Cycle_Result = 1; // valor normal, preserva =2 definido antes
+//			}
+//		}
+//	}
+//}
+
+//void ADS018_Set_Result(ADS018_res_data_Type *pin, ADS018_res_data_Type *pout, int len)
+//{
+//	if (len>0){
+//	    pout->rotation = pin->rotation/len;
+//        pout->load     = pin->load/len;
+//        pout->torque   = pin->torque/len;
+//	    pout->energy   = pin->energy/len;
+//	    pout->power    = pin->power/len;
+//	}
+//}
+
+
+//void ADS018_Cycle(void)
+//{
+//	// count cycles and set direction
+//	// y transitions
+//	ADS018_y = ADS018_raw_Yaccel_F;
+//	switch (ADS018_stt_flag_y){
+//        case  0: // wait top transition
+//                 if (ADS018_y > 0){
+//                	 ADS018_stt_flag_y = 1;
+//                 }
+//        	     break;
+//        case  1: // confirm top transition
+//                 if (ADS018_y > ADS018_cyle_bac_limit_y){
+//	                 ADS018_last_flag_y = ADS018_flag_y;
+//                	 ADS018_flag_y = 1;
+//                	 ADS018_stt_flag_y = 2;
+//                 }
+//                 else{
+//                	 ADS018_stt_flag_y = 0;
+//                 }
+//        	     break;
+//        case  2: // wait botton transition
+//                 if (ADS018_y < 0){
+//           	         ADS018_stt_flag_y = 3;
+//                 }
+//        	     break;
+//        case  3: // confirm botton transition
+//                 if (ADS018_y < ADS018_cyle_fro_limit_y){
+//                     ADS018_last_flag_y = ADS018_flag_y;
+//           	         ADS018_flag_y = 0;
+//           	         ADS018_stt_flag_y = 0;
+//                 }
+//                 else{
+//           	         ADS018_stt_flag_y = 2;
+//                 }
+//        	     break;
+//        default: break;
+//	}
+
+//    if(ADS018_last_flag_y != ADS018_flag_y){ // y orientation changed
+//    	ADS018_last_flag_y = ADS018_flag_y;
+//    	if(ADS018_SCycle_Tout_Count != 0){
+//    		ADS018_SCycle_Tout_Count = 0;
+//    		ADS018_SCycle_Tout_Num = 3;
+//    	}
+//        switch (ADS018_Cycle_Stt){
+//        case  0: //init
+//        	     if(ADS018_flag_y == 1){ // wait transition (-) -> (+)
+//       	    	     ADS018_Cycle_Flag = 0;
+//       	    	     ADS018_Cycle_Dir = 1; // direction ccw
+//        	         ADS018_Cycle_Stt = 1;
+//                     ADS018_Cycle_Last_S = 0;
+//                     ADS018_Cycle_S = 1;
+//        	    	 ADS018_Cycle_S_Cmd = 1; //signal initial transition
+//        	     }
+//    	         break;
+//        case  1: //on top
+//             	 if(ADS018_flag_y == 0){
+//             		 ADS018_Cycle_Last_S = 1;
+//             		 ADS018_Cycle_S = 0;
+//             		 ADS018_Cycle_S_Cmd = 2;
+//             		 ADS018_Cycle_Stt = 2;
+//        	     }
+//    	         break;
+//        case  2: //on botton
+//             	 if(ADS018_flag_y == 1){
+//             		ADS018_Cycle_Last_S = 0;
+//             		ADS018_Cycle_S = 1;
+//    	    		ADS018_Cycle_S_Cmd = 2;
+//             		ADS018_Cycle_Stt = 1;
+//             		ADS018_Cycle_Flag = 1;
+//             		ADS018_CyleCounter++;
+//        	     }
+//    	         break;
+//        default: break;
+//        }
+//    }
+//    else{
+//    	if(ADS018_Cycle_Stt != 0){
+//    	    ADS018_SCycle_Tout_Count++;
+//    	    if (ADS018_SCycle_Tout_Count > ADS018_SCycle_Tout_Limit){
+//    		    ADS018_SCycle_Tout_Count = 0;
+//    	        ADS018_Cycle_Stt = 0;
+//    		    ADS018_SCycle_Stt = 0;
+//    		    ADS018_SCycle_Tout_Num--;
+//    		    ADS018_SCycle_Tout_Cmd = 1;
+//    	    }
+//    	}
+//    	else{
+//    		if (ADS018_SCycle_Tout_Num != 0){
+//        	    ADS018_SCycle_Tout_Count++;
+//        	    if (ADS018_SCycle_Tout_Count > ADS018_SCycle_Tout_Limit){
+//    			    ADS018_SCycle_Tout_Count = 0;
+//        	        ADS018_Cycle_Stt = 0;
+//        		    ADS018_SCycle_Stt = 0;
+//    			    ADS018_SCycle_Tout_Num--;
+//    			    ADS018_SCycle_Tout_Cmd = 1;
+//        	    }
+//    		}
+//    	}
+
+//    }
+
+//}
+
+//void ADS018_res_data_clear(ADS018_res_data_Type *p){
+//    p->n = 0;
+//    p->rotation = 0;
+//    p->energy = 0;
+//    p->power = 0;
+//    p->load = 0;
+//    p->torque = 0;
+//}
+
+//void ADS018_Update_SCycle(void)
+//{
+//	void init_vars(){
+//		int i;
+//		for (i=0;i<ADS018_Cycle_S_n;i++){
+//			ADS018_mem_data_s[i].n = 0;
+//			ADS018_mem_data_s[i].f = 0;
+//#ifdef ADS018_USE_FN
+//			ADS018_mem_data_s[i].fp = 0;
+//			ADS018_mem_data_s[i].fn = 0;
+//#endif
+//		}
+//	}
+
+//	void init_varc(){
+//		ADS018_mem_data_c.f = 0;
+//		ADS018_mem_data_c.n = 0;
+//#ifdef ADS018_USE_FN
+//		ADS018_mem_data_c.fp = 0;
+//		ADS018_mem_data_c.fn = 0;
+//#endif
+//	}
+
+//	void init_f(void){
+
+////		int i;
+
+//		ADS018_res_data_f_len = 0;
+//		ADS018_res_data_clear((ADS018_res_data_Type *)&ADS018_res_data_m);
+
+////		for (i=0; i<ADS018_res_data_f_len; i++){
+////			ADS018_res_data_f[i].n = 0;
+////			ADS018_res_data_f[i].rotation = 0;
+////			ADS018_res_data_f[i].load = 0;
+////			ADS018_res_data_f[i].torque = 0;
+////			ADS018_res_data_f[i].energy = 0;
+////			ADS018_res_data_f[i].power = 0;
+////		}
+
+//		ADS018_res_data_f_in  = ADS018_res_data_f_len;
+//		ADS018_res_data_f_out = 0;
+//		ADS018_res_data_f_stt = 1;
+//	}
+
+//	void remove_f(void){
+//		if (ADS018_res_data_f_len > ADS018_F_LEN_MIN){
+//		    ADS018_res_data_m.n -= ADS018_res_data_f[ADS018_res_data_f_out].n;
+//		    ADS018_res_data_m.rotation -= ADS018_res_data_f[ADS018_res_data_f_out].rotation;
+//		    ADS018_res_data_m.load -= ADS018_res_data_f[ADS018_res_data_f_out].load;
+//		    ADS018_res_data_m.torque -= ADS018_res_data_f[ADS018_res_data_f_out].torque;
+//		    ADS018_res_data_m.energy -= ADS018_res_data_f[ADS018_res_data_f_out].energy;
+//		    ADS018_res_data_m.power -= ADS018_res_data_f[ADS018_res_data_f_out].power;
+//		    ADS018_res_data_f_out++;
+//		    if (ADS018_res_data_f_out >= ADS018_F_N) ADS018_res_data_f_out = 0;
+//		    ADS018_res_data_f_len--;
+//		}
+//	}
+
+//	void acc_f(void){
+////#define DEBUG_FILA
+//#if defined (DEBUG_FILA)
+//		ADS018_res_data_c.n = 3;
+//		ADS018_res_data_c.rotation = 55;
+//		ADS018_res_data_c.load = 20;
+//		ADS018_res_data_c.torque = 100;
+//		ADS018_res_data_c.energy = 200;
+//		ADS018_res_data_c.power = 185;
+//#endif
+//		if(ADS018_res_data_f_len < ADS018_F_N){
+//		    ADS018_res_data_f[ADS018_res_data_f_in].n = ADS018_res_data_c.n;
+//		    ADS018_res_data_f[ADS018_res_data_f_in].rotation = ADS018_res_data_c.rotation;
+//		    ADS018_res_data_f[ADS018_res_data_f_in].load = ADS018_res_data_c.load;
+//		    ADS018_res_data_f[ADS018_res_data_f_in].torque = ADS018_res_data_c.torque;
+//		    ADS018_res_data_f[ADS018_res_data_f_in].energy = ADS018_res_data_c.energy;
+//		    ADS018_res_data_f[ADS018_res_data_f_in].power = ADS018_res_data_c.power;
+//		    ADS018_res_data_m.n += ADS018_res_data_c.n;
+//		    ADS018_res_data_m.rotation += ADS018_res_data_c.rotation;
+//		    ADS018_res_data_m.load += ADS018_res_data_c.load;
+//		    ADS018_res_data_m.torque += ADS018_res_data_c.torque;
+//		    ADS018_res_data_m.energy += ADS018_res_data_c.energy;
+//		    ADS018_res_data_m.power += ADS018_res_data_c.power;
+//		    ADS018_res_data_f_in++;
+//		    if (ADS018_res_data_f_in >= ADS018_F_N) ADS018_res_data_f_in = 0;
+//		    ADS018_res_data_f_len++;
+//		}
+//	}
+
+//	void insert_f(void){
+//		remove_f();
+//		acc_f();
+//	}
+
+//	void insert_zero(void){
+
+//		remove_f();
+
+//		ADS018_res_data_f[ADS018_res_data_f_in].n = 0;
+//		ADS018_res_data_f[ADS018_res_data_f_in].rotation = 0;
+//		ADS018_res_data_f[ADS018_res_data_f_in].load = 0;
+//		ADS018_res_data_f[ADS018_res_data_f_in].torque = 0;
+//		ADS018_res_data_f[ADS018_res_data_f_in].energy = 0;
+//		ADS018_res_data_f[ADS018_res_data_f_in].power = 0;
+//	    ADS018_res_data_f_in++;
+//		if (ADS018_res_data_f_in >= ADS018_F_N) ADS018_res_data_f_in = 0;
+//		ADS018_res_data_f_len++;
+//	}
+
+//	void update_s(void){
+//		if (ADS018_mem_data_s[ADS018_Cycle_Last_S].n>0){
+//			ADS018_mem_data_s[ADS018_Cycle_Last_S].f = ADS018_mem_data_s[ADS018_Cycle_Last_S].f / ADS018_mem_data_s[ADS018_Cycle_Last_S].n;
+//			ADS018_mem_data_c.n += ADS018_mem_data_s[ADS018_Cycle_Last_S].n;
+//			ADS018_mem_data_c.f += ADS018_mem_data_s[ADS018_Cycle_Last_S].f;
+//#ifdef ADS018_USE_FN
+//			ADS018_mem_data_s[ADS018_Cycle_Last_S].fp = ADS018_mem_data_s[ADS018_Cycle_Last_S].fp / ADS018_mem_data_s[ADS018_Cycle_Last_S].n;
+//			ADS018_mem_data_s[ADS018_Cycle_Last_S].fn = ADS018_mem_data_s[ADS018_Cycle_Last_S].fn / ADS018_mem_data_s[ADS018_Cycle_Last_S].n;
+//			ADS018_mem_data_c.fp += ADS018_mem_data_s[ADS018_Cycle_Last_S].fp;
+//			ADS018_mem_data_c.fn += ADS018_mem_data_s[ADS018_Cycle_Last_S].fn;
+//			ADS018_mem_data_s[ADS018_Cycle_Last_S].fp = 0;
+//			ADS018_mem_data_s[ADS018_Cycle_Last_S].fn = 0;
+//#endif
+//			ADS018_mem_data_s[ADS018_Cycle_Last_S].n = 0;
+//			ADS018_mem_data_s[ADS018_Cycle_Last_S].f = 0;
+//		}
+//	}
+
+
+//	void update_c(void){
+//	     if(ADS018_Cycle_Flag == 1){ //on sector==0
+//	    	 ADS018_Set_Result_C((ADS018_mem_data_Type *)&ADS018_mem_data_c, (ADS018_res_data_Type *)&ADS018_res_data_c);
+//	 		 ADS018_Energy += ADS018_res_data_c.energy;
+//    		 if (ADS018_res_data_f_stt == 0) init_f(); //init mean
+//    		 else{
+//	    	     //update mean
+//    			 switch(ADS018_Cycle_Result){
+//    			 case  0: break; // undefined, ignore
+//    			 case  1: // normal - positive load
+//    			 case  2: // normal - negative load forced to zero
+////    				      if(ADS018_res_data_m.n == 0){ // filled with zeros
+////    				    	  insert_f(); // remove old and add sample to mean
+////    				      }
+////    				      else{
+//    				          // adjust len
+////	    		              while(((ADS018_res_data_m.n + ADS018_res_data_c.n) > ADS018_f_limit) && (ADS018_res_data_f_len > ADS018_F_LEN_MIN)){
+////	    		    		      remove_f(); // remove old sample
+////	    		              }
+
+//	    		    	      if(ADS018_res_data_f_len == ADS018_F_N){
+//	    		    		      insert_f(); // remove old and add sample to mean
+//	    		    	      }
+//	    		    	      else{
+//	    		    		      acc_f(); // add sample to mean
+//	    		    	      }
+////    				      }
+//   				          break;
+//    			 case  3: break; // rpm > max rpm, ignore
+//    			 case  4: break; // rpm < min rpm, ignore
+//    			 default: break;
+//    			 }
+//    		 }
+//   		     nnnn = ADS018_res_data_c.n;
+// 	    	 ADS018_res_data_cmd = 1; // update advertising data
+//   		     init_varc();
+//   		     ADS018_Cycle_Result = 0; // reinicia avaliacao do ciclo
+//	    }
+//    }
+
+//	void init_var(void){
+//		init_vars();
+//		init_varc();
+//	}
+
+//    if (ADS018_SCycle_Tout_Cmd == 1){
+//	    //sector timeout
+//        ADS018_SCycle_Tout_Cmd = 0;
+////    	ADS018_Print_Str("tout2\n\r");
+//    	init_var();
+//        ADS018_res_data_clear((ADS018_res_data_Type *)&ADS018_res_data_c);
+///*    	if (ADS018_res_data_f_stt == 0) */ init_f(); //init mean
+////        insert_zero();
+//        ADS018_Cycle_Result  = 0;  // reinicia avaliacao do ciclo
+//        ADS018_res_data_cmd  = 1;  // update advertising data
+//    }
+//    else{
+//        //q change
+//        switch(ADS018_Cycle_S_Cmd){
+//        case  0: break;
+//        case  1: init_var();
+//	             ADS018_SCycle_Stt = 1;
+//	             ADS018_res_data_f_stt = 0;
+//                 break;
+//        case  2: //change q on load
+//    	         update_s();
+//    	         update_c();
+//    		     break;
+//	    default: break;
+//	    }
+//	    ADS018_Cycle_S_Cmd = 0;
+//    }
+
+//	//update on sector
+//    switch(ADS018_SCycle_Stt){
+//	case  0: break; // sync init
+//	case  1: // run load
+//	         ADS018_mem_data_s[ADS018_Cycle_S].n++;
+//	         ADS018_mem_data_s[ADS018_Cycle_S].f += ads1120_ADCT;
+//#ifdef ADS018_USE_FN
+//	         if (ads1120_ADCT>0){
+//	        	 ADS018_mem_data_s[ADS018_Cycle_S].fp += ads1120_ADCT;
+//	         }
+//	         else{
+//	        	 ADS018_mem_data_s[ADS018_Cycle_S].fn += ads1120_ADCT;
+//	         }
+//#endif
+//		     break;
+//    case  2: // run unload
+//	         ADS018_mem_data_s[ADS018_Cycle_S].n++;
+//		 	 break;
+//	default: break;
+//	}
+//}
+
+
+//#ifdef ADS018_DBG_OPER
+
+//void ADS018_Print_Mean_Data(void)
+//{
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,
+//            "%6d %8.2f %8.3f %6d\r\n",
+//			(int)ADS018_mean.Rotation,
+//    		ADS018_Load_Unit_Factor[pADS018_NV_buf->Load_Unit]*ADS018_mean.Load,
+//    		ADS018_Load_Unit_Factor[pADS018_NV_buf->Load_Unit]*ADS018_mean.Torque,
+//    		ADS018_mean.Power); // print mean result
+//}
+
+//void ADS018_Print_Rotation(void)
+//{
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,
+//            "%6d\r\n",
+//			(int)ADS018_res_data_c.rotation);
+//}
+
+//void ADS018_Print_Load(void)
+//{
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,
+//	        "Load :%3d:%02d-Load ADC:%6d Load:%9.3f LoadT:%9.3f Tare:%9.3f\r\n",
+//    	    (int)pADS018_transfer->Minutes,
+//    	    (int)pADS018_transfer->Seconds,
+//			ads1120_setup.data,
+//			ADS018_Load_EU((int)ads1120_setup.data),
+//			ADS018_LoadT_EU((int)ads1120_setup.data),
+//    	    ADS018_tare); // print Load
+//}
+
+//void ADS018_Print_Cicle_Data2(void)
+//{
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,
+//	        "RAW2- y:%6d flagy:%2d stty:%2d stt:%2d cmd:%2d sttq:%2d\r\n",
+//			(int)ADS018_y,
+//			(int)ADS018_flag_y,
+//			(int)ADS018_stt_flag_y,
+//			(int)ADS018_Cycle_Stt,
+//			(int)ADS018_Cycle_S_Cmd,
+//			(int)ADS018_SCycle_Stt);
+//}
+
+//void ADS018_Print_Cycle_Data(void)
+//{
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,
+//	        "CYCLE -                n:%3d R:%6d L:%6d T:%6d E:%6d P:%6d\r\n",
+//			(int)ADS018_res_data_c.n,
+//			(int)ADS018_res_data_c.rotation,
+//			(int)ADS018_res_data_c.load,
+//			(int)ADS018_res_data_c.torque,
+//			(int)ADS018_res_data_c.energy,
+//			(int)ADS018_res_data_c.power); // print cycle
+//}
+
+//void ADS018_Print_Advertising_Data(void)
+//{
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,
+//	        "ADV-%3d:%02d C:%4d R:%4d L:%5d T:%5d E:%5d P:%5d HR:%3d N:%3d l:%3d\r\n",
+//    	    (int)pADS018_transfer->Minutes,
+//    	    (int)pADS018_transfer->Seconds,
+//    	    (int)pADS018_transfer->Cycle,
+//			(int)pADS018_transfer->Rotation,
+//			(int)pADS018_transfer->Load,
+//			(int)pADS018_transfer->Torque,
+//			(int)pADS018_transfer->Energy,
+//			(int)pADS018_transfer->Power,
+//			(int)pADS018_transfer->HR,
+//			(int)nnnn,
+//			(int)ADS018_res_data_f_len); // print advertising
+//}
+
+
+//void ADS018_Print_Raw_Data(void)
+//{
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,
+//	        "RAW   - X:%6d Y:%6d Z:%6d O:%1d L:%6d LB:%6d Ta:%6d LTa:%6d\r\n",
+//            (int)ADS018_raw.Xaccel,
+//		    (int)ADS018_raw.Yaccel,
+//		    (int)ADS018_raw.Zaccel,
+//		    (int)ADS018_raw.Orientation,
+//		    (int)ads1120_ADC,
+//		    (int)ads1120_ADCB,
+//		    (int)ADS018_AZ_Tare,
+//		    (int)(ads1120_ADCT));
+//}
+
+//void ADS018_Print_Raw_Data2(void)
+//{
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,
+////		        "%6d %6d %6d %1d %6d %6d %6d %6d\r\n",
+//	        "%6d\t%6d\t%6d\t%1d\t%4d\r\n",
+//            (int)ADS018_raw.Xaccel,
+//			(int)ADS018_raw.Yaccel,
+//			(int)ADS018_raw_Yaccel_F,
+//			(int)ADS018_flag_y,
+//			(int)ADS018_res_data_c.rotation
+////		    (int)ADS018_raw.Yaccel,
+////		    (int)ADS018_raw.Zaccel,
+////		    (int)ADS018_raw.Orientation
+////		    (int)ads1120_ADC,
+////		    (int)ads1120_ADCB,
+////		    (int)ADS018_AZ_Tare,
+////		    (int)(ads1120_ADCT)
+//			);
+//	}
+//}
+
+
+//void ADS018_Print_Int_Hex_Bin_ln(char* pname, uint32_t w32)
+//{
+//	int i;
+//	char ci[20];
+//	char ch[20];
+//	char cb[40];
+//	for (i=0; i<32; i++){
+//        if (w32 & (0x00000001 << (31-i))){
+//        	cb[i] = '1';
+//        }
+//        else{
+//        	cb[i] = '0';
+//        }
+//	}
+//	cb[32] = 0;
+//	ADS018_Print_Str(pname);
+//	i = sprintf((char*)&ci[0],": %09d - ",(int)w32);
+//	i = sprintf((char*)&ch[0],"%08X - ",(int)w32);
+//	ADS018_Print_Str((char*)&ci[0]);
+//	ADS018_Print_Str((char*)&ch[0]);
+//	ADS018_Print_Str((char*)&cb[0]);
+//	ADS018_Print_Str("\n\r");
+//}
+
+//void ADS018_Print_POWER_REGISTER(void)
+//{
+//	ADS018_Print_Int_Hex_Bin_ln("RESETREAS", NRF_POWER->RESETREAS);
+//	ADS018_Print_Int_Hex_Bin_ln("RAMSTATUS", NRF_POWER->RAMSTATUS);
+//	ADS018_Print_Int_Hex_Bin_ln("SYSTEMOFF", NRF_POWER->SYSTEMOFF);
+//	ADS018_Print_Int_Hex_Bin_ln("POFCON   ", NRF_POWER->POFCON);
+//	ADS018_Print_Int_Hex_Bin_ln("GPREGRET ", NRF_POWER->GPREGRET);
+//	ADS018_Print_Int_Hex_Bin_ln("RAMON    ", NRF_POWER->RAMON);
+//	ADS018_Print_Int_Hex_Bin_ln("RESET    ", NRF_POWER->RESET);
+//	ADS018_Print_Int_Hex_Bin_ln("RAMONB   ", NRF_POWER->RAMONB);
+//	ADS018_Print_Int_Hex_Bin_ln("DCDCEN   ", NRF_POWER->DCDCEN);
+//}
+
+//void ADS018_Print_WDT_REGISTER(void)
+//{
+//	ADS018_Print_Int_Hex_Bin_ln("INTEN    ", NRF_WDT->INTENSET);
+//	ADS018_Print_Int_Hex_Bin_ln("RUNSTATUS", NRF_WDT->RUNSTATUS);
+//	ADS018_Print_Int_Hex_Bin_ln("REQSTATUS", NRF_WDT->REQSTATUS);
+//	ADS018_Print_Int_Hex_Bin_ln("CRV      ", NRF_WDT->CRV);
+//	ADS018_Print_Int_Hex_Bin_ln("RREN     ", NRF_WDT->RREN);
+//	ADS018_Print_Int_Hex_Bin_ln("CONFIG   ", NRF_WDT->CONFIG);
+//	ADS018_Print_Int_Hex_Bin_ln("RR[0]    ", NRF_WDT->RR[0]);
+//	ADS018_Print_Int_Hex_Bin_ln("RR[1]    ", NRF_WDT->RR[1]);
+//	ADS018_Print_Int_Hex_Bin_ln("RR[2]    ", NRF_WDT->RR[2]);
+//	ADS018_Print_Int_Hex_Bin_ln("RR[3]    ", NRF_WDT->RR[3]);
+//	ADS018_Print_Int_Hex_Bin_ln("RR[4]    ", NRF_WDT->RR[4]);
+//	ADS018_Print_Int_Hex_Bin_ln("RR[5]    ", NRF_WDT->RR[5]);
+//	ADS018_Print_Int_Hex_Bin_ln("RR[6]    ", NRF_WDT->RR[6]);
+//	ADS018_Print_Int_Hex_Bin_ln("RR[7]    ", NRF_WDT->RR[7]);
+//}
+//#endif
+
+
+
+//void ADS018_Print_Raw_Data1(void)
+//{
+//        int m = (int)(ADS018_Meas_Get_Mean());
+//        int mt = (int)(m - ADS018_AZ_Tare);
+
+//	    ADS018_pbuf=(char*)&ADS018_cbuf[0];
+//	    ADS018_cbuflen = sprintf((char*)ADS018_pbuf,
+//			"%6d %6d %6d %6d %3d %3d %1d %1d %1d %3d %6d %6d %4d %4d %4d\r\n",
+//			m,
+//		    mt,
+//			(int)ADS018_AZ_Tare,
+//			(int)(pADS018_transfer->Load),
+//			(int)(pADS018_transfer->Rotation /10),
+//			(int)pADS018_transfer->Power,
+//		    (int)ADS018_raw.Orientation,
+//			(int)ADS018_session,
+//			(int)ADS018_connected,
+//			(int)pADS018_NV_buf->Id,
+//			(int)pADS018_NV_buf->Cal.adc_value[0],
+//			(int)pADS018_NV_buf->Cal.adc_value[1],
+//			(int)pADS018_NV_buf->Kp,
+//			(int)pADS018_NV_buf->Kn,
+//			(int)pADS018_NV_buf->Cal.eng_value[1]
+//			);
+//}
+
+
+//void ADS018_Set_Mean_Data(void)
+//{
+
+//	if (ADS018_res_data_cmd  == 1){
+//	    ADS018_res_data_cmd  = 0;
+//	    ADS018_Set_Result((ADS018_res_data_Type *)&ADS018_res_data_m, (ADS018_res_data_Type *)&ADS018_res_data, ADS018_res_data_f_len);
+//	}
+//}
+
+
+//void ADS018_Update_Advertising_Data(void)
+//{
+//    pADS018_transfer->Cycle    = ADS018_CyleCounter;
+//    pADS018_transfer->Minutes  = ADS018_Min_Counter;
+//    pADS018_transfer->Seconds  = ADS018_Sec_Counter;
+//    pADS018_transfer->Energy   = (uint16_t)(ADS018_Energy/1000);
+
+////    pADS018_transfer->Power    = ADS018_res_data_c.power;
+//////    pADS018_transfer->HR       = nnnn*10;
+////    pADS018_transfer->HR       = (uint16_t)ADS018_res_data_c.load * 10;
+////    pADS018_transfer->Rotation = (uint16_t)ADS018_res_data_c.rotation;
+////    pADS018_transfer->Load     = (uint16_t)ADS018_res_data_c.load;
+////    pADS018_transfer->Torque   = (uint16_t)ADS018_res_data_c.torque;
+
+//    if( ADS018_res_data_f_len ) {
+//		pADS018_transfer->Power    = ADS018_res_data_m.power/ADS018_res_data_f_len;
+//		pADS018_transfer->HR       = nnnn*10;
+////		pADS018_transfer->Rotation = (uint16_t)ADS018_res_data_m.rotation/ADS018_res_data_f_len;
+////		pADS018_transfer->Load     = (uint16_t)ADS018_res_data_m.load/ADS018_res_data_f_len;
+//		pADS018_transfer->Torque   = (uint16_t)ADS018_res_data_m.torque/ADS018_res_data_f_len;
+//		pADS018_transfer->Rotation = (uint16_t)ADS018_res_data_c.rotation;
+//		pADS018_transfer->Load     = (uint16_t)ADS018_res_data_c.load;
+//    }
+//    else {
+//		pADS018_transfer->Power    = 0;
+//		pADS018_transfer->HR       = 0;
+//		pADS018_transfer->Rotation = 0;
+//		pADS018_transfer->Load     = 0;
+//		pADS018_transfer->Torque   = 0;
+//    }
+
+////    pADS018_transfer->Power    = ADS018_res_data.power;
+////    pADS018_transfer->HR       = nnnn*10;
+////    pADS018_transfer->HR       = (uint16_t)ADS018_res_data.load * 10;
+////    pADS018_transfer->Rotation = (uint16_t)ADS018_res_data.rotation;
+////    pADS018_transfer->Load     = (uint16_t)ADS018_res_data.load;
+////    pADS018_transfer->Torque   = (uint16_t)ADS018_res_data.torque;
+//}
+
+//void ADS018_AZ_Clear_Flag(void)
+//{
+//    ADS018_AZ_flag = 0;
+//}
+
+//void ADS018_AZ_Set_Flag(void)
+//{
+//    ADS018_AZ_flag = 1;
+//}
+
+//void ADS018_AZ(void)
+//{
+//    switch (ADS018_AZ_stt){
+//		case  0: //check auto-zero position
+//			ADS018_AZ_stt = 4;
+//			if (mma8x5x_pl == ADS018_POS_BOT){
+//				ADS018_raw.Zaccel = (int16_t)(((mma8x5x_regs.data[4] << 8) & 0xff00) | mma8x5x_regs.data[5]);
+//				if ((ADS018_raw.Zaccel >= ADS018_AZ_Z_LI) && (ADS018_raw.Zaccel <= ADS018_AZ_Z_LS)){
+//					ADS018_AZ_counter = 0;
+//					ADS018_Print_Str(">>> AZ: in position\n\r");
+//					ADS018_AZ_stt = 1;
+//				}
+//			}
+//			break;
+//		case  1: //wait debounce
+//			if (mma8x5x_pl != ADS018_POS_BOT){
+//				ADS018_AZ_stt = 0;
+//			}
+//			else{
+//				ADS018_AZ_counter++;
+//				if (ADS018_AZ_counter >= ADS018_AZ_tdebounce){
+//					ADS018_AZ_mean = 0.0;
+//					ADS018_AZ_sdev = 0.0;
+//					ADS018_AZ_counter = 0;
+//					ADS018_Print_Str(">>> AZ: evaluate mean\n\r");
+//					ADS018_AZ_stt = 2;
+//				}
+//			}
+//			break;
+//		case  2: //evaluate mean and sdev
+
+//			ADS018_raw.Load   = ads1120_setup.data;
+//			ads1120_ADC = ads1120_setup.data;
+//			ads1120_ADCB  = ADS018_Load_Balanced(ads1120_ADC); // !< ads1120 ADC binary balanced
+
+//			ADS018_AZ_load  = (1.0*ads1120_ADCB);
+//			ADS018_AZ_mean=ADS018_AZ_mean + ADS018_AZ_load;
+//			ADS018_AZ_sdev=ADS018_AZ_sdev + (ADS018_AZ_load*ADS018_AZ_load);
+//			ADS018_AZ_counter++;
+//			if (ADS018_AZ_counter >= ADS018_AZ_n){
+//				ADS018_AZ_mean = ADS018_AZ_mean / ADS018_AZ_counter;
+//				ADS018_AZ_sdev = sqrtf(fabsf((ADS018_AZ_sdev / ADS018_AZ_counter) - (ADS018_AZ_mean * ADS018_AZ_mean)));
+//				ADS018_AZ_tol  = ADS018_AZ_FACTOR * ADS018_AZ_sdev;
+//				ADS018_AZ_stt = 3; //assign TARE
+//			}
+//			break;
+//		case  3: //assign TARE
+//			ADS018_AZ_absmean = fabsf(ADS018_AZ_mean);
+//			if (ADS018_AZ_absmean > ADS018_AZ_tol){
+//				ADS018_tare = ADS018_AZ_mean;
+//				ADS018_AZ_Tare = (int16_t)ceil(ADS018_AZ_mean+0.5); //set tare
+//				ADS018_AZ_counter = 0;
+//				ADS018_PrintInt(">>> AZ: Tare = %6d updated\n\r", (int)ADS018_AZ_Tare);
+//			}
+//			else{
+//				ADS018_PrintInt(">>> AZ: Tare = %6d not updated\n\r", (int)ADS018_AZ_Tare);
+//			}
+//			ADS018_AZ_stt = 4; // go to system off
+//			break;
+//		case 4: // start debounce
+//			ADS018_Print_Str(">>> AZ: start debounce power off\n\r");
+//			ADS018_AZ_counter = 0;
+//			ADS018_AZ_stt = 5;
+//			break;
+//		case 5: // wait debounce time
+//			ADS018_AZ_counter++;
+//			ADS018_PrintInt(">>> AZ: ADS018_AZ_counter = %6d\n\r", (int)ADS018_AZ_counter);
+//			if (ADS018_AZ_counter >= ADS018_AZ_tdebounce){
+//				ADS018_Print_Str(">>> AZ: BLE off ...\n\r");
+//				pADS018_transfer->Cmd = 3; // call BLE off
+//				ADS018_AZ_flag = 0;
+//				ADS018_AZ_stt = 6; // wait for BLE off
+//			}
+//			break;
+//		case 6: // System_Off
+//			if (ADS018_AZ_flag != 0){
+//				ADS018_Print_Str(">>> AZ: power off ...\n\r");
+//			    ADS018_System_Off_Prepare();
+//			}
+//			break;
+//		default: ADS018_AZ_stt = 0;
+//			break;
+//    }
+//}
+
+//void ADS018_Meas_Exec(uint32_t cmd, int16_t sample)
+//{
+//	int i;
+
+//    switch(cmd){
+//        case  0: // INIT
+//        	     ADS018_ADC_meas.stt = 0;
+//        	     break;
+//        case  1: // RUN
+//        	     break;
+//        default: break;
+//    }
+
+//    switch(ADS018_ADC_meas.stt){
+//        case  0: // init
+//        	     ADS018_ADC_meas.iinsert = 0;
+//        	     ADS018_ADC_meas.stt = 1; // wait first sample
+//       	         break;
+//        case  1: // first sample
+//        	     ADS018_ADC_meas.acc = ADS018_MEAS_LEN*sample;
+//   	             ADS018_ADC_meas.mean = sample;
+//   	             for (i=0;i<ADS018_MEAS_LEN;i++){
+//   	    	         ADS018_ADC_meas.data[i] = sample;
+//   	             }
+//    	         ADS018_ADC_meas.stt = 2;
+//    	         break;
+//        case  2: // run
+//        	     ADS018_ADC_meas.acc = ADS018_ADC_meas.acc - ADS018_ADC_meas.data[ADS018_ADC_meas.iinsert];
+//        	     ADS018_ADC_meas.data[ADS018_ADC_meas.iinsert] = sample;
+//        	     ADS018_ADC_meas.acc = ADS018_ADC_meas.acc + sample;
+//        	     ADS018_ADC_meas.mean = ADS018_ADC_meas.acc/ADS018_MEAS_LEN;
+//        	     ADS018_ADC_meas.iinsert++;
+//        	     if (ADS018_ADC_meas.iinsert>=ADS018_MEAS_LEN) ADS018_ADC_meas.iinsert = 0;
+//        	     break;
+//        default: break;
+//    }
+
+//}
+
+//int16_t ADS018_Meas_Get_Mean(void)
+//{
+//	return ADS018_ADC_meas.mean;
+//}
+
+////#define DBG_CYCLE 1
+//#ifdef DBG_CYCLE
+//int fase_n=5;
+//int fase_i=0;
+//int fase_count=0;
+//int fase_limit=10*25;
+
+//int prescfaseini[11]={5,5,5,5,5,5,5,5,4,3,2};
+////int prescfaseini[11]={7,6,5,4,3,2,1,8,7,6,5};
+////int prescfaseini[11]={40,36,18,15,9,7,6,5,4,3,2};
+//int prescfase=15;
+//int fase=0;
+//int plx[4]={-4000,4000,4000,-4000};
+//int ply[4]={-4000,-4000,4000,4000};
+//int fase_stt=0;
+//int prescfasestt=700;
+//int prescfasesttini=700;
+//#endif
+
+
+//void ADS018_int2_sr(void)
+//{
+//	mma8x5x_last_pl = mma8x5x_pl;
+//    mma8x5x_pl = (((mma8x5x_regs.pl_status) & MMA8X5X_LAPO_Msk) >> MMA8X5X_LAPO_Pos); // actual XY orientation
+
+//	if(mma8x5x_regs.sysmod == MMA8X5X_WAKE_Msk){ // WAKE mode
+//	    //update accel raw buffer
+////		ADS018_raw.Xaccel = (int16_t)(((mma8x5x_regs.data[0] << 8) & 0xff00) | mma8x5x_regs.data[1]);
+//		ADS018_raw.Yaccel = (int16_t)(((mma8x5x_regs.data[2] << 8) & 0xff00) | mma8x5x_regs.data[3]);
+////		ADS018_raw.Zaccel = (int16_t)(((mma8x5x_regs.data[4] << 8) & 0xff00) | mma8x5x_regs.data[5]);
+//		ADS018_raw.Orientation = (int16_t)mma8x5x_pl;
+
+//		ADS018_raw.Load   = ads1120_setup.data;
+//		ads1120_ADC = ads1120_setup.data;
+//		ads1120_ADCB  = ADS018_Load_Balanced(ads1120_ADC); // !< ads1120 ADC binary balanced
+//		ads1120_ADCT  = ads1120_ADCB - ADS018_AZ_Tare;     // !< ads1120 ADC binary balanced and tared
+//		ADS018_Meas_Exec(1,(int16_t)ads1120_ADC);          // !< evaluate mean ads1120 ADC
+
+//#ifdef DBG_CYCLE
+////    prescfasestt--;
+//    switch (fase_stt){
+//    case  0: //run
+//    	     fase_count++;
+//    	     if (fase_count==fase_limit){
+//    	    	 fase_count=0;
+//    	    	 fase_i++;
+//    	    	 if(fase_i==fase_n){
+//        	    	 fase_i=0;
+//    	    	 }
+//    	    	 prescfase = prescfaseini[fase_i];
+//    	     }
+//             prescfase--;
+//             if (prescfase==0){
+//                 prescfase=prescfaseini[fase_i];
+//                 fase++;
+//                 if (fase>3) fase=0;
+//                 ADS018_raw.Orientation = fase;
+//             }
+//             ADS018_raw.Xaccel = plx[fase];
+//             ADS018_raw.Yaccel = ply[fase];
+////               mma8x5x_pl = pl[fase];
+////             if (prescfasestt == 0){
+////            	 fase_stt = 1;
+////            	 prescfasestt = prescfasesttini;
+////             }
+
+//             break;
+//    case  1: //stop
+////                 mma8x5x_pl = pl[fase];
+//    	     if (prescfasestt == 0){
+//    	         fase_stt = 0;
+//    	         prescfasestt = prescfasesttini;
+//             }
+
+//    }
+//#endif
+
+//		if (mma8x5x_isr2_stt == 0){ //first service on WAKE mode
+//			ADS018_Time_Reset();
+//			ADS018_Init_Advertising_Data();
+//			ADS018_Energy = 0;
+//		    ADS018_init_mean(); //init mean processing variables
+//		    ADS018_raw_Yaccel_F = ADS018_raw.Yaccel;
+//		    filter_init(ADS018_raw.Yaccel, ADS018_raw.Load);
+//			mma8x5x_isr2_stt = 1; // execute this only one time
+//		}
+//		else{
+//			ADS018_Time_Update();
+//			filter(ADS018_raw.Yaccel, ADS018_raw.Load, (int16_t *)&ADS018_raw_Yaccel_F,(int16_t *)&ADS018_raw.Load);
+//		}
+//		ADS018_Cycle();        //cycle state machine, count cycles and set direction
+//		ADS018_Update_SCycle();//set rotation, load, torque, energy and power
+
+////		if ((ADS018_session==2) || (ADS018_session==3)){// on MTWATT SERVICES
+//		if (ADS018_ShowCounter == ADS018_ShowCounter_Adv){
+//		    ADS018_Bat_Update_presc--;
+//		    if (ADS018_Bat_Update_presc==0){
+//			    ADS018_Bat_Update_presc=10;
+//			    ADS018_Bat_Update(1);    // BLE Battery Service
+//		        if (ADS018_Bat_Update_Flag_Get() != 0){
+//		        	pADS018_transfer->Cmd = 4; //update BLE bat level
+////		            ADS018_Print_Str("--- Send bat level ---\r\n");
+//		        }
+//		    }
+//		}
+//	    if (ADS018_ShowCounter == ADS018_ShowCounter_AdvQuit) pADS018_transfer->Cmd = 1; //quit advertising
+//	    if (ADS018_ShowCounter == ADS018_ShowCounter_SleepControl) ADS018_Sleep_Exec(); // disable or enable auto-sleep
+//		if (ADS018_ShowCounter == ADS018_ShowCounter_SetMean) ADS018_Set_Mean_Data();    //set mean data
+//		if (ADS018_ShowCounter == ADS018_ShowCounter_Adv) ADS018_Update_Advertising_Data();
+//		if (ADS018_ShowCounter == ADS018_ShowCounter_AdvActive)	pADS018_transfer->Cmd = 2; //active advertising
+
+//		if(ADS018_uart_on){
+////		    ADS018_Print_Mask =  (1);
+//		        if (ADS018_Print_Mask != 0){
+//		        if ( (ADS018_Print_Mask &  1) != 0) ADS018_Print_Raw_Data1();  // print raw data data only
+//#ifdef ADS018_DBG_OPER
+//	            if ( (ADS018_Print_Mask &  2) != 0) ADS018_Print_Raw_Data();   // print raw data
+//	            if (((ADS018_Print_Mask &  4) != 0) && (ADS018_Cycle_Flag != 0)) ADS018_Print_Rotation();   // print rotation
+//	            if (((ADS018_Print_Mask &  8) != 0) && (ADS018_Cycle_Flag != 0)) ADS018_Print_Cycle_Data(); // print cycle data
+//	            if (((ADS018_Print_Mask & 16) != 0) && (ADS018_ShowCounter == ADS018_ShowCounter_Raw))   ADS018_Print_Raw_Data();   // print raw data
+//	            if (((ADS018_Print_Mask & 32) != 0) && (ADS018_ShowCounter == ADS018_ShowCounter_Rotation)) ADS018_Print_Rotation();// print cycle data
+//	            if (((ADS018_Print_Mask & 64) != 0) && (ADS018_ShowCounter == ADS018_ShowCounter_Load))  ADS018_Print_Load();       // print load
+//	            if (((ADS018_Print_Mask &128) != 0) && (ADS018_ShowCounter == ADS018_ShowCounter_Cycle)) ADS018_Print_Cycle_Data(); // print cycle data
+//	            if (((ADS018_Print_Mask &256) != 0) && (ADS018_ShowCounter == ADS018_ShowCounter_Adv))   ADS018_Print_Advertising_Data(); //print cycle data
+//#endif
+//                ADS018_Print_Str((char*)ADS018_pbuf);
+//		    }
+//		}
+//   	    ADS018_Cycle_Flag = 0;
+//   	    ADS018_Cycle_S_Flag = 0;
+//	}
+//	else{ // SLEEP mode
+//		if(mma8x5x_isr2_stt != 0){
+//			mma8x5x_isr2_stt = 0; // restart states for next WAKE
+//			ADS018_AZ_stt =  0;   // restart Auto ZERO
+//			ADS018_Print_Str(">> in SLEEP mode\n\r");
+//	    }
+
+//		ADS018_Time_Update();
+//		ADS018_AZ(); // Auto ZERO
+//	}
+
+//}
+
+
+
+//uint32_t ADS018_Operation_Exec(void)
+//{
+//	if(ADS018_int2_flag  != 0){
+//		ADS018_int2_flag  = 0;
+//	    ADS018_prescaler_counter--;
+//	    if (ADS018_prescaler_counter == 0){     //prescaler counter
+//		    ADS018_prescaler_counter = ADS018_prescaler_reload; //reload prescaler counter
+//		    while(!mma8x5x_sysmod_is_rdy()){};
+//		    if(mma8x5x_regs.sysmod == MMA8X5X_WAKE_Msk){
+//		    	ads1120_Cmd_Start_Single_Shot(); //on walk
+//			    while(mma8x5x_is_running()){};
+//			    ads1120_Cmd_Read_Single_Shot();
+//		    }
+//		    else{ // on sleep
+//		      if (ADS018_AZ_stt == 2){
+//		    	  ads1120_Cmd_Start_Single_Shot(); // on sleep - autozero
+//				  while(mma8x5x_is_running()){};
+//				  ads1120_Cmd_Read_Single_Shot();
+//		      }
+//		    }
+//	        ADS018_int2_sr();
+//	    	ADS018_Operation_Exec_Flag = 1; //signal to out process
+//        }
+//	}
+//	if( pADS018_transfer->Cmd != 0) return(1);
+//	else return (0);
+//}
+
+//void ADS018_Init_Advertising_Data(void)
+//{
+//	pADS018_transfer->Cmd      = 0;
+//    pADS018_transfer->Cycle    = 0;
+//    pADS018_transfer->Minutes  = 0;
+//    pADS018_transfer->Seconds  = 0;
+//    pADS018_transfer->Rotation = 0;
+//    pADS018_transfer->HR       = 0;
+//    pADS018_transfer->Load     = 0;
+//    pADS018_transfer->Torque   = 0;
+//    pADS018_transfer->Energy   = 0;
+//    pADS018_transfer->Power    = 0;
+//}
+
+//void ADS018_Operation_Init(ADS018_cycle_data_Type *pdata)
+//{
+//	pADS018_transfer = pdata;
+//	ADS018_Init_Advertising_Data();
+
+////    while(1){__WFE();};   /*0,12mA min - 0,56mA Advertising - 0,18 average*/
+////	  NRF_POWER->SYSTEMOFF = 1; /*0,12mA*/
+
+//    if (mma8x5x_Active()){
+//        mma8x5x_Aslp_Rate = mma8x5x_Get_SLEEP_Rate();
+//        mma8x5x_DR = mma8x5x_Get_WAKE_Rate();
+//        while(ADS018_INT2_READ!=0){};
+//    	if(mma8x5x_sample()){
+//            mma8x5x_pl = (((mma8x5x_regs.pl_status) & MMA8X5X_LAPO_Msk) >> MMA8X5X_LAPO_Pos); // actual XY orientation
+//            mma8x5x_last_pl = mma8x5x_pl;
+//    	}
+//        ADS018_Config_INT2();
+//    }
+
+////    NRF_POWER->SYSTEMOFF = 1; /*0,12mA*/
+////    while(1){__WFE();};   /* 50Hz:2,37mA/2,78mA/2,42mA - 1,56Hz:MIN 1,14mA / MAX 1,51mA/ AVER 1,2,mA */
+//}
+
+////--------------------------------------------Calibration
+
+//void ADS018_Cal_Set(ADS018_cal_Type *ptab, float *pa, float *pb, int16_t *pix, int16_t *pd)
+//{
+//	float a;
+// 	float b;
+
+//    if ((ptab->adc_value[1] == ptab->adc_value[0])){
+//    	ptab->adc_value[1] = ptab->adc_value[0] + 200; // fix to default
+//    }
+
+//    a = (ptab->eng_value[1]-ptab->eng_value[0]);
+
+//    if ((a>-1.0) && (a<1.0)){
+//    	ptab->eng_value[0] = 0.0;  // fix to default
+//    	ptab->adc_value[1] = ADS018_LOAD_REF_DEFAULT;     // fix to default
+//    	a = (ptab->eng_value[1]-ptab->eng_value[0]);
+//    }
+
+//    a = a/(1000.0*(ptab->adc_value[1]-ptab->adc_value[0]));
+//    b = (ptab->eng_value[0]/1000.0) - (ptab->adc_value[0]*a);
+
+//    *pa = a;
+//	*pb = b;
+
+//	if (a!= 0.0){
+//		 *pix = -b/a;
+//	}
+//	else *pix = 0;
+
+//	int16_t d = (ptab->adc_value[1]-ptab->adc_value[0]);
+//	if (ptab->adc_value[1] < ptab->adc_value[0]) d = -1*d;
+
+//	*pd = d;
+
+//}
+
+//void ADS018_Cal_Save(void)
+//{
+//    ADS018_Cal_Set((ADS018_cal_Type *)&(pADS018_NV_buf->Cal), (float *)&ADS018_Cal_A, (float *)&ADS018_Cal_B, (int16_t *)&ADS018_Cal_ADC_Zero, (int16_t *)&ADS018_Cal_ADC_Delta);
+//    ADS018_AZ_Tare = 0;
+//    if (ADS018_Save_Setup() != NRF_SUCCESS) printf("Erro: falha na escrita na memoria nao volatil.\r\n");
+//}
+
+//void ADS018_Update_Ref_Eng(int32_t r)
+//{
+//	pADS018_NV_buf->Cal.eng_value[1]=r;
+//    ADS018_Cal_Save();
+//}
+
+//void ADS018_Update_Ref(int16_t adc)
+//{
+//	pADS018_NV_buf->Cal.adc_value[1]=adc;
+//    ADS018_Cal_Save();
+//}
+
+//void ADS018_Update_Zero(int16_t adc)
+//{
+//	pADS018_NV_buf->Cal.adc_value[0]=adc;
+//    ADS018_Cal_Save();
+//}
+
+
+//void ADS018_Calibration(void)
+//{
+//	float  temp=25.9;
+//	int  itemp=25;
+//	int  dtemp=9;
+//	float  vbat=3.0;
+//	int  ivbat=3;
+//	int  dvbat=0;
+//	float  van=2.7;
+//	int  ivan=2;
+//	int  dvan=7;
+//	uint32_t err_code;
+//	uint8_t  rx_data;
+//	int32_t  refload = pADS018_NV_buf->Cal.eng_value[1];
+//	char cb[256];
+//	int  adc=0;
+//	float load=0.0;
+//	int iload;
+//	int dload;
+//	bool execute=true;
+////    uint32_t lim = pADS018_NV_buf->Mean_Time / ADS018_sample_frequency;
+//	uint32_t lim = 2 * ADS018_prescaler_reload * (1000 / ADS018_sample_frequency);
+//    uint32_t acc_counter  = 0;   // reset processing counter
+//    uint32_t first_zero = 1;
+//    int32_t loadtemp;
+//    int batlev=0;
+//    int i;
+
+//	ADS018_Uart_Get_flag = 0;
+//    ADS018_sample_counter = 0;
+//    ADS018_isr_counter = 0;
+//	ADS018_Print_Str((char *)pCRLF);
+//	ADS018_Print_Str("--- CALIBRATION ---\r\n");
+//	ADS018_Print_Str((char *)pCRLF);
+//    if (mma8x5x_Active()){
+//        mma8x5x_Aslp_Rate = mma8x5x_Get_SLEEP_Rate();
+//        mma8x5x_DR = mma8x5x_Get_WAKE_Rate();
+//    }
+
+
+//    while (execute){
+//      do{
+//			// read load ADC sample
+//            ads1120_Single_Shot((int16_t *)&(ads1120_setup.data));
+//    		ads1120_ADC = ads1120_setup.data;
+//    		ads1120_ADCB  = ADS018_Load_Balanced(ads1120_ADC); // !< ads1120 ADC binary balanced
+//    		ads1120_ADCT  = ads1120_ADCB - ADS018_AZ_Tare;     // !< ads1120 ADC binary balanced and tared
+//    		ADS018_Meas_Exec(1,(int16_t)ads1120_ADC);          // !< evaluate mean ads1120 ADC
+//            acc_counter++;
+//            ADS018_sample_counter++;
+//            nrf_delay_ms(38);
+////            ADS018_PrintInt("%9u", (int)acc_counter);ADS018_PrintInt(" %7d\r\n", (int)ads1120_setup.data);
+//        }while (acc_counter < lim);
+//        acc_counter  = 0;
+
+//        adc = (int)ADS018_Meas_Get_Mean();;
+//	    load  = ((ADS018_Cal_A*adc) + ADS018_Cal_B);  // load in ENG UNITS
+//	    ADS018_float_to_fp(load, 10, (int *)&iload, (int *)&dload);
+
+//    	if(mma8x5x_sample()){
+//            mma8x5x_pl = (((mma8x5x_regs.pl_status) & MMA8X5X_LAPO_Msk) >> MMA8X5X_LAPO_Pos); // actual XY orientation
+//            mma8x5x_last_pl = mma8x5x_pl;
+//    	}
+
+//        // read VBAT = 3V and VAN = 2V7
+//        ADS018_adc_vbat = ADS018_NRF_Adc_Read(ADS018_ADC_CH_VBAT);
+//        ADS018_adc_van  = ADS018_NRF_Adc_Read(ADS018_ADC_CH_VAN);
+//        vbat = 0.003519062*ADS018_adc_vbat;
+//        ADS018_float_to_fp(vbat, 1000, (int *)&ivbat, (int *)&dvbat);
+//        van  = 0.003519062*ADS018_adc_van;
+//        ADS018_float_to_fp(van, 1000, (int *)&ivan, (int *)&dvan);
+//        batlev = ADS018_Bat_Level(ADS018_adc_vbat);
+
+//        // read temperature
+//        if (ads1120_Temperature((float *)&temp)){
+//        	ADS018_float_to_fp(temp, 10, (int *)&itemp, (int *)&dtemp);
+//        }
+
+//        i = sprintf((char *)&cb[0],"%9u %1d %3d %d %+d.%03d %d %+d.%03d %+d.%01d %+7d %+7d %+d.%01d\r\n",(unsigned int)ADS018_sample_counter, (int)mma8x5x_pl, batlev, (int)ADS018_adc_vbat, ivbat, dvbat, (int)ADS018_adc_van, ivan, dvan, itemp, dtemp, (int)ads1120_setup.data, adc, iload, dload);
+//        if (i!=0) ADS018_Print_Str((char *)&cb[0]);
+//        //get calibration points
+//        err_code = 1;
+//    	if (ADS018_Uart_Get_flag != 0){
+//             err_code = app_uart_get(&rx_data);
+//    	     ADS018_Uart_Get_flag = 0;
+//    	}
+//        if (err_code == NRF_SUCCESS){
+//        	switch(rx_data){
+//        	case 'E':
+//        	case 'e': //Reference Eng Units
+//        		      ADS018_Print_Str("Referencia da Carga em gf (1000 a 100000): \r\n");
+//       		          if (ADS018_Get_Strln((char *)&cb[0]) != 0){
+//        		          if (sscanf((char *)&cb[0],"%d", (int*)&refload) != 0){
+//        		        	ADS018_PrintInt("Referencia da Carga = %7d gf\r\n", (int)refload);
+//        		        	if ((refload>999) && (refload<=100000)){
+//        		        		ADS018_Update_Ref_Eng(refload);
+//        		        	}
+//        		          }
+//        		      }
+//        		      break;
+//        	case 'R':
+//        	case 'r': //Reference in ADC
+//        		      ADS018_PrintInt("Referencia da Carga em ADC = %7d\r\n", (int)adc);
+//         		      ADS018_Update_Ref(adc);
+//         		      break;
+//       	    case 'Z':
+//       	    case 'z': //Zero in ADC
+//            		  loadtemp = pADS018_NV_buf->Cal.adc_value[1] - pADS018_NV_buf->Cal.adc_value[0];
+//            		  ADS018_PrintInt("Zero da Carga em ADC = %7d\r\n", (int)adc);
+//        		      ADS018_Update_Zero(adc);
+//        		      if (first_zero==1){
+//        		    	  loadtemp = adc+loadtemp;
+//        		    	  ADS018_PrintInt("Referencia da Carga em ADC DEFAULT = %7d\r\n", (int)loadtemp);
+//             		      ADS018_Update_Ref(loadtemp);
+//        		          first_zero=0;
+//        		      }
+//       		          break;
+
+
+//       	    case 27 : // ESC
+//        	case 'Q': //quit - terminate session
+//        	case 'q': //quit - terminate session
+//        		      ADS018_Print_Str((char *)pCRLF);
+//        		      ADS018_Print_Str("--- END CALIBRATION ---\r\n");
+//        		      ADS018_Print_Str((char *)pCRLF);
+//        		      execute = false;
+//        		      break;
+//        	default : // help
+//        		      ADS018_Print_Str("E: Set LOAD REF in [gf], R: Cal REF, Z:Cal: ZERO, Q: Quit\r\n");
+//        		      break;
+//            }
+//        }
+//    }
+//}
+
+
+////--------------------------------------------SETUP
+
+//#ifdef USE_ID_SETUP
+
+//volatile static int ADS018_ID_Setup_stt = 4;
+//volatile static int ADS018_ID_Setup_seccnt = 0;
+//volatile static int ADS018_ID_Setup_seclim = 5;
+//volatile static int ADS018_ID_Setup_cnt = 0;
+//volatile static int ADS018_ID_Setup_lim = 25;
+//volatile static int ADS018_ID_Setup_id  = 0;
+
+///*
+// * LAPO codes: TOP=0, BOTTON=1, FRONT=2, REAR=3
+// * Forward  cicling: 0->2->1->3->0
+// * Backward cicling: 0->3->1->2->0
+// */
+//const int ADS018_ID_Setup_Tab_Forward[4]={3,2,0,1};
+//const int ADS018_ID_Setup_Tab_Backward[4]={2,3,1,0};
+
+///**
+// * @brief Function run ID setup state machine.
+// * @brief input cmd=0 : do nothing
+// * @brief input cmd=1 : reset and enable state machine
+// * @brief input cmd=2 : disable state machine
+// * @brief return : state, 0: wait first Q change, 1:wait next TOP, 2: end saving, 3: end abort, 4: disabled
+// */
+//#define DBG_ADS018_ID_SETUP 1
+//#undef DBG_ADS018_ID_SETUP
+
+//uint32_t ADS018_ID_Setup(uint32_t cmd)
+//{
+//	// command
+//    switch(cmd){
+//        case  0: // do nothing
+//    	         break;
+//        case  1: // reset state machine
+//    	         ADS018_ID_Setup_stt = 0;
+//    	         ADS018_ID_Setup_seccnt = 0;
+//    	         ADS018_ID_Setup_seclim = 5;
+//    	         ADS018_ID_Setup_cnt = 0;
+//    	         ADS018_ID_Setup_lim = 25;
+//    	         ADS018_ID_Setup_id  = pADS018_NV_buf->Id; // local save ID
+//#ifdef DBG_ADS018_ID_SETUP
+//    	         ADS018_Print_Str("ADS018_ID_Setup: cmd reset.\r\n");
+//#endif
+//    	         break;
+//        case  2: // disable
+//        	     ADS018_ID_Setup_stt = 4;
+//#ifdef DBG_ADS018_ID_SETUP
+//    	         ADS018_Print_Str("ADS018_ID_Setup: cmd disable.\r\n");
+//#endif
+//    	         break;
+//        default: break;
+//    }
+
+//    if (ADS018_Operation_Exec_Flag == 1){
+//    	ADS018_Operation_Exec_Flag = 0;
+//#ifdef DBG_ADS018_ID_SETUP
+//    	ADS018_PrintInt("PL: %d\r\n",(int)mma8x5x_pl);
+//#endif
+//    // state machine
+//    switch(ADS018_ID_Setup_stt){
+//        case  0: // wait first Q change
+//                 if (ADS018_ID_Setup_seccnt==ADS018_ID_Setup_seclim){
+//                	 pADS018_NV_buf->Id = ADS018_ID_Setup_id; // restore ID
+//            	     ADS018_ID_Setup_stt = 3; // timeout -> abort
+//#ifdef DBG_ADS018_ID_SETUP
+//            	     ADS018_Print_Str("ADS018_ID_Setup: Timeout on stt=0, aborted.\r\n");
+//#endif
+//                 }
+//                 else{
+//                	 if ((mma8x5x_last_pl != mma8x5x_pl) && (mma8x5x_pl != ADS018_POS_TOP)){ // change and not on TOP
+//                		 ADS018_ID_Setup_stt = 1;
+//            	         ADS018_ID_Setup_seccnt = 0;
+//            	         ADS018_ID_Setup_cnt = 0;
+//            	         ADS018_ID_Setup_seclim = 10;
+//#ifdef DBG_ADS018_ID_SETUP
+//            	         ADS018_Print_Str("ADS018_ID_Setup: first Q change.\r\n");
+//#endif
+//                	 }
+//                 }
+//    	         break;
+//        case  1: // wait next TOP
+//                 if (ADS018_ID_Setup_seccnt==ADS018_ID_Setup_seclim){
+//                	 if (mma8x5x_pl == ADS018_POS_TOP){ // on TOP
+//                		 ADS018_ID_Setup_stt = 2; // timeout -> save
+//#ifdef DBG_ADS018_ID_SETUP
+//       		             if (ADS018_Save_Setup() != NRF_SUCCESS){
+//       		            	 ADS018_Print_Str("ADS018_ID_Setup: fail on write FLASH.\r\n");
+//       		             }
+//       		             else{
+//       		            	 ADS018_PrintInt("ADS018_ID_Setup: new ID=%d saved on FLASH!\r\n",(int)pADS018_NV_buf->Id);
+//       		             }
+//#else
+//       		          if (ADS018_Save_Setup() != NRF_SUCCESS){};
+//#endif
+//                	 }
+//                	 else{ // out of TOP
+//                	     pADS018_NV_buf->Id = ADS018_ID_Setup_id; // restore ID
+//       	                 ADS018_ID_Setup_stt = 3; // timeout -> abort
+//#ifdef DBG_ADS018_ID_SETUP
+//       	                ADS018_Print_Str("ADS018_ID_Setup: Timeout on stt=1, aborted.\r\n");
+//#endif
+//                	 }
+//                 }
+//                 else{
+//           	         if ((mma8x5x_last_pl != mma8x5x_pl) && (mma8x5x_pl == ADS018_POS_TOP)){ // arrived on TOP
+//           		         if (ADS018_ID_Setup_Tab_Forward[mma8x5x_last_pl] == mma8x5x_pl){
+//           			         // inc ID
+//           		        	 if ((pADS018_NV_buf->Id)==255) pADS018_NV_buf->Id = 1;
+//           		        	 else (pADS018_NV_buf->Id)++;
+//                	         ADS018_ID_Setup_seccnt = 0;
+//                	         ADS018_ID_Setup_cnt = 0;
+//#ifdef DBG_ADS018_ID_SETUP
+//                	         ADS018_PrintInt("ADS018_ID_Setup: inc ID to %d.\r\n",(int)pADS018_NV_buf->Id);
+//#endif
+//           		         }
+//           		         else{
+//           			         if (ADS018_ID_Setup_Tab_Backward[mma8x5x_last_pl] == mma8x5x_pl){
+//           				         // dec ID
+//               		        	 if ((pADS018_NV_buf->Id)==1) pADS018_NV_buf->Id = 255;
+//               		        	 else (pADS018_NV_buf->Id)--;
+//                   	             ADS018_ID_Setup_seccnt = 0;
+//                   	             ADS018_ID_Setup_cnt = 0;
+//#ifdef DBG_ADS018_ID_SETUP
+//                   	             ADS018_PrintInt("ADS018_ID_Setup: dec ID to %d.\r\n",(int)pADS018_NV_buf->Id);
+//#endif
+//           			         }
+//           		         }
+//           	         }
+//                 }
+//    	         break;
+//        case  2: // saved
+//    	         break;
+//        case  3: // aborted
+//    	         break;
+//        case  4: // disabled
+//    	         break;
+//        default: break;
+//    }
+
+//    // timer
+//    if (ADS018_ID_Setup_stt<=1){
+//        ADS018_ID_Setup_cnt++;
+//        if (ADS018_ID_Setup_cnt==ADS018_ID_Setup_lim){
+//    	    ADS018_ID_Setup_cnt=0;
+//    	    ADS018_ID_Setup_seccnt++;
+//        }
+//    }
+//    }
+//    return ADS018_ID_Setup_stt;
+//}
+//#endif
+
+//void ADS018_Update_Factors(void)
+//{
+//	int i;
+//	float arm = pADS018_NV_buf->Arm / 1000.0;
+//	float f = 2 * ADS018_ENERGY_EFF_FACTOR * ADS018_KGFM_TO_CAL * ADS018_PIX2 * arm; /* fator 4x para 25% de eficiencia estimada */
+//	float f1 = 2 * ADS018_sample_frequency * ADS018_KGF_TO_N * ADS018_PIX2 * arm;
+//	float f2;
+
+//    ADS018_energy_factor = f * ADS018_Cal_A;
+//    ADS018_power_factor  = f1 * ADS018_Cal_A;
+//    ADS018_load_factor = 10 * ADS018_Cal_A;
+//    ADS018_CalA_n[0] = ADS018_Cal_A;
+//    ADS018_load_factor_n[0]     = ADS018_load_factor;
+//    ADS018_torque_factor_n[0]   = ADS018_load_factor * arm;
+//    ADS018_energy_factor_n[0]   = ADS018_energy_factor;
+//    ADS018_power_factor_n[0]    = ADS018_power_factor;
+//	for (i=1;i<ADS018_F_N;i++){
+//		f2 = (1.0*i);
+//		ADS018_CalA_n[i] = ADS018_load_factor/f2;
+//        ADS018_load_factor_n[i]    = ADS018_load_factor_n[0]/f2;
+//        ADS018_torque_factor_n[i]  = ADS018_torque_factor_n[0]/f2;
+//        ADS018_energy_factor_n[i]  = ADS018_energy_factor_n[0]/f2;
+//        ADS018_power_factor_n[i]   = ADS018_power_factor_n[0]/f2;
+//	}
+//}
+
+//void ADS018_Update_Show_Limits(void)
+//{
+//    ADS018_ShowLimit = ((uint32_t)ceil((ADS018_sample_frequency*pADS018_NV_buf->Adv_Time/1000.0)))-1; //show [(interval/sample interval)-1] = [360ms/20ms -1] = 18-1
+//    ADS018_ShowCounter_AdvQuit   = 2;
+//    ADS018_ShowCounter_SleepControl = 3;
+//    ADS018_ShowCounter_Raw       = ADS018_ShowLimit - 6;
+//    ADS018_ShowCounter_Rotation  = ADS018_ShowLimit - 5;
+//    ADS018_ShowCounter_Load      = ADS018_ShowLimit - 4;
+//    ADS018_ShowCounter_Cycle     = ADS018_ShowLimit - 3;
+//    ADS018_ShowCounter_SetMean   = ADS018_ShowLimit - 2;
+//    ADS018_ShowCounter_Adv       = ADS018_ShowLimit - 1;
+//    ADS018_ShowCounter_AdvActive = ADS018_ShowLimit;
+//}
+
+//const char *pADS018_Setup[ADS018_N_SETUP]={
+//		"1 : Bike ID                     : ",
+//		"2 : Comprimento do braco    [mm]: ",
+//		"3 : Tempo da media          [ms]: ",
+//		"4 : Tempo de apresentacao   [ms]: ",
+//		"5 : Contador do tempo auto-sleep: ",
+//		"6 : Indice da unidade da carga  : ",
+//		"7 : Fator de eficiencia positiva: ",
+//		"8 : Fator de eficiencia negativa: ",
+//		"9 : Numero de serie             : ",
+//		"Q : Encerra\r\n"
+//};
+
+//const char *pADS018_Setup_fd = "%d";
+
+//void ADS018_Setup(void)
+//{
+//	char cb[128];
+//	char *pcb=(char *)&cb[0];
+//	char cb1[128];
+//	char *pcb1=(char *)&cb1[0];
+//	int i;
+//	char coption=0;
+//	int fim = 0;
+//	bool transfer_succeeded = true;
+
+//	//print menu item
+//	void print_menu_item(int item, char *pform, int *p)
+//	{
+//		ADS018_Print_Str((char *)pADS018_Setup[item]);
+//		ADS018_PrintInt(pform, *p);
+//		ADS018_Print_Str((char *)pCRLF);
+//	}
+//	//edit parameter
+//	int edit_setup(char *pname, int *p, int min, int max)
+//	{
+//		int iedit;
+//		int flag=1;
+
+//		ADS018_Print_Str("Atual ");ADS018_Print_Str(pname);ADS018_PrintInt(": %d\r\n", *p);
+//		ADS018_Print_Str("Novo  ");ADS018_Print_Str(pname);ADS018_PrintInt(" (entre %d ", min);ADS018_PrintInt("e %d): \r\n", max);
+//        if (ADS018_Get_Strln((char *)&cb[0]) != 0){
+//            if (sscanf((char *)&cb[0],"%d", (int*)&iedit) != 0){
+//            	ADS018_Print_Str((char *)pCRLF);
+//  	            if((iedit>=min)&&(iedit<=max)){
+//  	    	        *p = iedit;
+//  		            if (ADS018_Save_Setup() != NRF_SUCCESS) ADS018_Print_Str("Erro: falha na escrita na memoria nao volatil.\r\n");
+//      		        else{
+//      		        	ADS018_Print_Str(pname);ADS018_PrintInt(" atualizado para %d\r\n", *p);
+//      		        	flag = 0;
+//      		        }
+//  		        }
+//  	            else{
+//  	            	ADS018_Print_Str("Erro: ");ADS018_Print_Str(pname);ADS018_PrintInt(" fora da faixa %d-", min);ADS018_PrintInt("%d.\r\n", max);
+//  	            }
+//            }
+//        }
+//        return flag;
+//	}
+
+//	//Setup in NV memory
+//	do{
+//		ADS018_Print_Str((char *)pCRLF);
+//		ADS018_Print_Str("--- SETUP ---\r\n");
+//		i=0;
+//		print_menu_item(i++, (char *)pADS018_Setup_fd, (int *)&(pADS018_NV_buf->Id));
+//		print_menu_item(i++, (char *)pADS018_Setup_fd, (int *)&(pADS018_NV_buf->Arm));
+//		print_menu_item(i++, (char *)pADS018_Setup_fd, (int *)&(pADS018_NV_buf->Mean_Time));
+//		print_menu_item(i++, (char *)pADS018_Setup_fd, (int *)&(pADS018_NV_buf->Adv_Time));
+//		pcb=(char *)&cb[0];
+//		pcb1=(char *)&cb1[0];
+//		strcpy(pcb,(char *)pADS018_Setup_fd);
+//		sprintf(pcb1," (Tsleep=%5d ms)",(int)(pADS018_NV_buf->Aslp_Count*320));
+//		strcat(pcb,pcb1);
+//		print_menu_item(i++, pcb, (int *)&(pADS018_NV_buf->Aslp_Count));
+//		pcb=(char *)&cb[0];
+//		strcpy(pcb,"%1d(");
+//		strcat(pcb,(char *)pADS018_Load_Unit_Str[pADS018_NV_buf->Load_Unit]);
+//		strcat(pcb,")");
+//		print_menu_item(i++, pcb, (int *)&(pADS018_NV_buf->Load_Unit));
+//		print_menu_item(i++, (char *)pADS018_Setup_fd, (int *)&(pADS018_NV_buf->Kp));
+//		print_menu_item(i++, (char *)pADS018_Setup_fd, (int *)&(pADS018_NV_buf->Kn));
+//		print_menu_item(i++, (char *)pADS018_Setup_fd, (int *)&(pADS018_NV_buf->Serial_Number));
+//		ADS018_Print_Str((char *)pADS018_Setup[i++]); ADS018_Print_Str((char *)pCRLF);
+//		ADS018_Print_Str("Opcao:\r\n");
+//		coption=ADS018_Key();
+//		ADS018_Print_Str((char *)pCRLF);
+//		switch(coption){
+//		case '1': //Identificacao - pADS018_NV_buf->Id
+//			      if (edit_setup("Bike ID", (int *)&(pADS018_NV_buf->Id), 1, 255) == 0){};
+//			      break;
+//		case '2': //comprimento do braco em mm - pADS018_NV_buf->Arm
+//		          if (edit_setup("Comprimento do Braco", (int *)&(pADS018_NV_buf->Arm), 50, 1000) == 0){
+//		        	  ADS018_Update_Factors();
+//		          };
+//			      break;
+//		case '3': //tempo da media em milisegundos - ADS018_f_mean_time
+//			      if (edit_setup("Tempo da Media", (int *)&(pADS018_NV_buf->Mean_Time), 2000, 10000) == 0){
+//	            	  ADS018_f_limit = (uint32_t)(pADS018_NV_buf->Mean_Time * ADS018_sample_frequency / 1000);
+//			      };
+//			      break;
+//		case '4': //tempo de apresentacao em milisegundos - ADS018_adv_time
+//	              if (edit_setup("Tempo de Apresentacao", (int *)&(pADS018_NV_buf->Adv_Time), 100, 10000) == 0){
+//	                  ADS018_Update_Show_Limits();
+//	              };
+//			      break;
+//		case '5': //contador do tempo para auto-sleep em 0,32 segundos - pADS018_NV_buf->Aslp_Count
+//                  if (edit_setup("Contador do Tempo Auto-SLEEP", (int *)&(pADS018_NV_buf->Aslp_Count), 10, 255) == 0){
+//	            	  mma8x5x_setup.pregs->aslp_count = (uint8_t)pADS018_NV_buf->Aslp_Count;
+//	            	  transfer_succeeded = true;
+//	            	  transfer_succeeded &= mma8x5x_Standby();
+//	            	  transfer_succeeded &= mma8x5x_update(MMA8X5X_ASLP_COUNT, (uint8_t)pADS018_NV_buf->Aslp_Count);
+//	                  transfer_succeeded &= mma8x5x_Active();
+//                  };
+//			      break;
+//		case '6': // Indice da unidade da carga - pADS018_NV_buf->Load_Unit
+//                  if (edit_setup("Indice da unidade da carga", (int *)&(pADS018_NV_buf->Load_Unit), 0, 2) == 0){
+//                	  ADS018_Print_Str("Nova Unidade da Carga: ");
+//                	  ADS018_Print_Str((char *)pADS018_Load_Unit_Str[pADS018_NV_buf->Load_Unit]);
+//			          ADS018_Print_Str((char *)pCRLF);
+//                  };
+//			      break;
+//		case '7': //fator de eficiencia da carga positiva - pADS018_NV_buf->Kp
+//			      if (edit_setup("Fator Kp", (int *)&(pADS018_NV_buf->Kp), 500, 1000) == 0){};
+//			      break;
+//		case '8': //fator de eficiencia da carga negativa - pADS018_NV_buf->Kn
+//		          if (edit_setup("Fator Kn", (int *)&(pADS018_NV_buf->Kn), 500, 1000) == 0){};
+//			      break;
+//		case '9': //Numero de serie - pADS018_NV_buf->Serial_Number
+//		          if (edit_setup("Numero de serie", (int *)&(pADS018_NV_buf->Serial_Number), 0, 2000000000) == 0){};
+//			      break;
+//		case 'Q': //quit
+//		case 'q': //quit
+//			      ADS018_Print_Str((char *)pCRLF);
+//			      ADS018_Print_Str("--- END SETUP ---\r\n");
+//			      ADS018_Print_Str((char *)pCRLF);
+//			      fim = 1;
+//			      break;
+//		default : break;
+//		}
+//	}while (fim==0);
+//}
+
+
+////--------------------------------------------SESSION
+
+//uint32_t ADS018_Session_Get(void)
+//{
+//	return ADS018_session;
+//}
+
+//uint32_t ADS018_Last_Session_Get(void)
+//{
+//	return ADS018_last_session;
+//}
+
+//void ADS018_Session_Set(uint32_t newsession)
+//{
+//	ADS018_last_session = ADS018_session;
+//	ADS018_session = newsession;
+//}
+
+//uint32_t ADS018_Connected_Get(void)
+//{
+//	return ADS018_connected;
+//}
+
+//void ADS018_Connected_Set(uint32_t new_connected)
+//{
+//	ADS018_connected = new_connected;
+//}
+
+//const char *pADS018_Select_Str[]={"@$*","111","222","333","444"};
+
+//void ADS018_Select_TRM_Session(void)
+//{
+//	int f=0;
+//	int k=0;
+//	int j;
+//	int l=0;
+//	int timeout=0;
+//	int stt=0;
+//	int ct=1000000;
+//	int cc=0;
+//	int password=0;
+//	uint8_t  rx_data;
+//	uint32_t error=0;
+//	char *p;
+
+//	void waitchar(void)
+//	{
+//		j=0;
+//		timeout=0;
+//		rx_data=0;
+//		error = 1;
+//		do{
+//	    	if (ADS018_Uart_Get_flag != 0){
+//	    		error = app_uart_get(&rx_data);
+//	    	    ADS018_Uart_Get_flag = 0;
+//	    	}
+//            j++;
+//		} while ((j<ct) && (error != NRF_SUCCESS));
+//		if (error != NRF_SUCCESS){
+//	    	timeout=1;
+//		    rx_data = '.';
+//		}
+//		ADS018_Print_Str_flag = 0;
+//		error = app_uart_put(rx_data);
+//		if (error == NRF_SUCCESS){
+//		    while (ADS018_Print_Str_flag == 0){};
+//		}
+//	}
+
+//	if(ADS018_trm_session==0){
+//		ADS018_trm_escape = 0;
+//		ADS018_Print_Str((char *)pCRLF);
+//		ADS018_Print_Str("PASSWORD:\r\n");
+//		nrf_delay_ms(100);
+//		ADS018_Uart_Get_flag = 0;
+//		do{
+//			switch(stt){
+//			case  0: //find first
+//				     waitchar();
+//				     if (rx_data != 27){
+//				         if(timeout==0){
+//					         k=0;
+//					         l=0;
+//					         do{
+//					    	     p=(char*)pADS018_Select_Str[k];
+//						         if(rx_data == *p){
+//							         stt=1;
+//							         p++;
+//							         l++;
+//						         }
+//						         else k++;
+//					         }while((k<5) && (stt==0));
+//				         }
+//				     }
+//				     else{
+//				    	 f=1; // exit on ESC
+//				    	 ADS018_trm_escape = 1;
+//				     }
+//				     break;
+//			case  1: //scan next
+//				     waitchar();
+//				     if (rx_data != 27){
+//				         if(timeout==0){
+//						     if(rx_data == *p){
+//							     p++;
+//							     l++;
+//							     if (l>2){//match
+//							         password = k+1;
+//							         f=1;
+//							         stt = 2;
+//							     }
+//						     }
+//						     else stt=0;
+//				         }
+//				         else stt=0;
+//				     }
+//				     else{
+//				    	 f=1; // exit on ESC
+//				    	 ADS018_trm_escape = 1;
+//				     }
+//				     break;
+//			default: break;
+//			}
+//			cc++;
+//			if (cc>ADS018_SELECT_SESSION_TIME) f=1;
+//		}while(f==0);
+//		if (password!=0) ADS018_trm_session=password;
+//		ADS018_Print_Str((char *)pCRLF);
+//	}
+//}
+
+//#ifdef USE_ID_SETUP
+//#define DBG_ADS018_STARTPOSITION
+//#undef DBG_ADS018_STARTPOSITION
+
+//volatile uint32_t ADS018_StartPosition_Flag = 0;
+
+//void ADS018_StartPosition_Flag_Set(void)
+//{
+//	ADS018_StartPosition_Flag = 1;
+//}
+
+//uint32_t ADS018_StartPosition(uint32_t spi)
+//{
+//	uint32_t sp=spi;
+//	int fim=0;
+//	int stt=0;
+//	int laststt=-1;
+//	int count=0;
+//	int maxcount=2;
+//	int seccount=0;
+//	int dbctime = 5;
+//	int16_t pl1,bf1,z1;
+
+//	int16_t fz(void)
+//	{
+//		return ((int16_t)(((mma8x5x_regs.data[4] << 8) & 0xff00) | mma8x5x_regs.data[5]));
+//	}
+
+//	int16_t fpl(void)
+//	{
+//		return ((int16_t)(((mma8x5x_regs.pl_status) & MMA8X5X_LAPO_Msk) >> MMA8X5X_LAPO_Pos));
+//	}
+
+//	int16_t fbf(void)
+//	{
+//		return ((int16_t)(((mma8x5x_regs.pl_status) & MMA8X5X_BAFRO_Msk) >> MMA8X5X_BAFRO_Pos));
+//	}
+
+//	void set_tmr(int tmout)
+//	{
+//   	    count = 0;
+//   	    seccount = 0;
+//   	    dbctime = tmout;
+//   	    laststt = stt;
+//	}
+
+//	void set_stt(int newstt)
+//	{
+//   	    laststt = stt;
+//   	    stt = newstt;
+//	}
+
+//    if (mma8x5x_Active()){
+//	    if(mma8x5x_sample()){}; //read accel
+//	    pl1 = fpl();
+//        do{
+
+//          __WFE();
+
+//          if (ADS018_StartPosition_Flag == 1){
+//        	ADS018_StartPosition_Flag = 0;
+//			if(mma8x5x_sample()){}; //read accel
+//    	    if (stt != laststt) {
+//#ifdef DBG_ADS018_STARTPOSITION
+//    	    	ADS018_PrintInt("ADS018_StartPosition stt=%d ",(int)stt);
+//    	    	ADS018_PrintInt("Orientation=%d\r\n",(int)fpl());
+//#endif
+//    	    	laststt = stt;
+//    	    }
+
+//    	    switch(stt){
+//    	        case  0: // wait time for move to TOP  or unmounted position - 5seg
+//    	        	     pl1= fpl();
+//  	                     if (pl1 == ADS018_POS_TOP){
+//  	                    	 set_tmr(3);
+//  	                    	 stt = 1;
+//    	        	         bf1 = fbf();
+//#ifdef DBG_ADS018_STARTPOSITION
+//    	        	         ADS018_PrintInt("ADS018_StartPosition stt=0 at TOP: pl=%d -",(int)pl1);ADS018_PrintInt(" bf=%d\r\n",(int)bf1);
+//#endif
+//  	                     }
+//  	                     else{
+//	      	        	     z1= fz();
+//	      	        	     if ((z1<-2048) || (z1>2048)){ //unmounted position
+//	      	        	    	 set_tmr(3);
+//	    	                     stt = 5;
+//	    	        	         pl1 = fpl();
+//	    	        	         bf1 = fbf();
+//#ifdef DBG_ADS018_STARTPOSITION
+//	    	                     ADS018_PrintInt("ADS018_StartPosition stt=0 unmounted: pl=%d -",(int)pl1);ADS018_PrintInt(" bf=%d\r\n",(int)bf1);
+//#endif
+//	      	        	     }
+//  	      	        	     else{
+//  	                             if (seccount==dbctime){ //timeout
+//  	                	             fim = 1;
+//#ifdef DBG_ADS018_STARTPOSITION
+//  	                	             ADS018_Print_Str("ADS018_StartPosition stt=0 move to TOP or unmounted timeout: stop\r\n");
+//#endif
+//  	      	        	         }
+//  	                         }
+//  	                     }
+
+//    	        	     break;
+//    	        case  1: // wait quit time at TOP - 3seg
+//    	        	     if (fpl() != pl1){
+//    	        	    	 fim = 1;
+//#ifdef DBG_ADS018_STARTPOSITION
+//    	        	    	 ADS018_Print_Str("ADS018_StartPosition stt=1 XY orientation changed: stop\r\n");
+//#endif
+//    	        	     }
+//    	        	     else{
+//     	        	         if (seccount==dbctime){
+//     	        	        	 set_tmr(10);
+//            	        	     stt = 2;
+//     	        	         }
+//    	        	     }
+//    	        	     break;
+//    	        case  2: // wait move to FRONT or REAR until 10seg
+//        	             if (fpl() == ADS018_POS_FRONT){ // on FRONT
+//           	                 set_tmr(5);
+//       	                     stt = 3;
+//       	                 }
+//       	                 else{
+//       	                     if (fpl() == ADS018_POS_REAR){ // on REAR
+//       	       	                 set_tmr(5);
+//           	                     stt = 4;
+//       	                     }
+//       	                     else{
+//       	                         if (seccount==dbctime){ //timeout
+//       	                	         fim = 1;
+//#ifdef DBG_ADS018_STARTPOSITION
+//       	                	         ADS018_Print_Str("ADS018_StartPosition stt=2 move to FRONT or REAR timeout: stop\r\n");
+//#endif
+//       	                         }
+//      	                     }
+//       	                 }
+//    	        	     break;
+//    	        case  3: // wait move from FRONT to TOP  until 5seg
+//  	                     if (fpl() == ADS018_POS_TOP){
+//  	                    	 set_stt(6);
+//  	                    	 sp = 1; // ID Setup
+//#ifdef DBG_ADS018_STARTPOSITION
+//  	                    	 ADS018_PrintInt("ADS018_StartPosition stt=3 selected ID SETUP: sp=%d\r\n",(int)sp);
+//#endif
+//  	                     }
+//  	                     else{
+//  	                         if (seccount==dbctime){ //timeout
+//  	                	         fim = 1;
+//#ifdef DBG_ADS018_STARTPOSITION
+//  	                	         ADS018_Print_Str("ADS018_StartPosition stt=3 move from FRONT to TOP timeout: stop\r\n");
+//#endif
+//  	                         }
+//  	                     }
+//    	        	     break;
+//    	        case  4: // wait move from REAR to TOP until 5seg
+//  	                     if (fpl() == ADS018_POS_TOP){
+//  	                    	 set_stt(6);
+//  	                    	 sp = 2; // MYWATT services
+//#ifdef DBG_ADS018_STARTPOSITION
+//  	                    	 ADS018_PrintInt("ADS018_StartPosition stt=4 selected MYWATT SERVICES: sp=%d\r\n",(int)sp);
+//#endif
+//  	                     }
+//  	                     else{
+//  	                         if (seccount==dbctime){ //timeout
+//  	                	         fim = 1;
+//#ifdef DBG_ADS018_STARTPOSITION
+//  	                	         ADS018_Print_Str("ADS018_StartPosition stt=4 move from REAR to TOP timeout: stop\r\n");
+//#endif
+//  	                         }
+//  	                     }
+//    	        	     break;
+//    	        case  5: // unmounted debounce
+//	        	         if (fbf() != bf1){
+//	        	             fim = 1;
+//#ifdef DBG_ADS018_STARTPOSITION
+//	        	             ADS018_Print_Str("ADS018_StartPosition stt=5 Z orientation changed: stop\r\n");
+//#endif
+//	        	         }
+//	        	         else{
+//	        	    		 z1 = fz();
+//	        	    		 if ((z1>=-2048) && (z1<=2048)){ //mounted
+//	        	    			 fim = 1;
+//#ifdef DBG_ADS018_STARTPOSITION
+//	        	    			 ADS018_Print_Str("ADS018_StartPosition stt=5 Z move: stop\r\n");
+//#endif
+//	        	    		 }
+//	        	    		 else{ // unmounted
+//	  	                         if (seccount==dbctime){ //timeout
+//    	        	    	         set_stt(6);
+//    	        	    	         sp = 3; // Reset to DFU on BOOTLOADER
+//#ifdef DBG_ADS018_STARTPOSITION
+//    	        	    	         ADS018_PrintInt("ADS018_StartPosition stt=5 selected Reset to DFU on BOOTLOADER: sp=%d\r\n",(int)sp);
+//#endif
+//	  	                         }
+
+//	        	    		 }
+//	        	         }
+//    	        	     break;
+//    	        case  6: // start ok
+//    	        	     fim = 1;
+//    	        	     break;
+//    	        default: break;
+//    	    }
+
+//            //seconds counter
+//            count++;
+//            if (count==maxcount){
+//            	count=0;
+//            	seccount++;
+//#ifdef DBG_ADS018_STARTPOSITION
+//            	ADS018_PrintInt("ADS018_StartPosition sec count=%d\r\n",(int)seccount);
+//#endif
+//            }
+//      	  }
+//        }while(fim==0);
+//    }
+//    return sp;
+//}
+//#endif
+
+//void ADS018_PowerON_Init(void)
+//{
+//	if (ADS018_PowerON){ // POWER ON reset
+//		if (sd_power_ramon_set(0x00030003) == NRF_SUCCESS){};
+////		NRF_POWER->RAMON = 0x00030003;
+//		ADS018_AZ_Tare = 0;
+//		ADS018_last_session = 0;
+//		ADS018_Print_Str("POWER ON\r\n");
+//	}
+//	else{  //Wake up from system off reset
+//		if (sd_power_ramon_set(0x00030003) == NRF_SUCCESS){};
+////		NRF_POWER->RAMON = 0x00030003;
+//		ADS018_Print_Str("WAKEUP\r\n");
+//	}
+//	if ((NRF_UICR->BOOTLOADERADDR) != 0xffffffff){
+//		ADS018_Bootloader_OK = true;
+//		ADS018_Print_Str("Bootloader OK\r\n");
+//	}
+//	else{
+//		ADS018_Bootloader_OK = false;
+//		ADS018_Print_Str("Bootloader NOK\r\n");
+//	}
+//}
+
+//bool ADS018_PowerON_Get(void)
+//{
+//	return ADS018_PowerON;
+//}
+
+//bool ADS018_Bootloader_OK_Get(void)
+//{
+//	return ADS018_Bootloader_OK;
+//}
+
+///**
+// * @brief Function for application init.
+// */
+//uint32_t ADS018_Init(void)
+//{
+//    uint32_t  err_code = 0;
+//    mma8x5x_data_Type mma8x5x_dt;
+
+//	ADS018_Config_Pins();   // Configure INT2, LDOEN, RTS, CTS pins
+
+//    if (ADS018_CTS_READ != 0){
+//        ADS018_Uart_Config();
+//        ADS018_uart_on = true;
+//        ADS018_Print_Str("\r\n");
+//        ADS018_Print_Str("ADS018 UART ON\r\n");
+//#ifdef ADS018_DBG_OPER
+//        ADS018_Print_POWER_REGISTER();
+//        ADS018_Print_WDT_REGISTER();
+//#endif
+//        ADS018_Select_TRM_Session();  // UART connected => enter password to calibration or setup
+//    }
+//    else{
+//        ADS018_Uart_Unplug();
+//        ADS018_trm_session = 0;
+//    }
+////    ADS018_trm_session = 0;
+
+//    do{
+//        err_code = pstorage_init(); // Init pstorage module
+//        APP_ERROR_CHECK(err_code);
+//        ADS018_PrintInt("ADS018_Init ps_storage_int err_code: %d\r\n",(int)err_code);
+//        if (err_code == NRF_SUCCESS){
+//            err_code = ADS018_Init_Setup(); // Init setup buffer from NV memory data
+//            ADS018_PrintInt("ADS018_Init_Setup err_code: %d\r\n",(int)err_code);
+//            pADS018_NV_buf = ADS018_Get_Setup();
+//            if (err_code == NRF_SUCCESS){
+//                //calibration variables ajusta as calibrações, talvez?
+//                ADS018_Cal_Set((ADS018_cal_Type *)&(pADS018_NV_buf->Cal), (float *)&ADS018_Cal_A, (float *)&ADS018_Cal_B, (int16_t *)&ADS018_Cal_ADC_Zero, (int16_t *)&ADS018_Cal_ADC_Delta);
+
+//        	    //factors and coeffs
+//                ADS018_sample_frequency = mma8x5x_DR/ADS018_prescaler_reload;
+//        	    ADS018_Sec_Limit        = (uint32_t)ceil(ADS018_sample_frequency);
+//                ADS018_rotation_factor = 10*60* (int)ADS018_sample_frequency; // factor for rotation in rpmx10
+//                ADS018_Rotation_Min_N = 60*ADS018_sample_frequency/ADS018_ROTATION_MAX; // !< min rotation number of samples
+//                ADS018_Rotation_Max_N = 60*ADS018_sample_frequency/ADS018_ROTATION_MIN; // !< max rotation number of samples
+
+//        	    ADS018_Update_Factors();
+
+//        	    filter_type = 0; //fs=25Hz
+//        	    if (ADS018_sample_frequency > 26.0) filter_type = 1; //fs=50Hz
+//        	    //init high pass parameter
+//        	    filter_coef_num = (int16_t)((ADS018_sample_frequency - FILTER_HPF_CF) * 100);
+//        	    filter_coef_den = (int16_t)(ADS018_sample_frequency*100);
+
+//        	    //cycle timming
+//        	    ADS018_SCycle_Tout_Limit = (uint32_t)(ADS018_Rotation_Max_N / ADS018_Cycle_S_n);
+//        	    ADS018_f_limit = (uint32_t)(pADS018_NV_buf->Mean_Time * ADS018_sample_frequency / 1000);
+
+//                //show timing
+//        	    ADS018_Update_Show_Limits();
+//            }
+//            else{
+//        	    ADS018_Error = 2; // init setup error
+//            }
+//        }
+//        else{
+//    	    ADS018_Error = 1; // pstorge init error
+//        }
+
+
+//        if (ADS018_Error == 0){
+//            // Init ADC
+//            ADS018_NRF_Adc_Config(0); // init NRF ADC
+//            ADS018_Bat_Update(0);     // init BLE Battery Level Services, without interrupt
+//            ADS018_Meas_Exec(0,0); //init evaluation mean load
+//            ADS018_LDOEN_1;
+//            if (ads1120_Init((ads1120_setup_Type *)&ads1120_setup)){
+//            	ADS018_Print_Str("ADS018 ADC ADS1120 INIT OK\r\n");
+//            }
+//            else{
+//                ADS018_LDOEN_0;
+//                ADS018_Error = 3; // error on ads1120_Init
+//            }
+//        }
+
+//        if (ADS018_Error == 0){
+//	        // Init Accelerometer
+//            mma8x5x_setup.pregs->aslp_count = pADS018_NV_buf->Aslp_Count;
+//            aslp_count = MMA8X5X_ASLP_COUNT_10S;
+//	        if(mma8x5x_init((mma8x5x_setup_Type*)&mma8x5x_setup, (bool*)&ADS018_PowerON, aslp_count)){
+//	    	    if (mma8x5x_read_data((mma8x5x_data_Type *)&mma8x5x_dt)){// a partir desse momento a leitura bruta já está presente no objeto
+//	    	    	ADS018_Print_Str("ADS018 ACCEL MMA8653 INIT OK\r\n");
+//	    	    }
+//	    	    else{
+//	    		    ADS018_Error = 5; // error on mma8x5x read
+//	    	    }
+//	        }
+//	        else ADS018_Error = 4; // error on mma8x5x_init
+//        }
+
+//        ADS018_PowerON_Init();
+
+//	    switch (ADS018_Error){
+//	        case  0: ADS018_Print_Str("ADS018 INIT OK\r\n"); break;
+//	        case  1: ADS018_Print_Str("ADS018 PSTORAGE INIT ERROR\r\n"); break;
+//	        case  2: ADS018_Print_Str("ADS018 SETUP INIT ERROR\r\n"); break;
+//	        case  3: ADS018_Print_Str("ADS018 ADC   ADS1120 INIT ERROR\r\n"); break;
+//	        case  4: ADS018_Print_Str("ADS018 ACCEL MMA8653 INIT ERROR\r\n"); break;
+//	        case  5: ADS018_Print_Str("ADS018 ACCEL MMA8653 READ ERROR\r\n"); break;
+//	        default: break;
+//	    };
+//    }while(ADS018_Error != 0);
+
+////    while(1){__WFE();};   /*0,13mA*/
+////    NRF_POWER->SYSTEMOFF = 1; /*0,13mA*/
+
+//    switch(ADS018_trm_session){
+//        case  0: // BLE / ANT  Operation
+//        	     ADS018_Session_Set(0);
+//        	     if (ADS018_PowerON){
+//#ifdef USE_ID_SETUP
+//        	    	 ADS018_Session_Set(ADS018_StartPosition(0));
+//#endif
+//        	     }
+//                 break;
+//        case  1: // Setup and Calibration on terminal
+//	             ADS018_Setup();
+//		         ADS018_Calibration();
+//		         ADS018_Session_Set(0);
+//	             break;
+//        case  2: // Calibration on terminal
+//		         ADS018_Calibration();
+//		         ADS018_Session_Set(0);
+//                 break;
+//        case  3: // RUN ID SETUP
+//#ifdef USE_ID_SETUP
+//        	     ADS018_Session_Set(1);
+//#else
+//        	     ADS018_Print_Str("PEDAL ID SETUP disabled!\r\n");
+//        	     ADS018_Session_Set(0);
+//#endif
+//        	     break;
+//        case  4: // MYWATT BLE SERVICES
+//        	     ADS018_Session_Set(2);
+//        	     break;
+//        case  5: // DFU on BOOTLOADER
+//        	     ADS018_Session_Set(3);
+//        	     break;
+//        default: ADS018_Session_Set(0);
+//                 break;
+//    }
+//    ADS018_PrintInt("ADS018_Init selected session: %d\r\n",(int)ADS018_session);
+
+
+//    return ADS018_session;
+//}
+
+///** @} */
