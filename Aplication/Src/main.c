@@ -1049,7 +1049,8 @@ static void csc_meas_timeout_handler(void * p_context)//changes in the character
 	  //mudan?as valores testes
 	 //ADS018_res_data_f_len
 	  cscs_measurement.cumulative_wheel_revs=ADS018_res_data_c.rotation;
-	  cscs_measurement.last_wheel_event_time=ADC_sample;//tava o ADS018_Cycle_Flag
+	  cscs_measurement.last_wheel_event_time=ADC_sample;//ADS018_Cycle_Flag
+//	  NRF_LOG_INFO("load %d",ADS018_res_data_c.load);
 	  cscs_measurement.cumulative_crank_revs=0x9;
 	  cscs_measurement.last_crank_event_time=0x9;
 //	  uint32_t    cumulative_wheel_revs;                                  /**< Cumulative Wheel Revolutions. *///for testing reasons, should be the same value as the variable being tested
@@ -1813,7 +1814,7 @@ ble_scpt_response_t sc_ctrlpt_event_handler(ble_sc_ctrlpt_t     * p_sc_ctrlpt,
 //HANDLERS FOR CALIBRATION
 static void bike_id_write_handler(calib_serv_t * p_rcs, uint32_t new_state)
 {
-	
+
 uint16_t i = (((0x00ff & new_state)<<8) + ((0xff00 & new_state)>>8));
 teste.adc_value[0]=i;
 NRF_LOG_INFO("adc_value[0] %u",teste.adc_value[0]);
@@ -2008,71 +2009,6 @@ static void services_init(void)
  
 		dis_init.dis_char_rd_sec = SEC_OPEN;
 
-//    err_code = ble_dis_init(&dis_init);
-//    APP_ERROR_CHECK(err_code);
-
-////introduce RAE User Profile Service (ble_rus) here.
-//    memset(&uds_init, 0, sizeof(uds_init));
-
-//    uds_init.first_name_write_handler																				= first_name_write_handler;
-//    uds_init.last_name_write_handler																				= last_name_write_handler;
-//    uds_init.email_address_write_handler																		= email_address_write_handler;
-//    uds_init.age_write_handler																							= age_write_handler;
-//    uds_init.date_of_birth_write_handler																		= date_of_birth_write_handler;
-//    uds_init.gender_write_handler																						= gender_write_handler;
-//    uds_init.weight_write_handler																						= weight_write_handler;
-//    uds_init.height_write_handler																						= height_write_handler;
-//    uds_init.VO2_max_write_handler																					= VO2_max_write_handler;
-//    uds_init.heart_rate_max_write_handler																		= heart_rate_max_write_handler;
-//    uds_init.resting_heart_write_handler																		= resting_heart_rate_write_handler;   				//@Including USER ID
-//    uds_init.maximum_recommended_heart_rate_write_handler										= maximum_recommended_heart_rate_write_handler;		//@Including AEROBIC THRESHOLD
-//    uds_init.aerobic_threshold_write_handler																= aerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
-//    uds_init.anaerobic_threshold_write_handler															= anaerobic_threshold_write_handler;  					//@Including NAME
-//    uds_init.sport_type_for_aerobic_and_anaerobic_thresholds_write_handler	= sport_type_for_aerobic_and_anaerobic_thresholds_write_handler;			//@Including FITNESS INDEX
-//    uds_init.date_of_threshold_assessment_write_handler				 				   		= date_of_threshold_assessment_write_handler;
-//    uds_init.waist_circumference_write_handler															= waist_circumference_write_handler;
-//    uds_init.fat_burn_heart_rate_lower_limit_write_handler									= fat_burn_heart_rate_lower_limit_write_handler;
-//    uds_init.fat_burn_heart_rate_upper_limit_write_handler									= fat_burn_heart_rate_upper_limit_write_handler;
-//    uds_init.aerobic_heart_rate_lower_limit_write_handler										= aerobic_heart_rate_lower_limit_write_handler;
-//    uds_init.aerobic_heart_rate_upper_limit_write_handler										= aerobic_heart_rate_upper_limit_write_handler;
-//    uds_init.anaerobic_heart_rate_lower_limit_write_handler									= anaerobic_heart_rate_lower_limit_write_handler;
-//    uds_init.five_zone_heart_rate_limits_write_handler											= five_zone_heart_rate_limits_write_handler;
-//    uds_init.three_zone_heart_rate_limits_write_handler											= three_zone_heart_rate_limits_write_handler;
-//    uds_init.two_zone_heart_rate_limits_write_handler												= two_zone_heart_rate_limits_write_handler;
-//    uds_init.language_write_handler																					= language_write_handler;
-//    uds_init.fitnes_index_write_handler																			= fitnes_index_write_handler;
-
-//		err_code = ble_uds_init(&m_uds, &uds_init);
-//		APP_ERROR_CHECK(err_code);
-
-    //introduce RAE User Profile Service (ble_rus) here.
-//    memset(&rus_init, 0, sizeof(rus_init));
-
-//		rus_init.user_id_write_handler											= user_id_write_handler;      //@Including USER ID ESSE
-//		rus_init.hr_zone_preference_calc_write_handler			= hr_zone_preference_calc_write_handler;      //@Including FITNESS INDEX
-//		rus_init.serial_number_write_handler								= serial_number_write_handler;
-//		
-//		err_code = ble_rus_init(&m_rus, &rus_init);
-//		APP_ERROR_CHECK(err_code);
-
-	//introduce rae threshold definition service
-
-//		memset(&rtcs_init, 0, sizeof(rtcs_init));
-
-//		rtcs_init.SPIVI_zone1_threshold_write_handler		= SPIVI_zone1_threshold_write_handler;
-//		rtcs_init.SPIVI_zone2_threshold_write_handler		= SPIVI_zone2_threshold_write_handler;
-//		rtcs_init.SPIVI_zone3_threshold_write_handler		= SPIVI_zone3_threshold_write_handler;
-//		rtcs_init.SPIVI_zone4_threshold_write_handler		= SPIVI_zone4_threshold_write_handler;
-//		rtcs_init.SPIVI_zone5_threshold_write_handler		= SPIVI_zone5_threshold_write_handler;
-//		rtcs_init.rhr_zone1_threshold_write_handler			= rhr_zone1_threshold_write_handler;
-//		rtcs_init.rhr_zone2_threshold_write_handler			= rhr_zone2_threshold_write_handler;
-//		rtcs_init.rhr_zone3_threshold_write_handler			= rhr_zone3_threshold_write_handler;
-//		rtcs_init.rhr_zone4_threshold_write_handler			= rhr_zone4_threshold_write_handler;
-//		rtcs_init.rhr_zone5_threshold_write_handler			= rhr_zone5_threshold_write_handler;
-
-////		err_code = ble_rtcs_init(&m_rtcs, &rtcs_init);
-////		APP_ERROR_CHECK(err_code);
-		
 		dfus_init.evt_handler = ble_dfu_evt_handler;
     err_code = ble_dfu_buttonless_init(&dfus_init);
     APP_ERROR_CHECK(err_code);		
@@ -3074,7 +3010,7 @@ void HR_advdata_manuf_data_update(void * p_context)//changes in the service.
 		ret_code_t           err_code;
 		ble_advdata_manuf_data_t 		   adv_manuf_data;
 	 	pHR_adv_user_data->RPM         = ADS018_res_data_c.rotation;////(uint8_t)get_user_id();(uint16_t) ADC_sample;ADS018_res_data_c.rotation
-	  pHR_adv_user_data->HR 		 		 =  0xBB;
+	  pHR_adv_user_data->HR 		 		 =  ADS018_res_data_c.load;
 		pHR_adv_user_data->Power 		   = 0xCC;//(uint8_t)get_color();//ter¨¢ de ser valor aleat¨®rio sem biblioteca
 		pHR_adv_user_data->Kcal        =  0xCC;//  BPM;aleat¨®rio
 		pHR_adv_user_data->Minutes     =  0xCC;//uint8_t)get_hr_percent();=========
@@ -3360,7 +3296,7 @@ void power_manage(void)
 
 void callback(nrf_fstorage_evt_t * p_evt);
 
-NRF_FSTORAGE_DEF(nrf_fstorage_t my_instance) =
+NRF_FSTORAGE_DEF(nrf_fstorage_t flash_instance) =
 {
     .evt_handler    = callback,
     .start_addr     = 0xFD000,
@@ -3394,10 +3330,6 @@ void callback(nrf_fstorage_evt_t * p_evt)
             break;
     }
 		
-		
-	
-	
-	
 }
 
 
@@ -3470,28 +3402,84 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
     NRF_LOG_INFO("teste");
 }
 
-
-/**
- * @brief Function for configuring: PIN_IN pin for input, PIN_OUT pin for output,
- * and configures GPIOTE to give an interrupt on pin change.
- */
-static void gpio_init(void)
+static void print_bootloader_start_addr(void)
 {
-    ret_code_t err_code;
-
-    err_code = nrf_drv_gpiote_init();
-    APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_out_config_t out_config = GPIOTE_CONFIG_OUT_SIMPLE(false);
-    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
-    in_config.pull = NRF_GPIO_PIN_PULLUP;
-
-   	err_code = nrf_drv_gpiote_in_init(ACC_IRQ, &in_config, in_pin_handler);
-    APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_in_event_enable(ACC_IRQ, true);
+    uint32_t bl_address;
+    bl_address = *NRF_UICR->NRFFW;
+    NRF_LOG_INFO("MAURO Bootloader start addr: 0x%08x", bl_address);
 }
 
+
+	/* This is the address in flash where data will be read.*/
+#define FLASH_ADDR_READ  0xFD00D//2000 0000
+/* This is the address in flash were data will be written. */
+#define FLASH_ADDR_WRITE  0x67000
+uint32_t writing (void)
+{
+
+/* This is the data to write in flash.
+   Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
+static uint32_t number = 123;
+ret_code_t rc = nrf_fstorage_write(
+    &flash_instance,   /* The instance to use. */
+    FLASH_ADDR_WRITE,     /* The address in flash where to store the data. */
+    &number,        /* A pointer to the data. */
+    sizeof(number), /* Lenght of the data, in bytes. */
+    NULL            /* Optional parameter, backend-dependent. */
+);
+if (rc == NRF_SUCCESS)
+{
+    /* The operation was accepted.
+       Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
+       is sent to the callback function registered by the instance. */
+	NRF_LOG_INFO("sucesso");
+	return rc;
+}
+else
+{
+    /* Handle error.*/
+	NRF_LOG_INFO("falha");
+	return rc;
+}
+
+}
+
+uint32_t reading (void)
+{
+
+/* This is the data to write in flash.
+   Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
+	static uint32_t number=1;
+ret_code_t rc = nrf_fstorage_read(
+    &flash_instance,   /* The instance to use. */
+    FLASH_ADDR_READ,     /* The address in flash where to read data from. */
+    &number,        /* A buffer to copy the data into. */
+    sizeof(number)  /* Lenght of the data, in bytes. */
+);
+if (rc == NRF_SUCCESS)
+{
+    /* The operation was accepted. */
+	NRF_LOG_INFO("sucesso_ler");
+	return rc;
+}
+else
+{
+    /* Handle error.*/
+	NRF_LOG_INFO("falha_ler");
+	return rc;
+}
+
+}
+
+static void print_flash_info(nrf_fstorage_t * p_fstorage)
+{
+	  NRF_LOG_INFO("========| flash info |========");
+    NRF_LOG_INFO("erase unit: \t%d bytes",      p_fstorage->p_flash_info->erase_unit);
+    NRF_LOG_INFO("program unit: \t%d bytes",    p_fstorage->p_flash_info->program_unit);
+    NRF_LOG_INFO("==============================");
+}
 
 
 /**@brief Function for application main entry.
@@ -3554,7 +3542,7 @@ int main(void)
 		teste.eng_value[1]=10;
 		
 		 nrf_fstorage_init(
-        &my_instance,       /* You fstorage instance, previously defined. */
+        &flash_instance,       /* You fstorage instance, previously defined. */
         &nrf_fstorage_sd,   /* Name of the backend. */
         NULL                /* Optional parameter, backend-dependant. */
     );
@@ -3564,6 +3552,16 @@ int main(void)
 																	(float *)&ADS018_Cal_B, //yo
 																	(int16_t *)&ADS018_Cal_ADC_Zero, //yo/m
 																	(int16_t *)&ADS018_Cal_ADC_Delta);//x-x0
+																	
+																	
+//err_code=writing();
+//APP_ERROR_CHECK(err_code);					
+//err_code=reading();
+//APP_ERROR_CHECK(err_code);	
+//print_bootloader_start_addr();									
+/* implementacao da funcao que pode vir a fazer a calibracao por BLE*/																	
+//int16_t lobo=ADS018_Meas_Get_Mean();				
+//NRF_LOG_INFO("media		%d",lobo);			
 																	
 //Enter main loop========================================================================================
 for (;;){

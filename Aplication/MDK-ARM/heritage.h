@@ -889,6 +889,7 @@ parameters
 
 void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2)
 {
+	
 	int16_t out1;
 	int16_t out2;
 	int16_t out3;
@@ -937,12 +938,11 @@ void ADS018_Cal_Set(ADS018_cal_Type *ptab, float *pa, float *pb, int16_t *pix, i
     a = a/(1000.0*(ptab->adc_value[1]-ptab->adc_value[0]));//m//aqui dava 0,008 OU SEJA m/1000 que eh devido estar em gf e eu querer em kgf
 		b = (ptab->eng_value[0]/1000.0) - (ptab->adc_value[0]*a);//b esta dando 0.013 OU SEJA y0/1000
 			
-    *pa = a*1000;//alterado 14/06
+    *pa = a*1000;//alterado 21/06
   	*pb = b*1000;
 
 	if (a!= 0.0){
 		 *pix = -b/a;
-		
 	}
 	else *pix = 0;
 

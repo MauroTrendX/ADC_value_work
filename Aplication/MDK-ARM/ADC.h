@@ -72,9 +72,20 @@
 //VARIABLES=======================================================================================================
 uint32_t err_code_2;
 static nrf_saadc_value_t ADC_sample;
-	int16_t media =0;
-	int contador;
+static nrf_saadc_value_t     m_buffer_pool[2][SAMPLES_IN_BUFFER];
+int16_t media =0;
+int contador;
 volatile float var1=0;
+
+nrfx_saadc_config_t saadc_initial= 
+{
+NRF_SAADC_RESOLUTION_10BIT,
+NRF_SAADC_OVERSAMPLE_2X,
+5,
+1	
+};
+
+
 //FUNCTION PROTOTYPES=======================================================================================
 void read_gauge_init(void);//prototype
 void read_gauge(void);//prototype
@@ -84,13 +95,16 @@ void adc_mean(void);//prototype
 void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
 {
 
-//	    if (p_event->type == NRF_DRV_SAADC_EVT_DONE)
-//    {
-//        ret_code_t err_code;
 
-//        err_code = nrf_drv_saadc_buffer_convert(p_event->data.done.p_buffer, SAMPLES_IN_BUFFER);
-//        APP_ERROR_CHECK(err_code);
+	    if (p_event->type == NRF_DRV_SAADC_EVT_DONE)
+    {
+        ret_code_t err_code;
 
+        err_code = nrf_drv_saadc_buffer_convert(&ADC_sample, SAMPLES_IN_BUFFER);
+        APP_ERROR_CHECK(err_code);
+				NRF_LOG_INFO("ADC_sample : %d",ADC_sample);
+//	      NRF_LOG_INFO("%d", p_event->data.done.p_buffer[5]);
+		}
 //        int i;
 ////        NRF_LOG_INFO("ADC event number: %d", (int)m_adc_evt_counter);
 
@@ -112,10 +126,10 @@ void read_gauge_init(void)
     nrf_saadc_channel_config_t channel_config =
     NRFX_SAADC_DEFAULT_CHANNEL_CONFIG_DIFFERENTIAL(NRF_SAADC_INPUT_AIN6,NRF_SAADC_INPUT_AIN5);//Pinos P5 e P3
 	
-    err_code_2 = nrf_drv_saadc_init(NULL, saadc_callback);
+	  err_code_2 = nrf_drv_saadc_channel_init(0, &channel_config);
     APP_ERROR_CHECK(err_code_2);
 
-    err_code_2 = nrf_drv_saadc_channel_init(0, &channel_config);
+	  err_code_2 = nrfx_saadc_init(NULL, saadc_callback);
     APP_ERROR_CHECK(err_code_2);
 }
 
@@ -124,9 +138,15 @@ void read_gauge(void)
 	
 	ret_code_t err_code;
 	
-	err_code=nrf_drv_saadc_sample_convert(0, &ADC_sample);
+	err_code = nrf_drv_saadc_buffer_convert(&ADC_sample, 1);
 	APP_ERROR_CHECK(err_code);
 	
+  err_code = nrf_drv_saadc_sample();
+  APP_ERROR_CHECK(err_code);	
+	
+//	err_code=nrfx_saadc_sample_convert(0, &ADC_sample);
+//	APP_ERROR_CHECK(err_code);
+
 	#ifdef SHOWADC_SAMPLE
 	NRF_LOG_INFO("ADC_sample : %d",ADC_sample);
 	#endif
@@ -135,8 +155,8 @@ void read_gauge(void)
 	media=media+ADC_sample;
 	contador++;
 	if (contador>=10){
-		media=media/contador;
-		NRF_LOG_INFO("MEDIA %d",media);
+			media=media/contador;
+//		NRF_LOG_INFO("MEDIA %d",media);
 		media=0;
 		contador=0;
 		}
@@ -159,4 +179,11 @@ void adc_mean(void)
 		}
 	
 	
+}
+
+
+
+int16_t ADS018_Meas_Get_Mean(void)
+{
+	return media;
 }
