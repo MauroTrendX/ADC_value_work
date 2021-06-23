@@ -321,8 +321,6 @@ int16_t ADS018_Load_Balanced(int16_t load_adc);
 			}
 }
  
-
-
                             //pin=&ADS018_mem_data_c
 void ADS018_Set_Result_C(ADS018_mem_data_Type *pin, ADS018_res_data_Type *pout)//function declaration
 {

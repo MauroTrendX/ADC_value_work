@@ -107,40 +107,56 @@ void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
 
 void read_gauge_init(void)
 {
-	
-    //configure pin for reading	
-    nrf_saadc_channel_config_t channel_config =
-    NRFX_SAADC_DEFAULT_CHANNEL_CONFIG_DIFFERENTIAL(NRF_SAADC_INPUT_AIN6,NRF_SAADC_INPUT_AIN5);//Pinos P5 e P3
-	
-    err_code_2 = nrf_drv_saadc_init(NULL, saadc_callback);
-    APP_ERROR_CHECK(err_code_2);
+	  ret_code_t err_code;
+    
+    err_code = nrf_drv_saadc_init(NULL, saadc_callback);//saadc init
+    APP_ERROR_CHECK(err_code);
+    
+    nrf_saadc_channel_config_t cfg =  NRF_DRV_SAADC_DEFAULT_CHANNEL_CONFIG_SE(NRF_SAADC_INPUT_AIN5);//channel config
+    cfg.acq_time = NRF_SAADC_ACQTIME_40US;
 
-    err_code_2 = nrf_drv_saadc_channel_init(0, &channel_config);
-    APP_ERROR_CHECK(err_code_2);
+    nrf_drv_saadc_channel_init(NRF_SAADC_INPUT_AIN5,&cfg);//channel init
+
 }
 
 void read_gauge(void)
 {
+
+	        ret_code_t err_code;
+          float var1=0.0;
+    
+          err_code = nrf_drv_saadc_sample_convert(NRF_SAADC_INPUT_AIN5,&ADC_sample);//use sample
+                                                                             //convert with the value holder and the channel
+        if (err_code == NRF_SUCCESS)
+        {   
+       NRF_LOG_INFO("ADC_sample=%d ",ADC_sample);
+
+                    var1=4*(ADC_sample)*(0.9/1024);
+//                  var1=ADC_sample/575;
+                  SUPER_LOG(var1,"volt");
+        }
+        nrf_delay_ms(100);
+        NRF_LOG_FLUSH();
+
+    
+    #ifdef SHOWADC_SAMPLE
+    NRF_LOG_INFO("ADC_sample : %d",ADC_sample);
+    #endif
+    
+    #ifdef SHOWMEASURES
+    media=media+ADC_sample;
+    contador++;
+    if (contador>=10){
+        media=media/contador;
+        NRF_LOG_INFO("MEDIA %d",media);
+        media=0;
+        contador=0;
+        }
+    #endif
+  
 	
-	ret_code_t err_code;
 	
-	err_code=nrf_drv_saadc_sample_convert(0, &ADC_sample);
-	APP_ERROR_CHECK(err_code);
 	
-	#ifdef SHOWADC_SAMPLE
-	NRF_LOG_INFO("ADC_sample : %d",ADC_sample);
-	#endif
-	
-	#ifdef SHOWMEASURES
-	media=media+ADC_sample;
-	contador++;
-	if (contador>=10){
-		media=media/contador;
-		NRF_LOG_INFO("MEDIA %d",media);
-		media=0;
-		contador=0;
-		}
-	#endif
   
 }
 
