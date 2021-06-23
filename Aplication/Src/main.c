@@ -3366,6 +3366,17 @@ NRF_FSTORAGE_DEF(nrf_fstorage_t my_instance) =
     .end_addr       = 0xFFFFF,
 };
 
+
+
+
+void callback(nrf_fstorage_evt_t * p_evt)
+{
+    
+	
+	
+	
+}
+
 void normal_operation(void)
 {
 	

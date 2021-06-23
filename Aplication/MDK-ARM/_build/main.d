@@ -155,6 +155,8 @@
 .\_build\main.o: ..\..\components\ble\ble_services\ble_cscs\ble_sc_ctrlpt.h
 .\_build\main.o: ..\..\components\ble\common\ble_sensor_location.h
 .\_build\main.o: ..\MDK-ARM\calib_serv.h
+.\_build\main.o: ..\..\components\libraries\fstorage\nrf_fstorage_sd.h
+.\_build\main.o: ..\..\components\libraries\fstorage\nrf_fstorage.h
 .\_build\main.o: ..\Inc\armazenamento_treino.h
 .\_build\main.o: ..\..\components\libraries\util\app_util_bds.h
 .\_build\main.o: ..\..\integration\nrfx\legacy\nrf_drv_wdt.h
