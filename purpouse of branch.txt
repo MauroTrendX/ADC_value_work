@@ -1,0 +1,4 @@
+The purpouse of this branch is to bring any changes related to 
+the POWER value to be delivered by the application.
+
+Mauro da Silva Ribeiro,23rd june 2021
