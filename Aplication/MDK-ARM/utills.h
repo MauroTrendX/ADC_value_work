@@ -7,7 +7,7 @@
 
 //#define PRECISION 1; /* define this only if you're going
 //#define SHOWMEASURES/*use this to print the mean of adc acquisition in ADC.h*/
-#define SHOWADC_SAMPLE /* define this if you want to see the adc value without the mean in ADC.h*/
+//#define SHOWADC_SAMPLE /* define this if you want to see the adc value without the mean in ADC.h*/
 #define MAUROTESTE/* use this to enable slot of test 1 in main.c*/
 //#define MAUROTESTE_2/* define this to enable slot of test 2* in main.c*/
 //#define ADV_ALL/* define this if you want to use all available data on function HR_advdata_manuf_data_update inside main.c*/

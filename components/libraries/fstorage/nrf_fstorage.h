@@ -111,7 +111,6 @@ typedef struct
  */
 typedef void (*nrf_fstorage_evt_handler_t)(nrf_fstorage_evt_t * p_evt);
 
-
 /**@brief   Information about the implementation and the flash peripheral. */
 typedef struct
 {
@@ -121,10 +120,8 @@ typedef struct
     bool     wmap;              //!< The device address space is memory mapped to a writable MCU address space.
 } const nrf_fstorage_info_t;
 
-
 /* Necessary forward declaration. */
 struct nrf_fstorage_api_s;
-
 
 /**@brief   An fstorage instance.
  *

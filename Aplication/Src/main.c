@@ -3299,8 +3299,8 @@ void callback(nrf_fstorage_evt_t * p_evt);
 NRF_FSTORAGE_DEF(nrf_fstorage_t flash_instance) =
 {
     .evt_handler    = callback,
-    .start_addr     = 0xFD000,
-    .end_addr       = 0xFFFFF,
+    .start_addr     = 0x55000,
+    .end_addr       = 0x77000,
 };
 
 void callback(nrf_fstorage_evt_t * p_evt)
@@ -3308,7 +3308,8 @@ void callback(nrf_fstorage_evt_t * p_evt)
 	
     if (p_evt->result != NRF_SUCCESS)
     {
-        NRF_LOG_INFO("--> Event received: ERROR while executing an fstorage operation.");
+			  NRF_LOG_INFO("p_evt, result %d",p_evt->result);
+        NRF_LOG_INFO("--> MAUROEvent received: ERROR while executing an fstorage operation.");
         return;
     }
 
@@ -3331,7 +3332,6 @@ void callback(nrf_fstorage_evt_t * p_evt)
     }
 		
 }
-
 
 void normal_operation(void)
 {
@@ -3410,24 +3410,25 @@ static void print_bootloader_start_addr(void)
 }
 
 
-	/* This is the address in flash where data will be read.*/
-#define FLASH_ADDR_READ  0xFD00D//2000 0000
+/* This is the address in flash where data will be read.*/
+#define FLASH_ADDR_READ  0x56004//2000 0000
 /* This is the address in flash were data will be written. */
-#define FLASH_ADDR_WRITE  0x67000
+#define FLASH_ADDR_WRITE  0x56004   
+
 uint32_t writing (void)
 {
-
 /* This is the data to write in flash.
-   Because the fstorage interface is asynchrounous, the data must be kept in memory.
+Because the fstorage interface is asynchrounous, the data must be kept in memory.
  */
-static uint32_t number = 123;
-ret_code_t rc = nrf_fstorage_write(
+static uint32_t number=0x256 ;
+ret_code_t rc = nrf_fstorage_write
+	(
     &flash_instance,   /* The instance to use. */
     FLASH_ADDR_WRITE,     /* The address in flash where to store the data. */
     &number,        /* A pointer to the data. */
     sizeof(number), /* Lenght of the data, in bytes. */
     NULL            /* Optional parameter, backend-dependent. */
-);
+    );
 if (rc == NRF_SUCCESS)
 {
     /* The operation was accepted.
@@ -3435,6 +3436,7 @@ if (rc == NRF_SUCCESS)
        is sent to the callback function registered by the instance. */
 	NRF_LOG_INFO("sucesso");
 	return rc;
+	
 }
 else
 {
@@ -3447,12 +3449,11 @@ else
 
 uint32_t reading (void)
 {
-
 /* This is the data to write in flash.
    Because the fstorage interface is asynchrounous, the data must be kept in memory.
  */
-	static uint32_t number=1;
-ret_code_t rc = nrf_fstorage_read(
+	  static uint32_t number;
+    ret_code_t rc = nrf_fstorage_read(
     &flash_instance,   /* The instance to use. */
     FLASH_ADDR_READ,     /* The address in flash where to read data from. */
     &number,        /* A buffer to copy the data into. */
@@ -3460,7 +3461,8 @@ ret_code_t rc = nrf_fstorage_read(
 );
 if (rc == NRF_SUCCESS)
 {
-    /* The operation was accepted. */
+  /* The operation was accepted. */
+	NRF_LOG_INFO("Read \"%x\" from flash address \"%x\".", number, FLASH_ADDR_READ);
 	NRF_LOG_INFO("sucesso_ler");
 	return rc;
 }
@@ -3504,12 +3506,12 @@ int main(void)
   buff_load();
   services_init();
 	advertising_init();
-  sensor_simulator_init();//somente para o teste RPM
+//  sensor_simulator_init();//somente para o teste RPM
   conn_params_init();
   peer_manager_init();
   spi_init();
- // pwm_init();
-  saadc_init();
+// pwm_init();
+//  saadc_init();
 	filter_init(global_mixer, ADC_sample);//ADICIONADO===================================================================
 	lis2dw12_config();	
 			
@@ -3553,15 +3555,16 @@ int main(void)
 																	(int16_t *)&ADS018_Cal_ADC_Zero, //yo/m
 																	(int16_t *)&ADS018_Cal_ADC_Delta);//x-x0
 																	
-																	
-//err_code=writing();
-//APP_ERROR_CHECK(err_code);					
-//err_code=reading();
-//APP_ERROR_CHECK(err_code);	
+////																	
+err_code=writing();
+APP_ERROR_CHECK(err_code);	
+err_code=reading();
+APP_ERROR_CHECK(err_code);	
 //print_bootloader_start_addr();									
-/* implementacao da funcao que pode vir a fazer a calibracao por BLE*/																	
-//int16_t lobo=ADS018_Meas_Get_Mean();				
-//NRF_LOG_INFO("media		%d",lobo);			
+		
+																	
+														
+																	
 																	
 //Enter main loop========================================================================================
 for (;;){
