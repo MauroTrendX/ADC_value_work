@@ -202,6 +202,12 @@
 #define MIN_CRANK_RPM                   8                                          /**< Minimum cadence in RPM for use in the simulated measurement function. */
 #define MAX_CRANK_RPM                   12                                         /**< Maximum cadence in RPM for use in the simulated measurement function. */
 #define CRANK_RPM_INCREMENT             3                                           /**< Value by which cadence is incremented/decremented in the simulated measurement function. */
+/* This is the address in flash where data will be read.*/
+#define FLASH_ADDR_READ  0x56004//2000 0000
+/* This is the address in flash were data will be written. */
+#define FLASH_ADDR_WRITE  0x56004   
+
+
 
 static ant_hrm_measurement_t  m_ant_hrm_measurement;    
 
@@ -3359,23 +3365,122 @@ void power_manage(void)
 
 
 void callback(nrf_fstorage_evt_t * p_evt);
-NRF_FSTORAGE_DEF(nrf_fstorage_t my_instance) =
+NRF_FSTORAGE_DEF(nrf_fstorage_t flash_instance) =
 {
     .evt_handler    = callback,
-    .start_addr     = 0xFD000,
-    .end_addr       = 0xFFFFF,
+    .start_addr     = 0x55000,
+    .end_addr       = 0x77000,
 };
-
-
-
 
 void callback(nrf_fstorage_evt_t * p_evt)
 {
-    
-	
-	
+    if (p_evt->result != NRF_SUCCESS)
+    {
+			  NRF_LOG_INFO("p_evt, result %d",p_evt->result);
+        NRF_LOG_INFO("--> Event received: ERROR while executing an fstorage operation.");
+        return;
+    }
+
+    switch (p_evt->id)
+    {
+        case NRF_FSTORAGE_EVT_WRITE_RESULT:
+        {
+            NRF_LOG_INFO("--> Event received: wrote %d bytes at address 0x%x.",
+                         p_evt->len, p_evt->addr);
+        } break;
+
+        case NRF_FSTORAGE_EVT_ERASE_RESULT:
+        {
+            NRF_LOG_INFO("--> Event received: erased %d page from address 0x%x.",
+                         p_evt->len, p_evt->addr);
+        } break;
+
+        default:
+            break;
+    }
+  
+}
+
+uint32_t writing (void)
+{
+/* This is the data to write in flash.
+Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
+static uint32_t number=0x256 ;
+ret_code_t rc = nrf_fstorage_write
+	(
+    &flash_instance,   /* The instance to use. */
+    FLASH_ADDR_WRITE,     /* The address in flash where to store the data. */
+    &number,        /* A pointer to the data. */
+    sizeof(number), /* Lenght of the data, in bytes. */
+    NULL            /* Optional parameter, backend-dependent. */
+    );
+if (rc == NRF_SUCCESS)
+{
+    /* The operation was accepted.
+       Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
+       is sent to the callback function registered by the instance. */
+	NRF_LOG_INFO("sucesso");
+	return rc;
 	
 }
+else
+{
+    /* Handle error.*/
+	NRF_LOG_INFO("falha");
+	return rc;
+}
+
+}
+
+uint32_t reading (void)
+{
+/* This is the data to write in flash.
+   Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
+	  static uint32_t number;
+    ret_code_t rc = nrf_fstorage_read(
+    &flash_instance,   /* The instance to use. */
+    FLASH_ADDR_READ,     /* The address in flash where to read data from. */
+    &number,        /* A buffer to copy the data into. */
+    sizeof(number)  /* Lenght of the data, in bytes. */
+);
+if (rc == NRF_SUCCESS)
+{
+  /* The operation was accepted. */
+	NRF_LOG_INFO("Read \"%x\" from flash address \"%x\".", number, FLASH_ADDR_READ);
+	NRF_LOG_INFO("sucesso_ler");
+	return rc;
+}
+else
+{
+    /* Handle error.*/
+	NRF_LOG_INFO("falha_ler");
+	return rc;
+}
+
+}
+
+static void print_flash_info(nrf_fstorage_t * p_fstorage)
+{
+	  NRF_LOG_INFO("========| flash info |========");
+    NRF_LOG_INFO("erase unit: \t%d bytes",      p_fstorage->p_flash_info->erase_unit);
+    NRF_LOG_INFO("program unit: \t%d bytes",    p_fstorage->p_flash_info->program_unit);
+    NRF_LOG_INFO("==============================");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void normal_operation(void)
 {
@@ -3440,36 +3545,6 @@ void lis_get_state(void){
 	nrf_drv_spi_uninit(&mLisSpiInstance);
 }
 
-
-void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
-{
-    NRF_LOG_INFO("teste");
-}
-
-
-/**
- * @brief Function for configuring: PIN_IN pin for input, PIN_OUT pin for output,
- * and configures GPIOTE to give an interrupt on pin change.
- */
-static void gpio_init(void)
-{
-    ret_code_t err_code;
-
-    err_code = nrf_drv_gpiote_init();
-    APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_out_config_t out_config = GPIOTE_CONFIG_OUT_SIMPLE(false);
-    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
-    in_config.pull = NRF_GPIO_PIN_PULLUP;
-
-   	err_code = nrf_drv_gpiote_in_init(ACC_IRQ, &in_config, in_pin_handler);
-    APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_in_event_enable(ACC_IRQ, true);
-}
-
-
-
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -3521,7 +3596,11 @@ int main(void)
     dev_ctx.read_reg = platform_read;
     dev_ctx.handle = &spi_event_handler;
 //    ADC_sample=1200;
-
+		 nrf_fstorage_init(
+																&flash_instance,       /* You fstorage instance, previously defined. */
+																&nrf_fstorage_sd,   /* Name of the backend. */
+																NULL                /* Optional parameter, backend-dependant. */
+																);
 		nrf_drv_spi_uninit(&mLisSpiInstance);
 		
 		teste.adc_value[0]=50; 
@@ -3558,22 +3637,14 @@ for (;;){
 
                                                                                                                                                                                                                                                                                                                                       
 #ifdef MAUROTESTE_2
-//	uint8_t caixa2;
-//	  caixa2=8;
-//	  lis2dw12_write_reg(&dev_ctx, LIS2DW12_CTRL3, &caixa2, 1);
 
-//		uint8_t caixa;
-//		lis2dw12_read_reg(&dev_ctx, LIS2DW12_CTRL2, &caixa, 1);
-//		NRF_LOG_INFO("valor do LIS2DW12_CTRL2 %u",caixa);
+		err_code=writing();
+		APP_ERROR_CHECK(err_code);
+		NRF_LOG_FLUSH();
+		
+		err_code=reading();
+		APP_ERROR_CHECK(err_code);
 
-//if(nrf_gpio_pin_read(ACC_IRQ)){
-//	get_value();
-//	NRF_LOG_INFO("leu");
-//}
-//else{
-//	NRF_LOG_INFO("naoleu");
-//	
-//}
 
 #endif
 		idle_state_handle();

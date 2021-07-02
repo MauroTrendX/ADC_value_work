@@ -26,20 +26,7 @@ Project File Date:  05/26/2021
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
-Rebuild target 'nrf52832_xxaa'
-compiling fxi.c...
-assembling fxi_image.s...
-compiling zonas_cardiacas.c...
-..\Src\zonas_cardiacas.c(304): warning:  #188-D: enumerated type mixed with another type
-  		user_metrics_info.hr_zone_calc_select=get_hr_zone_preference_calc();
-..\Src\zonas_cardiacas.c: 1 warning, 0 errors
-compiling lis2dw12_reg.c...
-..\Src\lis2dw12_reg.c(114): warning:  #1035-D: single-precision operand implicitly converted to double-precision
-    return ((float_t)lsb) * 1.952;
-..\Src\lis2dw12_reg.c: 1 warning, 0 errors
-compiling Controle_LEDs.c...
-compiling ble_rtcs.c...
-compiling ble_rus.c...
+Build target 'nrf52832_xxaa'
 compiling main.c...
 ..\Inc\biblioteca_phillips.h(8): warning:  #1-D: last line of file ends without a newline
   void reboot_biblioteca_phillips(void);
@@ -57,436 +44,31 @@ compiling main.c...
   double seno ();
 ..\MDK-ARM\trigonometry.h(23): warning:  #1295-D: Deprecated declaration cosseno - give arg types
   double cosseno ();
-..\Src\main.c(2875): warning:  #144-D: a value of type "void (*)(ble_evt_t *, void *)" cannot be used to initialize an entity of type "nrf_sdh_ble_evt_handler_t"
+..\Src\main.c(2881): warning:  #144-D: a value of type "void (*)(ble_evt_t *, void *)" cannot be used to initialize an entity of type "nrf_sdh_ble_evt_handler_t"
       NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
-..\Src\main.c(2916): warning:  #111-D: statement is unreachable
+..\Src\main.c(2922): warning:  #111-D: statement is unreachable
               nrf_drv_wdt_channel_feed(m_channel_id);
-..\Src\main.c(3073): warning:  #550-D: variable "srdata"  was set but never used
+..\Src\main.c(3079): warning:  #550-D: variable "srdata"  was set but never used
   	  ble_advdata_t srdata;
-..\Src\main.c(3461): warning:  #177-D: variable "out_config"  was declared but never referenced
-      nrf_drv_gpiote_out_config_t out_config = GPIOTE_CONFIG_OUT_SIMPLE(false);
-..\Src\main.c(3705): warning:  #188-D: enumerated type mixed with another type
+..\Src\main.c(3776): warning:  #188-D: enumerated type mixed with another type
     	/**/lis2dw12_pin_mode_set(&dev_ctx,1);
-..\Src\main.c(3702): warning:  #177-D: variable "caixa2"  was declared but never referenced
+..\Src\main.c(3773): warning:  #177-D: variable "caixa2"  was declared but never referenced
   	    /**/uint8_t caixa2;
-..\Src\main.c(222): warning:  #177-D: variable "glob_cumulative_crank_revs"  was declared but never referenced
+..\Src\main.c(228): warning:  #177-D: variable "glob_cumulative_crank_revs"  was declared but never referenced
   static uint16_t   glob_cumulative_crank_revs = 0;
-..\Src\main.c(223): warning:  #177-D: variable "glob_event_time"  was declared but never referenced
+..\Src\main.c(229): warning:  #177-D: variable "glob_event_time"  was declared but never referenced
   static uint16_t   glob_event_time            = 0;
-..\Src\main.c(224): warning:  #177-D: variable "glob_wheel_revolution_mm"  was declared but never referenced
+..\Src\main.c(230): warning:  #177-D: variable "glob_wheel_revolution_mm"  was declared but never referenced
   static uint16_t   glob_wheel_revolution_mm   = 0;
-..\Src\main.c(225): warning:  #177-D: variable "glob_wheel_revolution_mm_F"  was declared but never referenced
+..\Src\main.c(231): warning:  #177-D: variable "glob_wheel_revolution_mm_F"  was declared but never referenced
   static uint16_t   glob_wheel_revolution_mm_F = 0;//filtered variable to be the output of filter fnction 
-..\Src\main.c(226): warning:  #177-D: variable "glob_crank_rev_degrees"  was declared but never referenced
+..\Src\main.c(232): warning:  #177-D: variable "glob_crank_rev_degrees"  was declared but never referenced
   static uint16_t   glob_crank_rev_degrees     = 0;
-..\Src\main.c(2426): warning:  #177-D: function "sleep_mybeat"  was declared but never referenced
+..\Src\main.c(2432): warning:  #177-D: function "sleep_mybeat"  was declared but never referenced
   static void sleep_mybeat(void){
-..\Src\main.c(3454): warning:  #177-D: function "gpio_init"  was declared but never referenced
-  static void gpio_init(void)
-..\Src\main.c: 21 warnings, 0 errors
-compiling ble_uds.c...
-..\Src\ble_uds.c(291): warning:  #177-D: function "last_name_char_add"  was declared but never referenced
-  static uint32_t last_name_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(337): warning:  #177-D: function "email_address_char_add"  was declared but never referenced
-  static uint32_t email_address_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(429): warning:  #177-D: function "date_of_birth_char_add"  was declared but never referenced
-  static uint32_t date_of_birth_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(660): warning:  #177-D: function "heart_rate_max_char_add"  was declared but never referenced
-  static uint32_t heart_rate_max_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(752): warning:  #177-D: function "maximum_recommended_heart_rate_char_add"  was declared but never referenced
-  static uint32_t maximum_recommended_heart_rate_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(890): warning:  #177-D: function "sport_type_for_aerobic_and_anaerobic_thresholds_char_add"  was declared but never referenced
-  static uint32_t sport_type_for_aerobic_and_anaerobic_thresholds_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(936): warning:  #177-D: function "date_of_threshold_assessment_char_add"  was declared but never referenced
-  static uint32_t date_of_threshold_assessment_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(982): warning:  #177-D: function "waist_circumference_char_add"  was declared but never referenced
-  static uint32_t waist_circumference_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1028): warning:  #177-D: function "hip_circumference_char_add"  was declared but never referenced
-  static uint32_t hip_circumference_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1074): warning:  #177-D: function "fat_burn_heart_rate_lower_limit_char_add"  was declared but never referenced
-  static uint32_t fat_burn_heart_rate_lower_limit_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1120): warning:  #177-D: function "fat_burn_heart_rate_upper_limit_char_add"  was declared but never referenced
-  static uint32_t fat_burn_heart_rate_upper_limit_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1166): warning:  #177-D: function "aerobic_heart_rate_lower_limit_char_add"  was declared but never referenced
-  static uint32_t aerobic_heart_rate_lower_limit_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1212): warning:  #177-D: function "aerobic_heart_rate_upper_limit_char_add"  was declared but never referenced
-  static uint32_t aerobic_heart_rate_upper_limit_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1258): warning:  #177-D: function "anaerobic_heart_rate_lower_limit_char_add"  was declared but never referenced
-  static uint32_t anaerobic_heart_rate_lower_limit_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1304): warning:  #177-D: function "anaerobic_heart_rate_upper_limit_char_add"  was declared but never referenced
-  static uint32_t anaerobic_heart_rate_upper_limit_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1350): warning:  #177-D: function "five_zone_heart_rate_limits_char_add"  was declared but never referenced
-  static uint32_t five_zone_heart_rate_limits_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1396): warning:  #177-D: function "three_zone_heart_rate_limits_char_add"  was declared but never referenced
-  static uint32_t three_zone_heart_rate_limits_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1442): warning:  #177-D: function "two_zone_heart_rate_limit_char_add"  was declared but never referenced
-  static uint32_t two_zone_heart_rate_limit_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c(1488): warning:  #177-D: function "language_char_add"  was declared but never referenced
-  static uint32_t language_char_add(ble_uds_t *p_uds, const ble_uds_init_t *p_uds_init){
-..\Src\ble_uds.c: 19 warnings, 0 errors
-compiling reamostragem.c...
-compiling buffer_services.c...
-compiling ads018.c...
-compiling filter.c...
-compiling ble_cscs.c...
-compiling ble_rsc.c...
-compiling calib_serv.c...
-calib_serv.c(713): warning:  #177-D: function "adc_raw_char_add"  was declared but never referenced
-  static uint32_t adc_raw_char_add(calib_serv_t * p_rcs, const calib_serv_init_t * p_rcs_init)
-calib_serv.c: 1 warning, 0 errors
-compiling boards.c...
-compiling bsp.c...
-..\..\components\libraries\bsp\bsp.c(440): warning:  #177-D: function "leds_timer_handler"  was declared but never referenced
-  static void leds_timer_handler(void * p_context)
-..\..\components\libraries\bsp\bsp.c(455): warning:  #177-D: function "alert_timer_handler"  was declared but never referenced
-  static void alert_timer_handler(void * p_context)
-..\..\components\libraries\bsp\bsp.c: 2 warnings, 0 errors
-compiling utf.c...
-compiling bsp_btn_ble.c...
-compiling ble_advdata.c...
-compiling ble_advertising.c...
-compiling auth_status_tracker.c...
-compiling ble_srv_common.c...
-compiling ble_conn_params.c...
-compiling ble_conn_state.c...
-compiling gatt_cache_manager.c...
-compiling gatts_cache_manager.c...
-compiling id_manager.c...
-compiling nrf_ble_gatt.c...
-compiling nrf_ble_qwr.c...
-compiling nrf_ble_lesc.c...
-compiling peer_data_storage.c...
-compiling peer_database.c...
-compiling peer_id.c...
-compiling pm_buffer.c...
-compiling peer_manager_handler.c...
-compiling peer_manager.c...
-compiling security_dispatcher.c...
-compiling ble_bas.c...
-compiling security_manager.c...
-compiling ble_dis.c...
-compiling ble_sc_ctrlpt.c...
-compiling ble_hrs.c...
-compiling nrf_crypto_aead.c...
-compiling nrf_crypto_aes.c...
-compiling nrf_crypto_aes_shared.c...
-compiling nrf_crypto_ecc.c...
-compiling nrf_crypto_ecdh.c...
-compiling nrf_crypto_ecdsa.c...
-compiling nrf_crypto_eddsa.c...
-compiling nrf_crypto_error.c...
-compiling nrf_crypto_hash.c...
-compiling nrf_crypto_hkdf.c...
-compiling nrf_crypto_init.c...
-compiling nrf_crypto_hmac.c...
-compiling nrf_crypto_rng.c...
-compiling nrf_crypto_shared.c...
-compiling oberon_backend_chacha_poly_aead.c...
-compiling oberon_backend_ecdh.c...
-compiling oberon_backend_ecc.c...
-compiling oberon_backend_ecdsa.c...
-compiling oberon_backend_hash.c...
-compiling oberon_backend_eddsa.c...
-compiling oberon_backend_hmac.c...
-compiling nrf_hw_backend_rng.c...
-compiling nrf_hw_backend_init.c...
-compiling nrf_hw_backend_rng_mbedtls.c...
-compiling nrf_drv_rng.c...
-compiling nrf_drv_clock.c...
-compiling nrf_drv_uart.c...
-compiling nrfx_atomic.c...
-compiling nrfx_clock.c...
-compiling nrfx_gpiote.c...
-compiling nrfx_prs.c...
-compiling nrfx_rng.c...
-compiling nrfx_uart.c...
-compiling nrf_drv_spi.c...
-compiling nrfx_uarte.c...
-compiling nrfx_spim.c...
-compiling nrfx_spi.c...
-compiling nrfx_saadc.c...
-compiling nrfx_pwm.c...
-compiling app_error.c...
-compiling nrfx_wdt.c...
-compiling app_button.c...
-compiling app_error_handler_keil.c...
-compiling app_scheduler.c...
-compiling app_error_weak.c...
-compiling app_timer2.c...
-compiling app_util_platform.c...
-compiling crc16.c...
-compiling drv_rtc.c...
-compiling hardfault_implementation.c...
-compiling fds.c...
-compiling nrf_assert.c...
-compiling mem_manager.c...
-compiling nrf_atfifo.c...
-compiling nrf_atflags.c...
-compiling nrf_atomic.c...
-compiling nrf_fprintf.c...
-compiling nrf_balloc.c...
-compiling nrf_fprintf_format.c...
-compiling nrf_fstorage.c...
-compiling nrf_fstorage_sd.c...
-compiling nrf_memobj.c...
-compiling nrf_queue.c...
-compiling nrf_ringbuf.c...
-compiling nrf_pwr_mgmt.c...
-compiling nrf_section_iter.c...
-compiling sensorsim.c...
-compiling nrf_strerror.c...
-compiling nrf_sortlist.c...
-compiling nrf_log_backend_rtt.c...
-compiling nrf_log_backend_serial.c...
-compiling nrf_log_backend_uart.c...
-compiling nrf_log_default_backends.c...
-compiling nrf_log_frontend.c...
-compiling nrf_log_str_formatter.c...
-..\..\components\libraries\log\src\nrf_log_str_formatter.c(60): warning:  #177-D: variable "severity_names"  was declared but never referenced
-  static const char * severity_names[] = {
-..\..\components\libraries\log\src\nrf_log_str_formatter.c: 1 warning, 0 errors
-compiling SEGGER_RTT.c...
-compiling SEGGER_RTT_Syscalls_KEIL.c...
-compiling SEGGER_RTT_printf.c...
-compiling nrf_sdh.c...
-compiling nrf_sdh_ble.c...
-compiling nrf_sdh_soc.c...
-compiling ctr_drbg.c...
-compiling aes.c...
-compiling nrf_sdh_ant.c...
-compiling ble_dfu_bonded.c...
-compiling ble_dfu.c...
-compiling ble_dfu_unbonded.c...
-compiling nrf_dfu_svci.c...
-compiling ant_channel_config.c...
-compiling ant_hrm.c...
-compiling ant_hrm_page_0.c...
-..\..\components\ant\ant_profiles\ant_hrm\pages\ant_hrm_page_0.c(71): warning:  #177-D: function "page0_data_log"  was declared but never referenced
-  static void page0_data_log(ant_hrm_page0_data_t const * p_page_data)
-..\..\components\ant\ant_profiles\ant_hrm\pages\ant_hrm_page_0.c: 1 warning, 0 errors
-compiling ant_hrm_page_1.c...
-compiling ant_hrm_page_2.c...
-compiling ant_hrm_page_3.c...
-compiling ant_hrm_page_4.c...
-compiling ant_key_manager.c...
-compiling hr_measurement.c...
-assembling arm_startup_nrf52.s...
-compiling system_nrf52.c...
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(226): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(255): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(284): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(313): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(342): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(371): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(400): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(429): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(458): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(498): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(538): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(567): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(596): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(636): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(665): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(694): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(723): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(752): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(781): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(810): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(839): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(868): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(908): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(937): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(966): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(995): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1024): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1064): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1093): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1122): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1151): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1180): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1209): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1238): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1267): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1296): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1325): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1354): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1383): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1412): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1452): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1492): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1532): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1561): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1601): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1630): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1659): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1699): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1728): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1768): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1808): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1848): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1877): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1906): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1946): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(1975): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2015): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2055): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2095): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2135): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2175): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2215): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2255): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2295): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2335): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2375): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2415): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2455): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2495): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2535): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2585): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2630): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2670): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2720): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2760): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2800): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2840): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2895): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(2990): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3045): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3085): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3130): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3175): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3225): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3270): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3310): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3365): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3405): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3460): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3525): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3570): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3610): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3650): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3695): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3724): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3764): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3834): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3879): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3924): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(3984): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(4029): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(4079): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(4119): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(4159): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(4214): warning:  #111-D: statement is unreachable
-                  break;
-C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.29.0\Device\Include\nrf52832_erratas.h(4254): warning:  #111-D: statement is unreachable
-                  break;
-RTE\Device\nRF52832_xxAA\system_nrf52.c: 106 warnings, 0 errors
-compiling ant_state_indicator.c...
-compiling ant_hrm_measurement.c...
+..\Src\main.c(3464): warning:  #177-D: function "print_flash_info"  was declared but never referenced
+  static void print_flash_info(nrf_fstorage_t * p_fstorage)
+..\Src\main.c: 20 warnings, 0 errors
 linking...
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol pwr_mgmt_data2$$Base (referred from .\_build\nrf_pwr_mgmt.o). Unused section has been removed.
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol pwr_mgmt_data2$$Limit (referred from .\_build\nrf_pwr_mgmt.o). Unused section has been removed.
@@ -498,10 +80,10 @@ linking...
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol sdh_state_observers1$$Limit (referred from .\_build\nrf_sdh.o). Unused section has been removed.
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol sdh_ant_observers0$$Base (referred from .\_build\nrf_sdh_ant.o). Unused section has been removed.
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol sdh_ant_observers0$$Limit (referred from .\_build\nrf_sdh_ant.o). Unused section has been removed.
-Program Size: Code=123840 RO-data=20824 RW-data=1184 ZI-data=25176  
+Program Size: Code=121136 RO-data=20808 RW-data=1116 ZI-data=25180  
 Finished: 0 information, 10 warning and 0 error messages.
 FromELF: creating hex file...
-".\_build\nrf52832_xxaa.axf" - 0 Error(s), 163 Warning(s).
+".\_build\nrf52832_xxaa.axf" - 0 Error(s), 30 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -529,14 +111,14 @@ Package Vendor: NordicSemiconductor
    * Component: ARM::CMSIS:CORE:4.3.0
 
    * Component: NordicSemiconductor::Device:Startup:8.29.0
-      Source file:   Device\Source\arm\arm_startup_nrf52.s
+      Include file:  Device\Include\system_nrf.h
       Source file:   Device\Source\system_nrf52.c
       Include file:  Device\Include\system_nrf52.h
-      Include file:  Device\Include\system_nrf.h
+      Source file:   Device\Source\arm\arm_startup_nrf52.s
 
    * Component: NordicSemiconductor::Device:StartupConfig:8.29.0
       Include file:  Device\Source\startup_config.h
-Build Time Elapsed:  00:01:36
+Build Time Elapsed:  00:00:06
 </pre>
 </body>
 </html>
