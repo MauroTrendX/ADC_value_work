@@ -359,9 +359,9 @@ void ADS018_Set_Result_C(ADS018_mem_data_Type *pin, ADS018_res_data_Type *pout)/
 	int32_t load = (pin->f);
 	pout->load = (ADS018_load_factor_n[ADS018_Cycle_S_n] * load);
 //	pout->load=ADC_sample*ADS018_Cal_A+ADS018_Cal_B;
-
+//SUPER_LOG(pout->load,"pout>load");
 #ifdef SHOWSTATS
-SUPER_LOG(pout->load,"pout>load");
+SUPER_LOG(pout->load,"load Kg");
 //SUPER_LOG(load_mauro,"carga final para calculo %d");
 #endif
 //	

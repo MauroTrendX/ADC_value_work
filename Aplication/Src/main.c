@@ -3366,6 +3366,41 @@ NRF_FSTORAGE_DEF(nrf_fstorage_t my_instance) =
     .end_addr       = 0xFFFFF,
 };
 
+void callback(nrf_fstorage_evt_t * p_evt)
+{
+	
+    if (p_evt->result != NRF_SUCCESS)
+    {
+			  NRF_LOG_INFO("p_evt, result %d",p_evt->result);
+        NRF_LOG_INFO("--> MAUROEvent received: ERROR while executing an fstorage operation.");
+        return;
+    }
+
+    switch (p_evt->id)
+    {
+        case NRF_FSTORAGE_EVT_WRITE_RESULT:
+        {
+            NRF_LOG_INFO("--> Event received: wrote %d bytes at address 0x%x.",
+                         p_evt->len, p_evt->addr);
+        } break;
+
+        case NRF_FSTORAGE_EVT_ERASE_RESULT:
+        {
+            NRF_LOG_INFO("--> Event received: erased %d page from address 0x%x.",
+                         p_evt->len, p_evt->addr);
+        } break;
+
+        default:
+            break;
+    }
+		
+}
+
+
+
+
+
+
 void normal_operation(void)
 {
 	
@@ -3396,14 +3431,12 @@ void normal_operation(void)
 					nrfx_saadc_uninit();
 //					
 					filter(global_mixer,ADC_sample,(int16_t *)&value_for_simu_F,(int16_t *)&OUT_dummy);
-//					NRF_LOG_INFO("OUT_dummy %d",OUT_dummy);
+
+//					NRF_LOG_INFO("ADC_sample %d",ADC_sample);
 					//get_direction();
 					//ADS018_AZ();//ajusta tara
 					get_load(OUT_dummy);//ajusto todos os valores de load
 					cycle_treat();
-
-
-
 //																}		
 #ifdef  CAL_SET_SHOW
 			nrf_delay_us(500);
@@ -3435,29 +3468,12 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
     NRF_LOG_INFO("teste");
 }
 
-
-/**
- * @brief Function for configuring: PIN_IN pin for input, PIN_OUT pin for output,
- * and configures GPIOTE to give an interrupt on pin change.
- */
-static void gpio_init(void)
+int16_t ADS018_Meas_Get_Mean(int16_t sample)
 {
-    ret_code_t err_code;
 
-    err_code = nrf_drv_gpiote_init();
-    APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_out_config_t out_config = GPIOTE_CONFIG_OUT_SIMPLE(false);
-    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
-    in_config.pull = NRF_GPIO_PIN_PULLUP;
-
-   	err_code = nrf_drv_gpiote_in_init(ACC_IRQ, &in_config, in_pin_handler);
-    APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_in_event_enable(ACC_IRQ, true);
+	return ADC_sample;
+	
 }
-
-
 
 /**@brief Function for application main entry.
  */
@@ -3513,8 +3529,8 @@ int main(void)
 
 		nrf_drv_spi_uninit(&mLisSpiInstance);
 		
-		teste.adc_value[0]=50; 
-		teste.adc_value[1]=1200;
+		teste.adc_value[0]=190; 
+		teste.adc_value[1]=5417;
 		teste.eng_value[0]=0;
 		teste.eng_value[1]=10;
 		
@@ -3563,11 +3579,15 @@ for (;;){
 //	NRF_LOG_INFO("naoleu");
 //	
 //}
+normal_operation();
+//int16_t a = 0;
+//ADS018_Meas_Get_Mean(a);
+//NRF_LOG_INFO("valor da funcao %d ",ADC_sample);
 
 #endif
 		idle_state_handle();
 		}
-		
+
 }
 
 
