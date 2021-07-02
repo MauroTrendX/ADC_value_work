@@ -205,8 +205,9 @@
 /* This is the address in flash where data will be read.*/
 #define FLASH_ADDR_READ  0x56004//2000 0000
 /* This is the address in flash were data will be written. */
-#define FLASH_ADDR_WRITE  0x56004   
-
+#define FLASH_ADDR_WRITE  0x56004
+/* This is the address in flash were data will be erased. */
+#define FLASH_ADDR_ERASE 0x56000
 
 
 static ant_hrm_measurement_t  m_ant_hrm_measurement;    
@@ -224,6 +225,9 @@ static uint32_t m_cumulative_wheel_revs;                                        
 
 static  bool  m_auto_calibration_in_progress;                                     /**< Set when an autocalibration is in progress. */
 int lock=0;/////////get that
+static uint32_t number_novo=0x03 ;
+
+
 
 static uint16_t   glob_cumulative_crank_revs = 0;
 static uint16_t   glob_event_time            = 0;
@@ -3388,7 +3392,11 @@ void callback(nrf_fstorage_evt_t * p_evt)
             NRF_LOG_INFO("--> Event received: wrote %d bytes at address 0x%x.",
                          p_evt->len, p_evt->addr);
         } break;
-
+        case NRF_FSTORAGE_EVT_READ_RESULT:
+				{
+					NRF_LOG_INFO("--> Event received: read %d bytes at address 0x%x.",
+          p_evt->len, p_evt->addr);
+				}
         case NRF_FSTORAGE_EVT_ERASE_RESULT:
         {
             NRF_LOG_INFO("--> Event received: erased %d page from address 0x%x.",
@@ -3421,6 +3429,7 @@ if (rc == NRF_SUCCESS)
        Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
        is sent to the callback function registered by the instance. */
 	NRF_LOG_INFO("sucesso");
+
 	return rc;
 	
 }
@@ -3460,6 +3469,66 @@ else
 }
 
 }
+
+
+uint32_t erasing (void)
+{
+static uint32_t pages_to_erase = 1;
+ret_code_t rc = nrf_fstorage_erase(
+    &flash_instance,   /* The instance to use. */
+    FLASH_ADDR_ERASE,     /* The address of the flash pages to erase. */
+    pages_to_erase, /* The number of pages to erase. */
+    NULL            /* Optional parameter, backend-dependent. */
+);
+if (rc == NRF_SUCCESS)
+{
+	//manage here sucess of operation
+	
+}
+else
+{
+    /* Handle error.*/
+}
+}
+
+
+uint32_t write_anything (void)
+{
+	
+/* This is the data to write in flash.
+Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
+//static uint32_t number=0x2AB ;
+ret_code_t rc = nrf_fstorage_write
+	(
+    &flash_instance,   /* The instance to use. */
+    FLASH_ADDR_WRITE,     /* The address in flash where to store the data. */
+    &number_novo,        /* A pointer to the data. */
+    sizeof(number_novo), /* Lenght of the data, in bytes. */
+    NULL            /* Optional parameter, backend-dependent. */
+    );
+if (rc == NRF_SUCCESS)
+{
+    /* The operation was accepted.
+       Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
+       is sent to the callback function registered by the instance. */
+
+
+	return rc;
+	
+}
+else
+{
+    /* Handle error.*/
+	NRF_LOG_INFO("falha");
+	return rc;
+}
+
+	
+	
+}
+
+
 
 static void print_flash_info(nrf_fstorage_t * p_fstorage)
 {
@@ -3613,6 +3682,35 @@ int main(void)
 																	(float *)&ADS018_Cal_B, //yo
 																	(int16_t *)&ADS018_Cal_ADC_Zero, //yo/m
 																	(int16_t *)&ADS018_Cal_ADC_Delta);//x-x0
+																	
+																	
+		err_code=writing();//escrevo valor 256
+		APP_ERROR_CHECK(err_code);
+		NRF_LOG_FLUSH();
+		nrf_delay_ms(6);
+		
+		err_code=reading();//leio valor
+		APP_ERROR_CHECK(err_code);
+		NRF_LOG_FLUSH();
+		nrf_delay_ms(6);	
+		
+    err_code=erasing();//apago valor
+		APP_ERROR_CHECK(err_code);
+		NRF_LOG_FLUSH();
+		nrf_delay_ms(6);				
+		
+		err_code=write_anything();//escrevo novo valor
+		APP_ERROR_CHECK(err_code);							
+    NRF_LOG_FLUSH();
+		nrf_delay_ms(6);								
+
+		err_code=reading();//leio novo valor
+		APP_ERROR_CHECK(err_code);
+		NRF_LOG_FLUSH();
+		nrf_delay_ms(6);	
+						
+																	
+																	
 //Enter main loop========================================================================================
 for (;;){
 #ifdef MAUROTESTE
@@ -3637,13 +3735,7 @@ for (;;){
 
                                                                                                                                                                                                                                                                                                                                       
 #ifdef MAUROTESTE_2
-
-		err_code=writing();
-		APP_ERROR_CHECK(err_code);
-		NRF_LOG_FLUSH();
-		
-		err_code=reading();
-		APP_ERROR_CHECK(err_code);
+	
 
 
 #endif
