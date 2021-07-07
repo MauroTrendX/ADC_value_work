@@ -72,7 +72,8 @@
 //VARIABLES=======================================================================================================
 uint32_t err_code_2;
 static nrf_saadc_value_t ADC_sample;
-	int16_t media =0;
+int16_t media =0;
+float result=0;
 	int contador;
 volatile float var1=0;
 //FUNCTION PROTOTYPES=======================================================================================
@@ -83,7 +84,6 @@ void adc_mean(void);//prototype
 
 void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
 {
-
 //	    if (p_event->type == NRF_DRV_SAADC_EVT_DONE)
 //    {
 //        ret_code_t err_code;
@@ -107,23 +107,21 @@ void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
 
 void read_gauge_init(void)
 {
-	
-	
-   ret_code_t err_code;
+	  ret_code_t err_code;
     nrf_drv_saadc_config_t saadc_config;
 
     //Configure SAADC peripheral
     saadc_config.low_power_mode = false;                                                  
     saadc_config.resolution = NRF_SAADC_RESOLUTION_14BIT;                 
-    saadc_config.oversample = NRF_SAADC_OVERSAMPLE_2X;   
+    saadc_config.oversample = NRF_SAADC_OVERSAMPLE_16X;   
     saadc_config.interrupt_priority = APP_IRQ_PRIORITY_LOW;                  
-      err_code = nrf_drv_saadc_init(&saadc_config, saadc_callback);//saadc init
+    err_code = nrf_drv_saadc_init(&saadc_config, saadc_callback);//saadc init
     APP_ERROR_CHECK(err_code);
     
     //Configure CHANNEL
     nrf_saadc_channel_config_t cfg;
     cfg.reference = NRF_SAADC_REFERENCE_INTERNAL;                              
-    cfg.gain = NRF_SAADC_GAIN1_6;                                              
+    cfg.gain = NRF_SAADC_GAIN4;                                              
     cfg.acq_time = NRF_SAADC_ACQTIME_10US;                                      
     cfg.mode = NRF_SAADC_MODE_DIFFERENTIAL;  
     cfg.pin_p = NRF_SAADC_INPUT_AIN5; //Select the input pin as P3,AIN5 pin maps to physical pin P3
@@ -132,21 +130,24 @@ void read_gauge_init(void)
     cfg.resistor_n = NRF_SAADC_RESISTOR_DISABLED;                              
     cfg.burst = NRF_SAADC_BURST_ENABLED; 
     nrf_drv_saadc_channel_init(2,&cfg);//channel init
-
 }
 
 void read_gauge(void)
 {
 	ret_code_t err_code;
 	
-	err_code=nrf_drv_saadc_sample_convert(0, &ADC_sample);
+	err_code=nrf_drv_saadc_sample_convert(2, &ADC_sample);
 	APP_ERROR_CHECK(err_code);
-
+	
+#ifdef SHOWADC_SAMPLE
+result=ADC_sample*(4/(0.6*8192));//resolution=14 but m=1 for differential
+NRF_LOG_INFO("sample %d ",ADC_sample);
+//SUPER_LOG(result,"volts:");
+#endif
 }
 
 void adc_mean(void)
 {
-	
 	media=media+ADC_sample;
  
 	contador++;
@@ -157,6 +158,5 @@ void adc_mean(void)
 		media=0;
 		contador=0;
 		}
-	
-	
+
 }

@@ -639,6 +639,11 @@
               <FileType>1</FileType>
               <FilePath>.\calib_serv.c</FilePath>
             </File>
+            <File>
+              <FileName>SPI_ADS1120.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SPI_ADS1120.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -8405,6 +8410,11 @@
               <FileName>calib_serv.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\calib_serv.c</FilePath>
+            </File>
+            <File>
+              <FileName>SPI_ADS1120.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SPI_ADS1120.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -225,7 +225,7 @@ static uint32_t m_cumulative_wheel_revs;                                        
 
 static  bool  m_auto_calibration_in_progress;                                     /**< Set when an autocalibration is in progress. */
 int lock=0;/////////get that
-static uint32_t number_novo=0x03 ;
+static uint32_t number_novo ;
 
 
 
@@ -401,10 +401,11 @@ void amazenar_ACC(uint8_t * numeroAmostra, dadosBbACC * bufferACC);//prototype
 dadosBbACC	amostrasACC_2;
 
 const nrf_drv_spi_t mLisSpiInstance = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);  /**< SPI instance. */
+const nrf_drv_spi_t mADS1120Instance = NRF_DRV_SPI_INSTANCE(SPI_INSTANCE);  /**< SPI instance. */
 static volatile bool spi_xfer_done;  /**< Flag used to indicate that SPI instance completed the transfer. */
-
+//ads1120PacketTransferComplete
 static volatile bool mLisPacketTransferComplete = false;
-
+static volatile bool ads1120PacketTransferComplete = false;
 volatile bool flagEstadoLed = true;
 
 static uint8_t whoamI, rst;
@@ -924,10 +925,16 @@ advertising_stop();
 //}
 
 
-	void spi_event_handler(nrf_drv_spi_evt_t const * p_event,
+void spi_event_handler(nrf_drv_spi_evt_t const * p_event,
                        void *                    p_context)
 {
     mLisPacketTransferComplete = true;
+}
+
+void ads1120_spi_event_handler(nrf_drv_spi_evt_t const * p_event,
+                       void *                    p_context)
+{
+    ads1120PacketTransferComplete = true;
 }
 //function for collecting reading from lis2dw12
 void get_value (void){//=================================================================================================================Apagar depois do teste=============================================================================================================================================================
@@ -3458,7 +3465,6 @@ if (rc == NRF_SUCCESS)
 {
   /* The operation was accepted. */
 	NRF_LOG_INFO("Read \"%x\" from flash address \"%x\".", number, FLASH_ADDR_READ);
-	NRF_LOG_INFO("sucesso_ler");
 	return rc;
 }
 else
@@ -3492,14 +3498,21 @@ else
 }
 
 
-uint32_t write_anything (void)
+uint32_t write_anything (uint32_t value)
 {
-	
+	ret_code_t rc;
 /* This is the data to write in flash.
 Because the fstorage interface is asynchrounous, the data must be kept in memory.
  */
 //static uint32_t number=0x2AB ;
-ret_code_t rc = nrf_fstorage_write
+	
+    rc=erasing();//erase values before doing anything
+		APP_ERROR_CHECK(rc);
+		NRF_LOG_FLUSH();
+		nrf_delay_ms(6);					
+	
+	number_novo=value;
+    rc = nrf_fstorage_write
 	(
     &flash_instance,   /* The instance to use. */
     FLASH_ADDR_WRITE,     /* The address in flash where to store the data. */
@@ -3529,6 +3542,28 @@ else
 }
 
 
+uint32_t read_anything(uint32_t address)
+{
+	
+/* This is the data to write in flash.
+   Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
+	  static uint32_t number;
+    ret_code_t rc = nrf_fstorage_read(
+    &flash_instance,   /* The instance to use. */
+    address,     /* The address in flash where to read data from. */
+    &number,        /* A buffer to copy the data into. */
+    sizeof(number)  /* Lenght of the data, in bytes. */
+);
+ 	if (rc == NRF_SUCCESS)
+{
+  /* The operation was accepted. */
+	NRF_LOG_INFO("Read \"%x\" from flash address \"%x\".", number, address);
+	return rc;
+}
+	
+}
+
 
 static void print_flash_info(nrf_fstorage_t * p_fstorage)
 {
@@ -3538,25 +3573,24 @@ static void print_flash_info(nrf_fstorage_t * p_fstorage)
     NRF_LOG_INFO("==============================");
 }
 
+//SPI for ADS1120=====================
+void ads1120_spi_init(void){
+    nrf_drv_spi_config_t ads1120_spi_config=NRF_DRV_SPI_DEFAULT_CONFIG;
+    ads1120_spi_config.ss_pin   = 29;
+    ads1120_spi_config.miso_pin = 30;
+    ads1120_spi_config.mosi_pin = 21;
+    ads1120_spi_config.sck_pin  = 18;
+	  ads1120_spi_config.irq_priority=6;
+	  ads1120_spi_config.frequency=SPI_FREQUENCY_FREQUENCY_K125;
+    APP_ERROR_CHECK(nrf_drv_spi_init(&mADS1120Instance, &ads1120_spi_config, ads1120_spi_event_handler, NULL));
+}
 
-
-
-
-
-
-
-
-
-
-
-
+//=====================================================
 
 void normal_operation(void)
 {
-	
-	
-	        get_accel();//this or get_accel();
-	        simulador();//overwrite global_mixer for testing purpouses
+	  get_accel();//this or get_accel();
+	  simulador();//overwrite global_mixer for testing purpouses
          	
 //	  contador7++;
 //	  mean=global_mixer+mean;
@@ -3576,9 +3610,9 @@ void normal_operation(void)
 //			if (lock==0){
 
 //										}
-	        read_gauge_init();//inicializa leitura do adc
-					read_gauge();
-					nrfx_saadc_uninit();
+//	        read_gauge_init();//inicializa leitura do adc
+//					read_gauge();
+//					nrfx_saadc_uninit();
 //					
 					filter(global_mixer,ADC_sample,(int16_t *)&value_for_simu_F,(int16_t *)&OUT_dummy);
 //					NRF_LOG_INFO("OUT_dummy %d",OUT_dummy);
@@ -3586,9 +3620,6 @@ void normal_operation(void)
 					//ADS018_AZ();//ajusta tara
 					get_load(OUT_dummy);//ajusto todos os valores de load
 					cycle_treat();
-
-
-
 //																}		
 #ifdef  CAL_SET_SHOW
 			nrf_delay_us(500);
@@ -3684,31 +3715,32 @@ int main(void)
 																	(int16_t *)&ADS018_Cal_ADC_Delta);//x-x0
 																	
 																	
-		err_code=writing();//escrevo valor 256
-		APP_ERROR_CHECK(err_code);
-		NRF_LOG_FLUSH();
-		nrf_delay_ms(6);
-		
-		err_code=reading();//leio valor
-		APP_ERROR_CHECK(err_code);
-		NRF_LOG_FLUSH();
-		nrf_delay_ms(6);	
-		
-    err_code=erasing();//apago valor
-		APP_ERROR_CHECK(err_code);
-		NRF_LOG_FLUSH();
-		nrf_delay_ms(6);				
-		
-		err_code=write_anything();//escrevo novo valor
-		APP_ERROR_CHECK(err_code);							
-    NRF_LOG_FLUSH();
-		nrf_delay_ms(6);								
+//		err_code=writing();//escrevo valor 256
+//		APP_ERROR_CHECK(err_code);
+//		NRF_LOG_FLUSH();
+//		nrf_delay_ms(6);
+//		
+//		err_code=reading();//leio valor
+//		APP_ERROR_CHECK(err_code);
+//		NRF_LOG_FLUSH();
+//		nrf_delay_ms(6);	
+//		
+//    normal_operation();
 
-		err_code=reading();//leio novo valor
-		APP_ERROR_CHECK(err_code);
-		NRF_LOG_FLUSH();
-		nrf_delay_ms(6);	
-						
+//		err_code=write_anything(ADC_sample);//escrevo novo valor
+//		APP_ERROR_CHECK(err_code);							
+//    NRF_LOG_FLUSH();
+//		nrf_delay_ms(6);								
+
+//		err_code=read_anything(0x56008);//leio novo valor
+//		APP_ERROR_CHECK(err_code);
+//		NRF_LOG_FLUSH();
+//		nrf_delay_ms(6);	
+
+//		err_code=read_anything(0x56004);//leio novo valor
+//		APP_ERROR_CHECK(err_code);
+//		NRF_LOG_FLUSH();
+//		nrf_delay_ms(6);				
 																	
 																	
 //Enter main loop========================================================================================
@@ -3736,6 +3768,11 @@ for (;;){
                                                                                                                                                                                                                                                                                                                                       
 #ifdef MAUROTESTE_2
 	
+int lock_47=0;
+if (lock_47==0) {
+	ads1120_spi_init();
+  lock_47=1;
+}
 
 
 #endif
@@ -3753,6 +3790,7 @@ void spi_init(void)
     spi_config.miso_pin = SPI_MISO_PIN;
     spi_config.mosi_pin = SPI_MOSI_PIN;
     spi_config.sck_pin  = SPI_SCK_PIN;
+//	  spi_config.frequency=NRF_DRV_SPI_FREQ_125K;test to minimize power consumption
     APP_ERROR_CHECK(nrf_drv_spi_init(&mLisSpiInstance, &spi_config, spi_event_handler, NULL));
 
     //NRF_LOG_INFO("SPI example started.");
@@ -3844,6 +3882,7 @@ bool lis2dw12_config (void){
     * Configure filtering chain
     * Accelerometer - filter path / bandwidth
     */
+
     lis2dw12_filter_path_set(&dev_ctx, LIS2DW12_LPF_ON_OUT); 
     lis2dw12_filter_bandwidth_set(&dev_ctx, LIS2DW12_ODR_DIV_4);
 
