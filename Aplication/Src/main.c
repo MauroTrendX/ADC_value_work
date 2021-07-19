@@ -1,4 +1,5 @@
 /**
+BRANCH FLASH_WRITE
  * Copyright (c) 2014 - 2019, Nordic Semiconductor ASA
  *
  * All rights reserved.
