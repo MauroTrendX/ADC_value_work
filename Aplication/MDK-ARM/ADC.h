@@ -114,7 +114,7 @@ void read_gauge_init(void)
     //Configure SAADC peripheral
     saadc_config.low_power_mode = false;                                                  
     saadc_config.resolution = NRF_SAADC_RESOLUTION_14BIT;                 
-    saadc_config.oversample = NRF_SAADC_OVERSAMPLE_2X;   
+    saadc_config.oversample = NRF_SAADC_OVERSAMPLE_16X;   
     saadc_config.interrupt_priority = APP_IRQ_PRIORITY_LOW;                  
       err_code = nrf_drv_saadc_init(&saadc_config, saadc_callback);//saadc init
     APP_ERROR_CHECK(err_code);
@@ -122,7 +122,7 @@ void read_gauge_init(void)
     //Configure CHANNEL
     nrf_saadc_channel_config_t cfg;
     cfg.reference = NRF_SAADC_REFERENCE_INTERNAL;                              
-    cfg.gain = NRF_SAADC_GAIN1_6;                                              
+    cfg.gain = NRF_SAADC_GAIN4;                                              
     cfg.acq_time = NRF_SAADC_ACQTIME_10US;                                      
     cfg.mode = NRF_SAADC_MODE_DIFFERENTIAL;  
     cfg.pin_p = NRF_SAADC_INPUT_AIN5; //Select the input pin as P3,AIN5 pin maps to physical pin P3
@@ -130,7 +130,7 @@ void read_gauge_init(void)
     cfg.resistor_p = NRF_SAADC_RESISTOR_DISABLED;                              
     cfg.resistor_n = NRF_SAADC_RESISTOR_DISABLED;                              
     cfg.burst = NRF_SAADC_BURST_ENABLED; 
-    nrf_drv_saadc_channel_init(2,&cfg);//channel init
+    nrf_drv_saadc_channel_init(0,&cfg);//channel init
 }
 
 void read_gauge(void)
