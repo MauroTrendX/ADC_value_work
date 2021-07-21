@@ -103,6 +103,7 @@ void saadc_callback(nrf_drv_saadc_evt_t const * p_event)
 ////        m_adc_evt_counter++;
 //    }
 //	
+	
 }
 
 void read_gauge_init(void)
@@ -114,15 +115,15 @@ void read_gauge_init(void)
     //Configure SAADC peripheral
     saadc_config.low_power_mode = false;                                                  
     saadc_config.resolution = NRF_SAADC_RESOLUTION_14BIT;                 
-    saadc_config.oversample = NRF_SAADC_OVERSAMPLE_16X;   
+    saadc_config.oversample = NRF_SAADC_OVERSAMPLE_2X;   
     saadc_config.interrupt_priority = APP_IRQ_PRIORITY_LOW;                  
-      err_code = nrf_drv_saadc_init(&saadc_config, saadc_callback);//saadc init
+    err_code = nrf_drv_saadc_init(&saadc_config, saadc_callback);//saadc init
     APP_ERROR_CHECK(err_code);
     
     //Configure CHANNEL
     nrf_saadc_channel_config_t cfg;
     cfg.reference = NRF_SAADC_REFERENCE_INTERNAL;                              
-    cfg.gain = NRF_SAADC_GAIN4;                                              
+    cfg.gain = NRF_SAADC_GAIN1_6;                                              
     cfg.acq_time = NRF_SAADC_ACQTIME_10US;                                      
     cfg.mode = NRF_SAADC_MODE_DIFFERENTIAL;  
     cfg.pin_p = NRF_SAADC_INPUT_AIN5; //Select the input pin as P3,AIN5 pin maps to physical pin P3
@@ -130,20 +131,22 @@ void read_gauge_init(void)
     cfg.resistor_p = NRF_SAADC_RESISTOR_DISABLED;                              
     cfg.resistor_n = NRF_SAADC_RESISTOR_DISABLED;                              
     cfg.burst = NRF_SAADC_BURST_ENABLED; 
-    nrf_drv_saadc_channel_init(0,&cfg);//channel init
+    nrf_drv_saadc_channel_init(2,&cfg);//channel init
 }
 
 void read_gauge(void)
 {
-	
+	float result=0;
 	ret_code_t err_code;
 	
-	err_code=nrf_drv_saadc_sample_convert(0, &ADC_sample);
+	err_code=nrf_drv_saadc_sample_convert(2, &ADC_sample);
 	APP_ERROR_CHECK(err_code);
 	
 //	NRF_LOG_INFO("ADC_sample : %d",ADC_sample);
 	#ifdef SHOWADC_SAMPLE
-	NRF_LOG_INFO("ADC_sample : %d",ADC_sample);
+	result=(0.6*ADC_sample)/(8192/6);
+	SUPER_LOG(result,"resultado volts");
+//	NRF_LOG_INFO("sample : %d",ADC_sample);
 	#endif
 	
 	#ifdef SHOWMEASURES

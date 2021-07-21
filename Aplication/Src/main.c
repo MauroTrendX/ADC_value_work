@@ -868,7 +868,8 @@ static void battery_level_update(void)
     ret_code_t err_code;
 		nrf_saadc_value_t sample;
 	//	if (ADC_sample==0){// this if is super useful it shows, its purpouse is to block a reading of battery while measuring adc
-		nrf_drv_saadc_sample_convert(0, &sample);
+		err_code=nrf_drv_saadc_sample_convert(0, &sample);
+	  APP_ERROR_CHECK(err_code);
 		//}
 
     err_code = ble_bas_battery_level_update(&m_bas, get_percent_batt(sample), BLE_CONN_HANDLE_ALL);
@@ -3051,8 +3052,8 @@ void get_accel(void)
 
 {
  	get_value();
-//	ADS018_Time_Update();
-//  filter(global_mixer,ADC_sample,(int16_t *)&value_for_simu_F,(int16_t *)&OUT_dummy);
+//	ADS018_Time_Update();//no need right now
+//  filter(global_mixer,ADC_sample,(int16_t *)&value_for_simu_F,(int16_t *)&OUT_dummy);//already filtering in function normal_operation
 }
 void cycle_treat(void)
 {
@@ -3429,9 +3430,10 @@ void normal_operation(void)
 	        read_gauge_init();//inicializa leitura do adc
 					read_gauge();
 					nrfx_saadc_uninit();
-//					
+					float picollo=0;
 					filter(global_mixer,ADC_sample,(int16_t *)&value_for_simu_F,(int16_t *)&OUT_dummy);
-
+	        picollo=(0.6*OUT_dummy)/(8192/6);
+	        SUPER_LOG(picollo,"resultado volts");
 //					NRF_LOG_INFO("ADC_sample %d",ADC_sample);
 					//get_direction();
 					//ADS018_AZ();//ajusta tara
