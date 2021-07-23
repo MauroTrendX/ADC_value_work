@@ -244,10 +244,9 @@ uint32_t ble_cscs_init(ble_cscs_t * p_cscs, ble_cscs_init_t const * p_cscs_init)
     add_char_params.init_len          = csc_measurement_encode(p_cscs, &initial_scm, init_value_encoded);
     add_char_params.p_init_value      = init_value_encoded;
     add_char_params.char_props.notify = 1;
-//		add_char_params.char_props.read =1;
     add_char_params.cccd_write_access = p_cscs_init->csc_meas_cccd_wr_sec;
 
-    err_code = characteristic_add (p_cscs->service_handle, &add_char_params, &p_cscs->meas_handles);
+    err_code = characteristic_add(p_cscs->service_handle, &add_char_params, &p_cscs->meas_handles);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;

@@ -263,7 +263,7 @@ static inline app_timer_t * sortlist_peek(void)
 /**
  * @brief Function for deactivating all timers which are in the sorted list (active timers).
  */
-/*static*/ void sorted_list_stop_all(void)
+static void sorted_list_stop_all(void)
 {
     app_timer_t * p_next;
     do

@@ -87,7 +87,7 @@ extern "C" {
     .pin_p      = (nrf_saadc_input_t)(PIN_P),       \
     .pin_n      = NRF_SAADC_INPUT_DISABLED          \
 }
-//NRF_SAADC_REFERENCE_INTERNAL
+
 /**
  * @brief Macro for setting @ref nrf_saadc_channel_config_t to default settings
  *        in differential mode.
@@ -97,12 +97,12 @@ extern "C" {
  */
 #define NRFX_SAADC_DEFAULT_CHANNEL_CONFIG_DIFFERENTIAL(PIN_P, PIN_N) \
 {                                                                    \
-    .resistor_p = NRF_SAADC_RESISTOR_PULLUP,                       \
-    .resistor_n = NRF_SAADC_RESISTOR_PULLUP,                       \
-    .gain       = SAADC_CH_CONFIG_GAIN_Gain1_6,                                 \
-    .reference  = NRF_SAADC_REFERENCE_VDD4,                      \
+    .resistor_p = NRF_SAADC_RESISTOR_DISABLED,                       \
+    .resistor_n = NRF_SAADC_RESISTOR_DISABLED,                       \
+    .gain       = NRF_SAADC_GAIN1_6,                                 \
+    .reference  = NRF_SAADC_REFERENCE_INTERNAL,                      \
     .acq_time   = NRF_SAADC_ACQTIME_10US,                            \
-    .mode       = NRF_SAADC_MODE_SINGLE_ENDED,                       \
+    .mode       = NRF_SAADC_MODE_DIFFERENTIAL,                       \
     .burst      = NRF_SAADC_BURST_DISABLED,                          \
     .pin_p      = (nrf_saadc_input_t)(PIN_P),                        \
     .pin_n      = (nrf_saadc_input_t)(PIN_N)                         \

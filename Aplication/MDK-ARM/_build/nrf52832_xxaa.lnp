@@ -14,7 +14,6 @@
 ".\_build\ble_cscs.o"
 ".\_build\ads018.o"
 ".\_build\filter.o"
-".\_build\calib_serv.o"
 ".\_build\boards.o"
 ".\_build\bsp.o"
 ".\_build\bsp_btn_ble.o"

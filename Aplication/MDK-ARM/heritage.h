@@ -4,16 +4,12 @@ This file contains functions inherited from MY WATT responsible for bringing mor
 In case of further development, please, try to keep the relevant code in this file as this will result in a more clear an easy
 software documentation.
 */
-
 #include <stdint.h>
 #include "nrf_log_ctrl.h"
 #include "nrf_delay.h"
 #include <stdio.h>
 #include "nrf_log.h"
 #include <math.h>
-#include "ADC.h"
-#include "lis2dw12_reg.h"
-#include "ble_gap.h"
 //DEFINES=======================================================================================================
 //Cycle******************************************************
 #define ADS018_S_N 2
@@ -26,27 +22,6 @@ software documentation.
 #define ADS018_ROTATION_MAX 160  /**< max rpm */
 //filter************************************************************
 #define FILTER_HPF_CF     0.3
-//Update_Factors********************************************************************
-#define ADS018_PIX2      6.283185307
-#define ADS018_PI        3.141592654
-#define ADS018_HALF_PI   1.570796327
-#define ADS018_KGFM_TO_KCAL 0.0023404781
-#define ADS018_KGFM_TO_CAL  2.3404780884
-#define ADS018_KGF_TO_N     9.80665
-#define ADS018_ENERGY_EFF_FACTOR     4
-//CALIBRATION
-#define ADS018_LOAD_REF_DEFAULT    10582  /**< Load calibration reference in gf */
-#define ADS018_AZ_N_MAX 15
-#define ADS018_AZ_FACTOR 3.0
-#define ADS018_POS_BOT   0
-#define ADS018_POS_TOP   1
-#define ADS018_POS_FRONT 2
-#define ADS018_POS_REAR  3
-#define ADS018_AZ_DEBOUNCE 8
-#define ADS018_AZ_Z_TOL 3640
-#define ADS018_AZ_Z_POS 0
-#define ADS018_AZ_Z_LI  (ADS018_AZ_Z_POS-ADS018_AZ_Z_TOL)
-#define ADS018_AZ_Z_LS  (ADS018_AZ_Z_POS+ADS018_AZ_Z_TOL)
 //STRUCTS, UNIONS and other struct like types====================================
 //Cycle****************************************************************************
 typedef struct {
@@ -58,16 +33,16 @@ typedef struct {
 typedef struct {
 	uint32_t n;
 	int32_t rotation;
-	float load;//int32_t altered for a better precision mauro
+	int32_t load;
 	int32_t torque;
 	int32_t energy;
-	float power;//int32_t altered for a better precision mauro
+	int32_t power;
 } ADS018_res_data_Type;
 typedef struct {
 	int32_t adc_value[ADS1120_MAX_N_CAL];
 	int32_t uV_value[ADS1120_MAX_N_CAL];
 	int32_t eng_value[ADS1120_MAX_N_CAL];
-	int32_t n_point;
+	uint32_t n_point;
 } ADS018_cal_Type;
 typedef struct {
 	uint32_t Sig;
@@ -78,8 +53,8 @@ typedef struct {
 	uint32_t Load_Unit;
 	uint32_t Arm;
 	ADS018_cal_Type Cal;
-	int32_t Kp; 
-	int32_t Kn; 
+	int32_t Kp; //kilopounds?
+	int32_t Kn; //kilonewtons?
 	uint32_t Serial_Number;
 	uint32_t Mode;
 } ADS018_NV_Type;
@@ -114,20 +89,6 @@ typedef struct {
 	int32_t L;
 	int16_t mem2;
 } ADS018_IIR_2ORDER_Type;
-
-typedef struct {
-	int16_t Xaccel;
-	int16_t Yaccel;
-	int16_t Zaccel;
-	int16_t Orientation;
-	int16_t Load;
-	int16_t Torque;
-} ADS018_raw_data_Type;
-
-typedef union{
-  int16_t i16bit[3];//y,x,z
-  uint8_t u8bit[6];//yh,yl,xh,xl,zh,zl
-} axis3bit16_t;
 //VARIABLES=====================================================================================================================
 // Cycle**********************************************************
 volatile uint16_t glob_var;
@@ -142,7 +103,7 @@ volatile uint16_t ADS018_stt_flag_y = 0;
 volatile uint16_t ADS018_SCycle_Stt = 0;       // !< state of sector state machine
 volatile uint32_t ADS018_SCycle_Tout_Count = 0;          // !< sample count for cyle timeout   
 volatile uint32_t ADS018_SCycle_Tout_Limit = 75;         // !< limit count for cyle timeout
-volatile uint32_t ADS018_SCycle_Tout_Num = 3;            // !< number times update zero adv, maximum allowed timeuout events.
+volatile uint32_t ADS018_SCycle_Tout_Num = 3;            // !< number times update zero adv
 volatile uint32_t ADS018_SCycle_Tout_Cmd = 0;            // !< command update to filter
 
 volatile uint32_t ADS018_Cycle_Last_S = 0;     // !< 0..1: semi-sphere number, 0:front, 1:rear
@@ -172,9 +133,7 @@ volatile ADS018_res_data_Type ADS018_res_data_f[ADS018_F_N];
 
 volatile uint32_t ADS018_res_data_cmd   = 0;
 volatile uint32_t nnnn=0;
-volatile int16_t ads1120_ADC  = 0;               // !< ads1120 ADC binary
-volatile int16_t ads1120_ADCB = 0;               // !< ads1120 ADC binary balanced
-volatile int16_t ads1120_ADCT = 0;               // !< ads1120 ADC binary balanced and tared must be declared in calibration.h, for now
+volatile int16_t ads1120_ADCT = 0;               // !< ads1120 ADC binary balanced and tared
 volatile float ADS018_load_factor_n[ADS018_F_N];
 volatile float ADS018_energy_factor_n[ADS018_F_N];
 volatile float ADS018_power_factor_n[ADS018_F_N];
@@ -194,45 +153,11 @@ volatile uint8_t ADS018_Min_Counter     = 0;
 volatile int16_t teste_lib=16;
 
 volatile ADS018_cycle_data_Type *pADS018_transfer;
-volatile ADS018_cycle_data_Type ADS018_data = {0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0};
-volatile ADS018_cycle_data_Type *pADS018_data = (ADS018_cycle_data_Type *)&ADS018_data;
-volatile uint32_t	adv = 0;
 
-
-volatile ADS018_raw_data_Type ADS018_raw    = {0, 0, 0, 0, 0.0};  //raw aquisition buffer
-volatile float ADS018_AZ_load = 0.0;
-volatile float ADS018_AZ_mean = 0.0;
-volatile float ADS018_AZ_sdev = 0.0;
-volatile uint32_t ADS018_AZ_counter = 0;
-volatile uint32_t ADS018_AZ_n = ADS018_AZ_N_MAX;
-volatile float ADS018_AZ_tol = 0.0;
-volatile float ADS018_AZ_absmean = 0.0;
-int8_t session=0;
-lis2dw12_all_sources_t all_source;
 ADS018_NV_Type *pADS018_NV_buf;
-volatile  float load_mauro;//teste 15/06
-//update_Factors***************************************************
+
 int ADS018_sample_frequency=50;
-volatile float ADS018_load_factor;
-volatile float ADS018_energy_factor;
-volatile float ADS018_power_factor;
-volatile float ADS018_CalA_n[ADS018_F_N];
-//volatile float ADS018_load_factor_n[ADS018_F_N];
-volatile float ADS018_torque_factor_n[ADS018_F_N];
-volatile float ADS018_energy_factor_n[ADS018_F_N];
-volatile uint8_t  mma8x5x_pl = 0;              // !< PORTRAIT/LANDSCAPE code
-volatile int16_t ADS018_AZ_Tare __attribute__ ((section(".noinit"))); //era inicializado com 0
-volatile float ADS018_tare = 0.0;
-volatile uint32_t ADS018_AZ_tdebounce = ADS018_AZ_DEBOUNCE;
-volatile uint32_t ADS018_AZ_flag = 0;
-//Load convertion
-volatile float ADS018_Cal_A=1;
-volatile float ADS018_Cal_B=0;
-volatile int16_t ADS018_Cal_ADC_Zero = 0;
-volatile int16_t ADS018_Cal_ADC_Delta = 1;
-static ADS018_NV_Type ADS018_NV_buf __attribute__ ((section(".noinit"))); /**< Setup data in RAM */
-volatile uint32_t ADS018_AZ_stt     = 0;
-volatile int16_t global_mixer_z ;
+
 //filter*********************************************************
 volatile int32_t filter_type = 0;//0:Low Pass 2.5Hz- fs:25Hz - 1:Low Pass 2.5Hz- fs:50Hz
 //volatile  int16_t positivo = 300;
@@ -251,10 +176,7 @@ volatile int32_t filter_lastyi = 0;
 volatile int32_t filter_lastyo = 0;
 volatile int16_t filter_coef_num = 2470;
 volatile int16_t filter_coef_den = 2500;
-stmdev_ctx_t dev_ctx;
-static axis3bit16_t z_acceleration;
-volatile uint8_t ADS018_AtualGear = 0;
-// FUNCTION PROTOTYPES =============================================================================================================================================================================================================================================================================================
+//FUNCTION PROTOTOTYPES=============================================================================================================================================================================================================================================================================================
 //Cycle****************************************************
 void ADS018_Time_Update(void);//prototype
 void ADS018_Set_Result_C(ADS018_mem_data_Type *pin, ADS018_res_data_Type *pout);//prototype
@@ -274,71 +196,38 @@ void init_var(void);//prototype
 void ADS018_Time_Update();//prototype
 void ADS018_Update_SCycle(void);//prototype
 void ADS018_Set_Mean_Data(void);//prototype
-void ADS018_Update_Factors(void);//prototype
-void get_load (int16_t adc_measure);//prototype
-void get_direction(void);//prototype
-void ADS018_BT_Exec(void);//prototype
-void advertising_stop(void);//prototype
-void get_session(int16_t accel);//prototype
+void ADS018_Update_Factors();//prototype
 //filter ********************************************************
-void filter_init(int16_t inputy, int16_t input2);//prototype
-void ADS018_IIR_Update(int16_t in, int16_t in2, ADS018_IIR_2ORDER_Type *p, int16_t *pout, int16_t *pout2);//prototype
-void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2);//prototype
-//ADC
-void ADS018_Set_Cal_Adc_Zero(int16_t new_zero);//prototype
-void ADS018_Cal_Set(ADS018_cal_Type *ptab, float *pa, float *pb, int16_t *pix, int16_t *pd);//prototype
-void ADS018_Set_Cal_ADC_Value_Zero(int16_t new_adc_zero);//prototype
-//void ADS018_AZ(void);//prototype
-int16_t ADS018_Load_Balanced(int16_t load_adc);
+void filter_init(int16_t inputy, int16_t input2);//protótipo
+void ADS018_IIR_Update(int16_t in, int16_t in2, ADS018_IIR_2ORDER_Type *p, int16_t *pout, int16_t *pout2);// protótipo
+void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2);
 //FUNCTIONS=============================================================================================================================================================================================================================
  //Cycle **********************************************
- void ADS018_Update_Factors()
-{
-	int i;
-	pADS018_NV_buf->Arm =166;//166mm ou 178mm
-	float arm = pADS018_NV_buf->Arm / 1000.0;
-	//NRF_LOG_INFO("pADS018_NV_buf->Arm %d",pADS018_NV_buf->Arm);
-	float f = 2 * ADS018_ENERGY_EFF_FACTOR * ADS018_KGFM_TO_CAL * ADS018_PIX2 * arm; /* fator 4x para 25% de eficiencia estimada */
-	float f1 = 2 * ADS018_sample_frequency * ADS018_KGF_TO_N * ADS018_PIX2 * arm;
-	float f2;
-//mudado348
-	  ADS018_energy_factor = f * ADS018_Cal_A;
-    ADS018_power_factor  = f1 * ADS018_Cal_A;//entenda como 2 *omega *  torque  //( o  ____o)  
-	  ADS018_load_factor = 10 * ADS018_Cal_A;
-    ADS018_CalA_n[0] = ADS018_Cal_A; 
-    ADS018_load_factor_n[0]           = ADS018_load_factor;
-    ADS018_torque_factor_n[0]        = ADS018_load_factor * arm;
-    ADS018_energy_factor_n[0]       = ADS018_energy_factor;
-    ADS018_power_factor_n[0]    =     ADS018_power_factor;
-	  for (i=1;i<ADS018_F_N;i++){
-		     f2 = (1.0*i);
-		    ADS018_CalA_n[i] = ADS018_load_factor/f2;
-        ADS018_load_factor_n[i]    = ADS018_load_factor_n[0]/f2;
-        ADS018_torque_factor_n[i]  = ADS018_torque_factor_n[0]/f2;
-        ADS018_energy_factor_n[i]  = ADS018_energy_factor_n[0]/f2;
-        ADS018_power_factor_n[i]   = ADS018_power_factor_n[0]/f2;
-			  
-			}
-}
- 
-
-
+  void ADS018_Update_Factors(){//declaration
+	ADS018_Rotation_Min_N = 60*ADS018_sample_frequency/ADS018_ROTATION_MAX; // !< min rotation number of samples//18,75
+  ADS018_Rotation_Max_N = 60*ADS018_sample_frequency/ADS018_ROTATION_MIN; // !< max rotation number of samples//300
+	if (ADS018_sample_frequency > 26.0) filter_type = 1; //fs=50Hz
+  //init high pass parameter
+  filter_coef_num = (int16_t)((ADS018_sample_frequency - FILTER_HPF_CF) * 100);
+	NRF_LOG_INFO("filter_coef_num : %d ",filter_coef_num);
+	NRF_LOG_INFO("ADS018_sample_frequency"); 
+	 NRF_LOG_INFO("FILTER_HPF_CF : %d ", FILTER_HPF_CF);
+  filter_coef_den = (int16_t)(ADS018_sample_frequency*100);
+	ADS018_SCycle_Tout_Limit = (uint32_t)(ADS018_Rotation_Max_N / ADS018_Cycle_S_n);//mudado338
+ }
+	
                             //pin=&ADS018_mem_data_c
 void ADS018_Set_Result_C(ADS018_mem_data_Type *pin, ADS018_res_data_Type *pout)//function declaration
 {
-//NRF_LOG_INFO("ADCT %d",ads1120_ADCT);
 #ifdef ADS018_USE_FN
 	// calcula carga corrigida pela eficiencia usando carga positiva e negativa medida
-	pADS018_NV_buf->Kp=500;
 	int32_t loadc = ((pADS018_NV_buf->Kp*(pin->fp)) + (pADS018_NV_buf->Kn*(pin->fn)))/1000;
-	//NRF_LOG_INFO("loadc %d",loadc);
-	//NRF_LOG_INFO("load %d",loadc);
 #else
 	// calcula carga corrigida pela eficiencia usando carga total medida
-	int32_t loadc = (pADS018_NV_buf->Kp*(pin->f)/1000);//ignore
+	int32_t loadc = (pADS018_NV_buf->Kp*(pin->f)/1000);
 #endif
 
-//limita carga corrigida para valores positivos
+	//limita carga corrigida para valores positivos
 	if (loadc<0){
 		loadc = -1*loadc;
 //	    pout->load     = ADS018_load_factor_n[ADS018_Cycle_S_n] * loadc;
@@ -347,7 +236,7 @@ void ADS018_Set_Result_C(ADS018_mem_data_Type *pin, ADS018_res_data_Type *pout)/
 //        }
 		loadc = 0;
 		ADS018_Cycle_Result = 2;  // carga negativa forcada para zero mas considerada normal
-		
+		//NRF_LOG_INFO("linha 145 do Cycle.h");
 	}
 	else{
 //	    pout->load     = ADS018_load_factor_n[ADS018_Cycle_S_n] * loadc;
@@ -357,18 +246,22 @@ void ADS018_Set_Result_C(ADS018_mem_data_Type *pin, ADS018_res_data_Type *pout)/
 
 	}
 	int32_t load = (pin->f);
-	pout->load = (ADS018_load_factor_n[ADS018_Cycle_S_n] * load);
-//	pout->load=ADC_sample*ADS018_Cal_A+ADS018_Cal_B;
+	pout->load = ADS018_load_factor_n[ADS018_Cycle_S_n] * load;
 
-#ifdef SHOWSTATS
-SUPER_LOG(pout->load,"pout>load");
-//SUPER_LOG(load_mauro,"carga final para calculo %d");
-#endif
-//	
- //inicia supondo n=0
+  //inicia supondo n=0
 	pout->rotation = 0;
 	pout->energy   = 0;
 	pout->power    = 0;
+//NRF_LOG_INFO(" essa ele sempre vai passar linha 162 do Cycle.h");
+//NRF_LOG_INFO("esse eh o n pro if da rotacao %d",pin->n);
+//		pin->n++;//=========================================================APAGAR! AQUI ESTOU FORÇANDO O RESULTADO!!!!!!!FOI SÓ PRA DESCOBRIR QUEM É QUEM!==========================================================================================================================================================================
+//    if(pin->n>59){
+//			pin->n=0;
+//		}
+////		ADS018_mem_data_s[ADS018_Cycle_Last_S].n++;
+////	if (ADS018_mem_data_s[ADS018_Cycle_Last_S].n>59) {
+////		ADS018_mem_data_s[ADS018_Cycle_Last_S].n=0;
+//	}=============================================================================================================================================================================================================================================================================================================================
 //trata para n<>0
 	if ((pin->n)>0){
 		if((pin->n) > ADS018_Rotation_Max_N){
@@ -384,14 +277,8 @@ SUPER_LOG(pout->load,"pout>load");
 			else{
 			        pout->n =(pin->n);
 	            pout->rotation = ADS018_rotation_factor / (pin->n);
-				#ifdef SHOWSTATS
-				      NRF_LOG_INFO(" pout->rotation  %d", pout->rotation);
-				#endif
 		          pout->energy   = ADS018_energy_factor_n[ADS018_Cycle_S_n] * loadc;
-				      pout->power    = ADS018_power_factor_n[ADS018_Cycle_S_n] * loadc / (pin->n);
-				#ifdef  SHOWSTATS
-				      SUPER_LOG(pout->power," pout->power");
-				#endif
+	            pout->power    = ADS018_power_factor_n[ADS018_Cycle_S_n] * loadc / (pin->n);
 	            if (ADS018_Cycle_Result == 0) ADS018_Cycle_Result = 1; // valor normal, preserva =2 definido antes
 			}
 		}
@@ -414,7 +301,6 @@ void ADS018_Set_Result(ADS018_res_data_Type *pin, ADS018_res_data_Type *pout, in
 
 void ADS018_Cycle(int16_t vel)
 {
-	
 	// count cycles and set direction
  // y transitions
 	ADS018_y = vel;
@@ -460,7 +346,7 @@ void ADS018_Cycle(int16_t vel)
     	}
         switch (ADS018_Cycle_Stt){
         case  0: //init
-        	     if(ADS018_flag_y == 1){ // wait transition (-) -> (+),y against gravity
+        	     if(ADS018_flag_y == 1){ // wait transition (-) -> (+)
        	    	     ADS018_Cycle_Flag = 0;
        	    	     ADS018_Cycle_Dir = 1; // direction counter clock wise
         	         ADS018_Cycle_Stt = 1;
@@ -517,7 +403,6 @@ void ADS018_Cycle(int16_t vel)
     }
 
 }
-
 
 
 void ADS018_res_data_clear(ADS018_res_data_Type *p){
@@ -703,18 +588,15 @@ void update_c(void){
    		     ADS018_Cycle_Result = 0; // reinicia avaliacao do ciclo
 	    }
     }
-
+	
 		
 void init_var(void){
 		init_vars();
 		init_varc();
 	}
-
-
+		
 void ADS018_Update_SCycle(void)
 {			
-/* In the original code, taking it was made in eclipse,the following functions were declared inside ADS018_Update_SCycle. Since we're making
-  all our projects in keil, they were declared outside this function but left commented here for clarity.*/
 //  init_vars();
 //  init_varc();
 //  init_f();
@@ -723,8 +605,10 @@ void ADS018_Update_SCycle(void)
 //	insert_zero();
 //	update_s();//
 //	update_c();
-//init_var();
-
+	//init_var();
+	//-------------------------------------------------------------------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//----------------------------------------------FIM DAS FUNÇÕES-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	if (ADS018_SCycle_Tout_Cmd == 1){
 	    //sector timeout
         ADS018_SCycle_Tout_Cmd = 0;
@@ -740,12 +624,12 @@ void ADS018_Update_SCycle(void)
         //q change
         switch(ADS018_Cycle_S_Cmd){
         case  0: break;
-        case  1: init_var();     
+        case  1: init_var();
 	             ADS018_SCycle_Stt = 1;
 	             ADS018_res_data_f_stt = 0;
                  break;
         case  2: //change q on load
-					     update_s();
+    	         update_s();
     	         update_c();
     		       break;
 	    default: break;
@@ -760,7 +644,7 @@ void ADS018_Update_SCycle(void)
 	         ADS018_mem_data_s[ADS018_Cycle_S].f += ads1120_ADCT;
 #ifdef ADS018_USE_FN
 	         if (ads1120_ADCT>0){
-	        	 ADS018_mem_data_s[ADS018_Cycle_S].fp += ads1120_ADCT;//AQUIIIIIIIIIIII
+	        	 ADS018_mem_data_s[ADS018_Cycle_S].fp += ads1120_ADCT;
 	         }
 	         else{
 	        	 ADS018_mem_data_s[ADS018_Cycle_S].fn += ads1120_ADCT;
@@ -768,13 +652,13 @@ void ADS018_Update_SCycle(void)
 #endif
 		     break;
     case  2: // run unload
-			ADS018_mem_data_s[ADS018_Cycle_S].n++;//state never reached,optimize ?
+	         ADS018_mem_data_s[ADS018_Cycle_S].n++;
 		 	 break;
 	default: break;
 	}
 }
 
-
+	
 void ADS018_Time_Update(void)
 {
 	if (ADS018_SampleCounter == 0xffffffff) ADS018_SampleCounter=0;
@@ -834,7 +718,7 @@ void ADS018_Set_Mean_Data(void)
 //1) inputy variable to be filtered
 //2) input2 2nd variable to be filtered
 //*/
-void filter_init(int16_t inputy,int16_t input2)//two variables, one for each signal intended to be filtered.
+void filter_init(int16_t inputy,int16_t input2)//coloca uma variável que deseja medir e outra que é dummy
 {
 	int16_t out1;
 	int16_t out2;
@@ -907,343 +791,9 @@ void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2)
 
 	(*outputy) = (int16_t)out3;
 	(*output2) = (int16_t)out4;
-#ifdef SHOWFILTER_OUT4
-	NRF_LOG_INFO("out 4 %d",out4);
-#endif
 }
 
-
-//after this function we're completely capable to adjust the values read by the ADC
-void ADS018_Cal_Set(ADS018_cal_Type *ptab, float *pa, float *pb, int16_t *pix, int16_t *pd)
-{
-
-	//Aqui eh importante lembrar do ioio mixoxo y=m(x-x0)+y0
-	volatile float a;//
- 	volatile float b;
-
-    if (     (    ptab->adc_value[1] == ptab->adc_value[0]    )  )
-			{
-    	ptab->adc_value[1] = ptab->adc_value[0] + 200; // fix to default
-    }
-
-    a = (ptab->eng_value[1]-ptab->eng_value[0]);//y-y0
-		//aqui dava 8
-    if ((a>-1.0) && (a<1.0)){
-    	ptab->eng_value[0] = 0.0;  // fix to default
-    	ptab->adc_value[1] = ADS018_LOAD_REF_DEFAULT;     // fix to default
-    	a = (ptab->eng_value[1]-ptab->eng_value[0]);
-    }
-
-    a = a/(1000.0*(ptab->adc_value[1]-ptab->adc_value[0]));//m//aqui dava 0,008 OU SEJA m/1000 que eh devido estar em gf e eu querer em kgf
-		b = (ptab->eng_value[0]/1000.0) - (ptab->adc_value[0]*a);//b esta dando 0.013 OU SEJA y0/1000
-			
-    *pa = a*1000;//alterado 14/06
-  	*pb = b*1000;
-
-	if (a!= 0.0){
-		 *pix = -b/a;
-		
-	}
-	else *pix = 0;
-
-	int16_t d = (ptab->adc_value[1]-ptab->adc_value[0]);
-	if (ptab->adc_value[1] < ptab->adc_value[0]) d = -1*d;
-
-	*pd = d;
-
-}
-
-void ADS018_Set_Cal_Adc_Zero(int16_t new_zero){
-	ADS018_Set_Cal_ADC_Value_Zero(new_zero);
-	//updates all the values used for calculations after updating via ble
-	ADS018_Cal_Set((ADS018_cal_Type *)&(pADS018_NV_buf->Cal), (float *)&ADS018_Cal_A, (float *)&ADS018_Cal_B, (int16_t *)&ADS018_Cal_ADC_Zero, (int16_t *)&ADS018_Cal_ADC_Delta);
-}
-
-void ADS018_Set_Cal_ADC_Value_Zero(int16_t new_adc_zero)
-{
-	if(new_adc_zero != ADS018_NV_buf.Cal.adc_value[1]){
-	    ADS018_NV_buf.Cal.adc_value[0] = ((int32_t)new_adc_zero);
-	  //  if (ADS018_Save_Setup() == NRF_SUCCESS){};
-    }
-}
-
-
-void get_direction(void)
-{
-//	
-//	lis2dw12_reg_t int_route;
-//  lis2dw12_pin_int1_route_get(&dev_ctx, &int_route.ctrl4_int1_pad_ctrl);
-//  int_route.ctrl4_int1_pad_ctrl.int1_6d = PROPERTY_ENABLE;
-//  lis2dw12_pin_int1_route_set(&dev_ctx, &int_route.ctrl4_int1_pad_ctrl);
-
-				lis2dw12_all_sources_get(&dev_ctx, &all_source);
-// if (all_source.sixd_src._6d_ia) {
-
-      if (all_source.sixd_src.xh) {
-				#ifdef SHOWDIRECTION
- 			 NRF_LOG_INFO("XH");
-        #endif 
-      }
-
-      if (all_source.sixd_src.xl) {
-				#ifdef SHOWDIRECTION
-				 NRF_LOG_INFO("XL");
-				#endif
-
-      }
-
-      if (all_source.sixd_src.yh) {
-				mma8x5x_pl = ADS018_POS_BOT;
-				#ifdef SHOWDIRECTION
-				 NRF_LOG_INFO("YH");
-				#endif
-      }
-
-      if (all_source.sixd_src.yl) {
-				mma8x5x_pl = ADS018_POS_TOP;
-				#ifdef SHOWDIRECTION
-				 NRF_LOG_INFO("YL");
-				#endif
-      }
-
-      if (all_source.sixd_src.zh) {
-				mma8x5x_pl = ADS018_POS_FRONT;
-				#ifdef SHOWDIRECTION
-				 NRF_LOG_INFO("ZH");
-				
-				#endif
-      }
-
-      if (all_source.sixd_src.zl) {
-				mma8x5x_pl = ADS018_POS_REAR;
-				#ifdef SHOWDIRECTION
-				 NRF_LOG_INFO("ZL");
-				#endif
-      }
-
-//   }
-			//Adjust to define when mma8x5x_pl will be front or rear to pass to function ADS018_Z()
-			}
-
-
-//void ADS018_AZ(void)
-//{
-//    switch (ADS018_AZ_stt){
-//		case  0: //check auto-zero position
-////			ADS018_AZ_stt = 4;
-////			if (mma8x5x_pl == ADS018_POS_BOT)
-//			//{
-//		//(int16_t)(((mma8x5x_regs.data[4] << 8) & 0xff00) | mma8x5x_regs.data[5]);//encontrar uma maneira de colocar a aceleracao em z aqui
-
-//		ADS018_raw.Zaccel=1200;//simulation, that way I know it'll be always in range.
-//							if ((ADS018_raw.Zaccel >= ADS018_AZ_Z_LI) && (ADS018_raw.Zaccel <= ADS018_AZ_Z_LS)){
-//					ADS018_AZ_counter = 0;
-//					ADS018_AZ_stt = 1;
-//				}
-//			//}
-//			break;
-//		case  1: //wait debounce
-////			if (mma8x5x_pl != ADS018_POS_BOT){
-////				ADS018_AZ_stt = 0;
-////			}
-////			else
-//			{
-//				ADS018_AZ_counter++;
-//				if (ADS018_AZ_counter >= ADS018_AZ_tdebounce){
-//					ADS018_AZ_mean = 0.0;
-//					ADS018_AZ_sdev = 0.0;
-//					ADS018_AZ_counter = 0;
-//					ADS018_AZ_stt = 2;
-//				}
-//			}
-//			break;
-//		case  2: //evaluate mean and sdev(standard deviation
-
-//			ADS018_raw.Load   = ADC_sample;
-//			ads1120_ADC = ADC_sample;
-//			ads1120_ADCB  = ADS018_Load_Balanced(ads1120_ADC); // !< ads1120 ADC binary balanced//ate aqui entendo 1200-50
-//     
-//			ADS018_AZ_load  = (1.0*ads1120_ADCB);
-//			ADS018_AZ_mean=ADS018_AZ_mean + ADS018_AZ_load;
-//		  ADS018_AZ_sdev=ADS018_AZ_sdev + (ADS018_AZ_load*ADS018_AZ_load);
-//		  ADS018_AZ_counter++;
-//			if (ADS018_AZ_counter >= ADS018_AZ_n){//ADS018_AZ_n=15 at this point
-//				ADS018_AZ_mean = ADS018_AZ_mean / ADS018_AZ_counter;//here's the infamous strategy means are made with the division of total occurred event here he set to 15 values
-//				ADS018_AZ_sdev = sqrtf(fabsf((ADS018_AZ_sdev / ADS018_AZ_counter) - (ADS018_AZ_mean * ADS018_AZ_mean)));
-//				ADS018_AZ_tol  = ADS018_AZ_FACTOR * ADS018_AZ_sdev;
-//				ADS018_AZ_stt = 3; //assign TARE
-//			}
-//			break;
-//		case  3: //assign TARE
-//			ADS018_AZ_absmean = fabsf(ADS018_AZ_mean);
-//		 		  //			if (ADS018_AZ_absmean > ADS018_AZ_tol)
-//			//{
-//				if( mma8x5x_pl == ADS018_POS_FRONT )//ZH
-//				{
-//					ADS018_tare = ADS018_AZ_mean - 4.0;
-//					ADS018_AZ_Tare = (int16_t)ceil(ADS018_AZ_mean-3.5); //set tare
-//				}
-//				else if( mma8x5x_pl == ADS018_POS_REAR )//ZL
-//				{
-//					ADS018_tare = ADS018_AZ_mean + 4.0;
-//					ADS018_AZ_Tare = (int16_t)ceil(ADS018_AZ_mean+4.5); //set tare
-//				}
-//				else
-//				{
-//					ADS018_tare = ADS018_AZ_mean;
-//					ADS018_AZ_Tare = (int16_t)ceil(ADS018_AZ_mean+0.5); //set tare
-//					
-//				}
-
-//				ADS018_AZ_counter = 0;
-
-//		//	}
-////			else{
-////				ADS018_PrintInt(">>> AZ: Tare = %6d not updated\n\r", (int)ADS018_AZ_Tare);
-////			}
-//			ADS018_AZ_stt = 4; // go to system off
-//			break;
-//		case 4: // start debounce
-//			ADS018_AZ_counter = 0;
-//			ADS018_AZ_stt = 5;
-//			break;
-//		case 5: // wait debounce time
-//			ADS018_AZ_counter++;
-//			if (ADS018_AZ_counter >= ADS018_AZ_tdebounce){
-//				pADS018_transfer->Cmd = 3; // call BLE off
-//				ADS018_AZ_flag = 0;
-//				ADS018_AZ_stt = 6; // wait for BLE off
-//			}
-//			break;
-//		case 6: // System_Off
-//							ADS018_AZ_stt = 0;//mudaddo348
-//			if (ADS018_AZ_flag != 0){
-//			    //ADS018_System_Off_Prepare();//I wont use this
-//			}
-//			break;
-//		default: ADS018_AZ_stt = 0;
-//			break;
-//    }
-//}
-
-
-int16_t ADS018_Load_Balanced(int16_t load_adc)
-{
-	return(load_adc - ADS018_Cal_ADC_Zero); // !< ads1120 ADC binary balanced /mauro:x-y0/m=x-erro de precisao do zero
-}
-
-
-void get_load (int16_t adc_measure){
-	
-	  ADS018_Cal_A=ADS018_Cal_A*1;
-		ADS018_Cal_B=ADS018_Cal_B*1;  
-	
-  
-	//ADS018_AZ_Tare=33;//later will be removed
-		ADS018_raw.Load   = adc_measure;//dado bruto de carga vide linha 2026 do ads018.c
-		ads1120_ADC = adc_measure;//dado bruto de carga vide linha 2026 do ads018.c
-		ads1120_ADCB  = ADS018_Load_Balanced(ads1120_ADC); // !< ads1120 ADC binary balanced
-//  	ads1120_ADCT  = ads1120_ADCB;     // !< ads1120 ADC binary balanced and tared
-		ads1120_ADCT  = ads1120_ADCB - ADS018_AZ_Tare;     // !< ads1120 ADC binary balanced and tared
-//		ADS018_Meas_Exec(1,(int16_t)ads1120_ADC);          // !< evaluate mean ads1120 ADC
-
-}
-
-
-
-//void ADS018_AZ(void)
-//{
-//		switch (ADS018_AZ_stt){
-//		  case  0: //check auto-zero position//not used in mywatt v2
-//				   ADS018_AZ_stt=1;
-//			break;
-//		case  1: //wait debounce
-//					ADS018_AZ_stt = 2;
-//			break;
-//		case  2: //evaluate mean and sdev
-//      ADS018_raw.Load   = ADC_sample;//pegando valor de ADC e colocando em uma variavel minha
-//			ads1120_ADC = ADC_sample;
-//			ads1120_ADCB  = ADS018_Load_Balanced(ads1120_ADC); // !< ads1120 ADC binary balanced
-
-//			ADS018_AZ_load  = (1.0*ads1120_ADCB);
-//			ADS018_AZ_mean=ADS018_AZ_mean + ADS018_AZ_load;
-//			ADS018_AZ_sdev=ADS018_AZ_sdev + (ADS018_AZ_load*ADS018_AZ_load);
-//			ADS018_AZ_counter++;
-//			if (ADS018_AZ_counter >= ADS018_AZ_n){
-//				ADS018_AZ_mean = ADS018_AZ_mean / ADS018_AZ_counter;
-//				ADS018_AZ_sdev = sqrtf(fabsf((ADS018_AZ_sdev / ADS018_AZ_counter) - (ADS018_AZ_mean * ADS018_AZ_mean)));
-//				ADS018_AZ_tol  = ADS018_AZ_FACTOR * ADS018_AZ_sdev;
-//				ADS018_AZ_stt = 3; //assign TARE vou usar depois pra controlar o switch case
-//			}
-//      break ;
-//			ADS018_AZ_absmean = fabsf(ADS018_AZ_mean);
-////			if (ADS018_AZ_absmean > ADS018_AZ_tol)
-//			//{
-//				if( mma8x5x_pl == ADS018_POS_FRONT )
-//				{
-//					ADS018_tare = ADS018_AZ_mean - 4.0;
-//					ADS018_AZ_Tare = (int16_t)ceil(ADS018_AZ_mean-3.5); //set tare
-//				}
-//				else if( mma8x5x_pl == ADS018_POS_REAR )
-//				{
-//					ADS018_tare = ADS018_AZ_mean + 4.0;
-//					ADS018_AZ_Tare = (int16_t)ceil(ADS018_AZ_mean+4.5); //set tare
-//				}
-//				else
-//				{
-//					ADS018_tare = ADS018_AZ_mean;
-//					ADS018_AZ_Tare = (int16_t)ceil(ADS018_AZ_mean+0.5); //set tare
-//				}
-
-//				ADS018_AZ_counter = 0;
-//   			ADS018_AZ_stt = 4; 
-//        break ;
-//		case 4: // start debounce
-//			ADS018_AZ_stt = 5;
-//			break;
-//	default: ADS018_AZ_stt = 0;
-//			break;
-//    }
-//}
 
 
 //end for now
-void lis2dw12_status(void)
-{
-lis2dw12_all_sources_t all_source;
-
- lis2dw12_all_sources_get(&dev_ctx, &all_source);
-
-    /* Check if Activity/Inactivity events */
-    if (all_source.wake_up_src.sleep_state_ia) {
-      //manda no pino sleep =====sd_power_system_off();
-    }
-
-    if (all_source.wake_up_src.wu_ia) {
-      nrf_gpio_pin_write(26,0);//MAYBE
-    }	
 	
-	
-
-}
-
-void get_session(int16_t accel){
-	
-	//conditions that the the set as normal operation
-	//accel. presence
-	if (accel<30){
-		
-		session=0;//the most restrictive power mode
-	}
-	else{
-		session=1;
-	}
-	
-	
-	
-}
-
-
-
-
-

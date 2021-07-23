@@ -414,7 +414,7 @@ typedef enum {
   LIS2DW12_CONT_LOW_PWR_4                      = 0x03,
   LIS2DW12_CONT_LOW_PWR_3                      = 0x02,
   LIS2DW12_CONT_LOW_PWR_2                      = 0x01,
-  LIS2DW12_CONT_LOW_PWR_12bit                  = 0x00,//ESSE
+  LIS2DW12_CONT_LOW_PWR_12bit                  = 0x00,
   LIS2DW12_SINGLE_LOW_PWR_4                    = 0x0B,
   LIS2DW12_SINGLE_LOW_PWR_3                    = 0x0A,
   LIS2DW12_SINGLE_LOW_PWR_2                    = 0x09,

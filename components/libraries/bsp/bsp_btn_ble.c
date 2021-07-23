@@ -41,7 +41,7 @@
 #include "nrf_sdh_ble.h"
 #include "bsp.h"
 
-#define BTN_ID_WAKEUP             1  /**< ID of button used to wake up the application. */
+#define BTN_ID_WAKEUP             0  /**< ID of button used to wake up the application. */
 #define BTN_ID_SLEEP              0  /**< ID of button used to put the application into sleep mode. */
 #define BTN_ID_DISCONNECT         0  /**< ID of button used to gracefully terminate a connection on long press. */
 #define BTN_ID_WAKEUP_BOND_DELETE 1  /**< ID of button used to wake up the application and delete all bonding information. */
@@ -184,7 +184,7 @@ uint32_t bsp_btn_ble_sleep_mode_prepare(void)
 {
     uint32_t err_code;
 
-    err_code = bsp_wakeup_button_enable(3);//its the SW1 button in the schematic, see main.h for more information
+    err_code = bsp_wakeup_button_enable(BTN_ID_WAKEUP);
     RETURN_ON_ERROR_NOT_NOT_SUPPORTED(err_code);
 
     err_code = bsp_wakeup_button_enable(BTN_ID_WAKEUP_BOND_DELETE);
