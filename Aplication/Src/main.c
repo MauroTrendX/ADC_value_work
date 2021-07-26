@@ -46,6 +46,9 @@
  * @ref srvlib_conn_params module.
  */
 
+#include "utills.h"
+
+
 #include "nrf_dfu_ble_svci_bond_sharing.h"
 #include "nrf_svci_async_function.h"
 #include "nrf_svci_async_handler.h"
@@ -3214,10 +3217,15 @@ int main(void)
 
 		lis2dw12_config();
 		
+		nrf_drv_spi_uninit(&mLisSpiInstance);
+
+   ads1120_spi_init();
+	 
 		filter_init(global_mixer, glob_wheel_revolution_mm);//ADICIONADO===================================================================
 
 		// Start execution.
 		advertising_start(erase_bonds);
+
 
     application_timers_start();	
 
@@ -3225,7 +3233,7 @@ int main(void)
 		measurement_setup();
     profile_setup();	
 #ifdef WDT_ATIVO
-		//Configure WDT.
+//     Configure WDT.
     nrf_drv_wdt_config_t config = NRF_DRV_WDT_DEAFULT_CONFIG;
     err_code = nrf_drv_wdt_init(&config, wdt_event_handler);
     APP_ERROR_CHECK(err_code);
@@ -3245,11 +3253,20 @@ int main(void)
 		uint8_t indiceAmostraACC=0;
 //Enter main loop========================================================================================
 		for (;;){
+#ifdef MAUROTESTE	
 		check_nv_update_request();
 		if(nrf_gpio_pin_read(26)){
 		  get_accel();
 		  cycle_treat();
 		}
+#endif
+
+#ifdef MAUROTESTE_2
+
+ads1120_RData();
+
+
+#endif			
 		idle_state_handle();
 		}
 }

@@ -614,6 +614,21 @@
               <FileType>5</FileType>
               <FilePath>.\heritage.h</FilePath>
             </File>
+            <File>
+              <FileName>flash_write.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\flash_write.c</FilePath>
+            </File>
+            <File>
+              <FileName>ads1120.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ads1120.c</FilePath>
+            </File>
+            <File>
+              <FileName>utills.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\utills.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -8355,6 +8370,21 @@
               <FileName>heritage.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\heritage.h</FilePath>
+            </File>
+            <File>
+              <FileName>flash_write.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\flash_write.c</FilePath>
+            </File>
+            <File>
+              <FileName>ads1120.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ads1120.c</FilePath>
+            </File>
+            <File>
+              <FileName>utills.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\utills.h</FilePath>
             </File>
           </Files>
         </Group>
