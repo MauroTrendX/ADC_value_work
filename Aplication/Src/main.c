@@ -3167,6 +3167,60 @@ void check_init(bool code_error1, bool code_error2){
 }
 
 
+
+void normal_operation(void)
+{
+//	  get_accel();//this or get_accel();
+//	  simulador();//overwrite global_mixer for testing purpouses
+         	
+//	  contador7++;
+//	  mean=global_mixer+mean;
+//	if (contador7 >15){
+//		     global_mixer=mean/contador7;
+////		     NRF_LOG_INFO("media %d ", global_mixer);
+//		     mean=0;
+//		     contador7=0;
+//		     get_direction();//to adjust the tare;
+			   //later this direct input of values will be removed
+//					teste.adc_value[0]=50; 
+//					teste.adc_value[1]=1200;
+//					teste.eng_value[0]=0;
+//					teste.eng_value[1]=10;
+			//later the above input of values will be removed
+//				int lock=0;//this lock will be an AND between two variables in the 10 and 0 characteristic
+//			if (lock==0){
+
+//										}
+//	        read_gauge_init();//inicializa leitura do adc
+//					read_gauge();
+//					nrfx_saadc_uninit();
+//					
+					filter(global_mixer,global_mixer,(int16_t *)&value_for_simu_F,(int16_t *)&OUT_dummy);
+//					NRF_LOG_INFO("OUT_dummy %d",OUT_dummy);
+					get_direction();
+					//ADS018_AZ();//ajusta tara
+					get_load(OUT_dummy);//ajusto todos os valores de load
+					cycle_treat();
+//																}		
+#ifdef  CAL_SET_SHOW
+			nrf_delay_us(500);
+			NRF_LOG_FINAL_FLUSH();
+      SUPER_LOG(ADS018_Cal_A,"ADS018_Cal_A ");
+			SUPER_LOG(ADS018_Cal_B,"ADS018_Cal_B ");
+			SUPER_LOG(ADS018_Cal_ADC_Zero,"ADS018_Cal_ADC_Zero ");
+			SUPER_LOG(ADS018_Cal_ADC_Delta,"ADS018_Cal_ADC_Delta ");
+			NRF_LOG_FINAL_FLUSH();
+			nrf_delay_us(1000);										
+#endif
+
+
+}
+
+
+
+
+
+
 /**@brief Function for application main entry.
  */
 int main(void)
