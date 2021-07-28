@@ -3219,7 +3219,12 @@ int main(void)
 		
 		nrf_drv_spi_uninit(&mLisSpiInstance);
 
-   ads1120_spi_init();
+	 mwatt_flash_init();
+	 
+//	 mwatt_write_anything(47);
+	 
+	 mwatt_read_anything(0x56007);
+	 
 	 
 		filter_init(global_mixer, glob_wheel_revolution_mm);//ADICIONADO===================================================================
 
@@ -3263,7 +3268,6 @@ int main(void)
 
 #ifdef MAUROTESTE_2
 
-ads1120_RData();
 
 
 #endif			

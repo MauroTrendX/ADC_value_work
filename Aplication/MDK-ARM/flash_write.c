@@ -2,6 +2,7 @@
 #include "nrf_log.h"
 #include "nrf_fstorage_sd.h"
 #include "app_error.h"
+#include "nrf_delay.h"
 
 
 /* This is the address in flash where data will be read.*/
@@ -10,6 +11,9 @@
 #define FLASH_ADDR_WRITE  0x56004   
 /* This is the address in flash were data will be erased. */
 #define FLASH_ADDR_ERASE  0x56000   
+
+static uint32_t number_novo;
+
 
 void callback(nrf_fstorage_evt_t * p_evt);
 void mwatt_flashinit(void);
@@ -55,7 +59,7 @@ void callback(nrf_fstorage_evt_t * p_evt)
 }
 
 
-void mwatt_flashinit(void)
+void mwatt_flash_init(void)
 {
 	ret_code_t err_code;
 	   err_code=nrf_fstorage_init(
@@ -170,3 +174,74 @@ static void print_bootloader_start_addr(void)
 }
 
 
+uint32_t mwatt_write_anything (uint32_t value)
+{
+    ret_code_t rc;
+
+//static uint32_t number=0x2AB ;
+    
+    mwatt_flash_erase();//erase values before doing anything
+    nrf_delay_ms(2);//just some delay to allow complete erase.
+	  number_novo=value;
+    rc = nrf_fstorage_write
+    (
+    &flash_instance,   /* The instance to use. */
+    FLASH_ADDR_WRITE,     /* The address in flash where to store the data. */
+    &number_novo,        /* A pointer to the data. */
+    sizeof(number_novo), /* Lenght of the data, in bytes. */
+    NULL            /* Optional parameter, backend-dependent. */
+    );
+		
+		
+				if (rc == NRF_SUCCESS)
+				{
+								/* The operation was accepted.
+								Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
+								is sent to the callback function registered by the instance. */
+					      NRF_LOG_INFO("BOSCH");
+								return rc;
+				}
+				else
+				{
+									/* Handle error.*/
+									NRF_LOG_INFO("falha");
+									return rc;
+				}
+				
+				
+				
+}
+
+
+uint32_t mwatt_read_anything(uint32_t address)
+{
+	  if ( (address & 0x3) == 0 )//check if address is word aligned
+		{
+    
+	  nrf_delay_ms(2);
+    static uint32_t number;
+    ret_code_t rc = nrf_fstorage_read(
+																										&flash_instance,   /* The instance to use. */
+																										address,     /* The address in flash where to read data from. */
+																										&number,        /* A buffer to copy the data into. */
+																										sizeof(number)  /* Lenght of the data, in bytes. */
+																										);
+    if (rc == NRF_SUCCESS)
+			{
+					NRF_LOG_INFO("Read \"%d\" from flash address \"%x\".", number, address);
+					return rc;
+			}
+    }
+		else{
+			    NRF_LOG_INFO("oops! Address is not 4 byte aligned.Check the address and try again"); 
+		       }
+}
+
+
+void hex_to_int ()
+{
+	
+	
+	
+	
+}
