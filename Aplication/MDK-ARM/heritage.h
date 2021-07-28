@@ -10,6 +10,7 @@ software documentation.
 #include <stdio.h>
 #include "nrf_log.h"
 #include <math.h>
+#include "lis2dw12_reg.h"
 //DEFINES=======================================================================================================
 //Cycle******************************************************
 #define ADS018_S_N 2
@@ -22,6 +23,22 @@ software documentation.
 #define ADS018_ROTATION_MAX 160  /**< max rpm */
 //filter************************************************************
 #define FILTER_HPF_CF     0.3
+
+//CALIBRATION
+#define ADS018_LOAD_REF_DEFAULT    10582  /**< Load calibration reference in gf */
+#define ADS018_AZ_N_MAX 15
+#define ADS018_AZ_FACTOR 3.0
+#define ADS018_POS_BOT   0
+#define ADS018_POS_TOP   1
+#define ADS018_POS_FRONT 2
+#define ADS018_POS_REAR  3
+#define ADS018_AZ_DEBOUNCE 8
+#define ADS018_AZ_Z_TOL 3640
+#define ADS018_AZ_Z_POS 0
+#define ADS018_AZ_Z_LI  (ADS018_AZ_Z_POS-ADS018_AZ_Z_TOL)
+#define ADS018_AZ_Z_LS  (ADS018_AZ_Z_POS+ADS018_AZ_Z_TOL)
+
+
 //STRUCTS, UNIONS and other struct like types====================================
 //Cycle****************************************************************************
 typedef struct {
@@ -89,6 +106,16 @@ typedef struct {
 	int32_t L;
 	int16_t mem2;
 } ADS018_IIR_2ORDER_Type;
+
+typedef struct {
+	int16_t Xaccel;
+	int16_t Yaccel;
+	int16_t Zaccel;
+	int16_t Orientation;
+	int16_t Load;
+	int16_t Torque;
+} ADS018_raw_data_Type;
+
 //VARIABLES=====================================================================================================================
 // Cycle**********************************************************
 volatile uint16_t glob_var;
@@ -133,10 +160,13 @@ volatile ADS018_res_data_Type ADS018_res_data_f[ADS018_F_N];
 
 volatile uint32_t ADS018_res_data_cmd   = 0;
 volatile uint32_t nnnn=0;
+volatile int16_t ads1120_ADC  = 0;               // !< ads1120 ADC binary
+volatile int16_t ads1120_ADCB = 0;               // !< ads1120 ADC binary balanced
 volatile int16_t ads1120_ADCT = 0;               // !< ads1120 ADC binary balanced and tared
 volatile float ADS018_load_factor_n[ADS018_F_N];
 volatile float ADS018_energy_factor_n[ADS018_F_N];
 volatile float ADS018_power_factor_n[ADS018_F_N];
+volatile int16_t ADS018_AZ_Tare __attribute__ ((section(".noinit"))); //era inicializado com 0
 // ROTATION
 volatile int16_t ADS018_rotation_factor =60*50; // !< rotation in [RPM/10]//originally was 10*60*50 now its only RPM
 volatile int16_t ADS018_Rotation_Min_N = 12;  // !< min rotation number of samples
@@ -150,6 +180,9 @@ volatile uint32_t ADS018_Sec_Limit      = 50;
 volatile uint8_t ADS018_Sec_Counter     = 0;
 volatile uint8_t ADS018_Min_Counter     = 0;
 
+
+
+
 volatile int16_t teste_lib=16;
 
 volatile ADS018_cycle_data_Type *pADS018_transfer;
@@ -157,6 +190,25 @@ volatile ADS018_cycle_data_Type *pADS018_transfer;
 ADS018_NV_Type *pADS018_NV_buf;
 
 int ADS018_sample_frequency=50;
+
+//Load convertion
+volatile float ADS018_Cal_A=1;
+volatile float ADS018_Cal_B=0;
+volatile int16_t ADS018_Cal_ADC_Zero = 0;
+volatile int16_t ADS018_Cal_ADC_Delta = 1;
+static ADS018_NV_Type ADS018_NV_buf __attribute__ ((section(".noinit"))); /**< Setup data in RAM */
+volatile uint32_t ADS018_AZ_stt     = 0;
+volatile int16_t global_mixer_z ;
+
+
+volatile ADS018_raw_data_Type ADS018_raw    = {0, 0, 0, 0, 0.0};  //raw aquisition buffer
+volatile float ADS018_AZ_load = 0.0;
+volatile float ADS018_AZ_mean = 0.0;
+volatile float ADS018_AZ_sdev = 0.0;
+volatile uint32_t ADS018_AZ_counter = 0;
+volatile uint32_t ADS018_AZ_n = ADS018_AZ_N_MAX;
+volatile float ADS018_AZ_tol = 0.0;
+volatile float ADS018_AZ_absmean = 0.0;
 
 //filter*********************************************************
 volatile int32_t filter_type = 0;//0:Low Pass 2.5Hz- fs:25Hz - 1:Low Pass 2.5Hz- fs:50Hz
@@ -176,6 +228,9 @@ volatile int32_t filter_lastyi = 0;
 volatile int32_t filter_lastyo = 0;
 volatile int16_t filter_coef_num = 2470;
 volatile int16_t filter_coef_den = 2500;
+stmdev_ctx_t dev_ctx;
+lis2dw12_all_sources_t all_source;
+volatile uint8_t  mma8x5x_pl = 0;              // !< PORTRAIT/LANDSCAPE code
 //FUNCTION PROTOTOTYPES=============================================================================================================================================================================================================================================================================================
 //Cycle****************************************************
 void ADS018_Time_Update(void);//prototype
@@ -197,6 +252,7 @@ void ADS018_Time_Update();//prototype
 void ADS018_Update_SCycle(void);//prototype
 void ADS018_Set_Mean_Data(void);//prototype
 void ADS018_Update_Factors();//prototype
+int16_t ADS018_Load_Balanced(int16_t load_adc);//prototype
 //filter ********************************************************
 void filter_init(int16_t inputy, int16_t input2);//protótipo
 void ADS018_IIR_Update(int16_t in, int16_t in2, ADS018_IIR_2ORDER_Type *p, int16_t *pout, int16_t *pout2);// protótipo
@@ -792,6 +848,90 @@ void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2)
 	(*outputy) = (int16_t)out3;
 	(*output2) = (int16_t)out4;
 }
+
+
+int16_t ADS018_Load_Balanced(int16_t load_adc)
+{
+	return(load_adc - ADS018_Cal_ADC_Zero); // !< ads1120 ADC binary balanced /mauro:x-y0/m=x-erro de precisao do zero
+}
+
+
+
+void get_load (int16_t adc_measure){
+    
+      ADS018_Cal_A=ADS018_Cal_A*1;
+        ADS018_Cal_B=ADS018_Cal_B*1;  
+    
+  
+    //ADS018_AZ_Tare=33;//later will be removed
+        ADS018_raw.Load   = adc_measure;//dado bruto de carga vide linha 2026 do ads018.c
+        ads1120_ADC = adc_measure;//dado bruto de carga vide linha 2026 do ads018.c
+        ads1120_ADCB  = ADS018_Load_Balanced(ads1120_ADC); // !< ads1120 ADC binary balanced
+//      ads1120_ADCT  = ads1120_ADCB;     // !< ads1120 ADC binary balanced and tared
+        ads1120_ADCT  = ads1120_ADCB - ADS018_AZ_Tare;     // !< ads1120 ADC binary balanced and tared
+//      ADS018_Meas_Exec(1,(int16_t)ads1120_ADC);          // !< evaluate mean ads1120 ADC
+
+}
+
+
+void get_direction(void)
+{
+//  
+//  lis2dw12_reg_t int_route;
+//  lis2dw12_pin_int1_route_get(&dev_ctx, &int_route.ctrl4_int1_pad_ctrl);
+//  int_route.ctrl4_int1_pad_ctrl.int1_6d = PROPERTY_ENABLE;
+//  lis2dw12_pin_int1_route_set(&dev_ctx, &int_route.ctrl4_int1_pad_ctrl);
+
+                lis2dw12_all_sources_get(&dev_ctx, &all_source);
+// if (all_source.sixd_src._6d_ia) {
+
+      if (all_source.sixd_src.xh) {
+                #ifdef SHOWDIRECTION
+             NRF_LOG_INFO("XH");
+        #endif 
+      }
+
+      if (all_source.sixd_src.xl) {
+                #ifdef SHOWDIRECTION
+                 NRF_LOG_INFO("XL");
+                #endif
+
+      }
+
+      if (all_source.sixd_src.yh) {
+                mma8x5x_pl = ADS018_POS_BOT;
+                #ifdef SHOWDIRECTION
+                 NRF_LOG_INFO("YH");
+                #endif
+      }
+
+      if (all_source.sixd_src.yl) {
+                mma8x5x_pl = ADS018_POS_TOP;
+                #ifdef SHOWDIRECTION
+                 NRF_LOG_INFO("YL");
+                #endif
+      }
+
+      if (all_source.sixd_src.zh) {
+                mma8x5x_pl = ADS018_POS_FRONT;
+                #ifdef SHOWDIRECTION
+                 NRF_LOG_INFO("ZH");
+                
+                #endif
+      }
+
+      if (all_source.sixd_src.zl) {
+                mma8x5x_pl = ADS018_POS_REAR;
+                #ifdef SHOWDIRECTION
+                 NRF_LOG_INFO("ZL");
+                #endif
+      }
+
+//   }
+            //Adjust to define when mma8x5x_pl will be front or rear to pass to function ADS018_Z()
+}
+
+
 
 
 
