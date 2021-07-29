@@ -2928,19 +2928,11 @@ int main(void)
 		lis2dw12_config();
 		
 		nrf_drv_spi_uninit(&mLisSpiInstance);
-
-	 mwatt_flash_init();
-	 
-//	 mwatt_write_anything(47);
-	 
-	 mwatt_read_anything(0x56007);
-	 
-	 
+	 	 
 		filter_init(global_mixer, glob_wheel_revolution_mm);//ADICIONADO===================================================================
 
 		// Start execution.
 		advertising_start(erase_bonds);
-
 
     application_timers_start();	
 
