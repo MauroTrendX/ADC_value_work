@@ -4,7 +4,7 @@
 #include "app_error.h"
 #include "nrf_delay.h"
 
-
+#define WAIT_FLASH_OPS while(flash_flag==false){}
 /* This is the address in flash where data will be read.*/
 #define FLASH_ADDR_READ  0x56004//2000 0000
 /* This is the address in flash were data will be written. */
@@ -13,11 +13,13 @@
 #define FLASH_ADDR_ERASE  0x56000   
 
 static uint32_t number_novo;
-
+static volatile bool flash_flag = true; /**< A flag to inform about completed flash operations. */
 
 void callback(nrf_fstorage_evt_t * p_evt);
 void mwatt_flashinit(void);
 uint32_t mwatt_flash_write (void);
+uint32_t mwatt_flash_write_zero (void);
+uint32_t mwatt_flash_write_ten (void);
 uint32_t mwatt_flash_read (void);
 static void print_bootloader_start_addr(void);
 
@@ -44,12 +46,14 @@ void callback(nrf_fstorage_evt_t * p_evt)
         {
             NRF_LOG_INFO("--> Event received: wrote %d bytes at address 0x%x.",
                          p_evt->len, p_evt->addr);
+					flash_flag=true;
         } break;
 
         case NRF_FSTORAGE_EVT_ERASE_RESULT:
         {
             NRF_LOG_INFO("--> Event received: erased %d page from address 0x%x.",
                          p_evt->len, p_evt->addr);
+					flash_flag=true;
         } break;
 
         default:
@@ -78,6 +82,7 @@ uint32_t mwatt_flash_write (void)
 /* This is the data to write in flash.
 Because the fstorage interface is asynchrounous, the data must be kept in memory.
  */
+flash_flag=false;	
 static uint32_t number=0x256 ;
 ret_code_t rc = nrf_fstorage_write
 	(
@@ -138,6 +143,7 @@ else
 
 void mwatt_flash_erase(void)
 {
+	flash_flag=false;
   uint32_t pages_to_erase = 1;
 ret_code_t rc = nrf_fstorage_erase(
     &flash_instance,   /* The instance to use. */
@@ -145,6 +151,7 @@ ret_code_t rc = nrf_fstorage_erase(
     pages_to_erase, /* The number of pages to erase. */
     NULL            /* Optional parameter, backend-dependent. */
 );
+	WAIT_FLASH_OPS
 if (rc == NRF_SUCCESS)
 {
 			NRF_LOG_INFO("data succEssfully erased");
@@ -228,7 +235,7 @@ uint32_t mwatt_read_anything(uint32_t address)
 																										);
     if (rc == NRF_SUCCESS)
 			{
-					NRF_LOG_INFO("Read \"%d\" from flash address \"%x\".", number, address);
+					NRF_LOG_INFO("Read \"%x\" from flash address \"%x\".", number, address);
 					return rc;
 			}
     }
@@ -237,11 +244,141 @@ uint32_t mwatt_read_anything(uint32_t address)
 		       }
 }
 
-
-void hex_to_int ()
+uint32_t mwatt_flash_write_zero (void)
 {
+/* This is the data to write in flash.
+Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
+		flash_flag=false;
+static uint32_t number=0xA ;
+ret_code_t rc = nrf_fstorage_write
+	(
+    &flash_instance,   /* The instance to use. */
+    0x56024,     /* The address in flash where to store the data. */
+    &number,        /* A pointer to the data. */
+    sizeof(number), /* Lenght of the data, in bytes. */
+    NULL            /* Optional parameter, backend-dependent. */
+    );
+		WAIT_FLASH_OPS
+if (rc == NRF_SUCCESS)
+{
+    /* The operation was accepted.
+       Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
+       is sent to the callback function registered by the instance. */
+	NRF_LOG_INFO("sucesso");
+	return rc;
 	
+}
+else
+{
+    /* Handle error.*/
+	NRF_LOG_INFO("falha");
+	return rc;
+}
+
+}
+
+uint32_t mwatt_flash_write_ten (void)
+{
+/* This is the data to write in flash.
+Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
+
+	flash_flag=false;
+static uint32_t number=0xB ;
+ret_code_t rc = nrf_fstorage_write
+	(
+    &flash_instance,   /* The instance to use. */
+    0x56044,     /* The address in flash where to store the data. */
+    &number,        /* A pointer to the data. */
+    sizeof(number), /* Lenght of the data, in bytes. */
+    NULL            /* Optional parameter, backend-dependent. */
+    );
+		WAIT_FLASH_OPS
+if (rc == NRF_SUCCESS)
+{
+    /* The operation was accepted.
+       Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
+       is sent to the callback function registered by the instance. */
+	NRF_LOG_INFO("sucesso");
+	return rc;
 	
+}
+else
+{
+    /* Handle error.*/
+	NRF_LOG_INFO("falha");
+	return rc;
+}
+
+}
+
+uint32_t mwatt_flash_write_ref (void)
+{
+/* This is the data to write in flash.
+Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
 	
+	flash_flag=false;
+static uint32_t number=0xC;
+ret_code_t rc = nrf_fstorage_write
+	(
+    &flash_instance,   /* The instance to use. */
+    0x56064,     /* The address in flash where to store the data. */
+    &number,        /* A pointer to the data. */
+    sizeof(number), /* Lenght of the data, in bytes. */
+    NULL            /* Optional parameter, backend-dependent. */
+    );
+		WAIT_FLASH_OPS
+if (rc == NRF_SUCCESS)
+{
+    /* The operation was accepted.
+       Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
+       is sent to the callback function registered by the instance. */
+	NRF_LOG_INFO("sucesso");
+	return rc;
 	
+}
+else
+{
+    /* Handle error.*/
+	NRF_LOG_INFO("falha");
+	return rc;
+}
+
+}
+
+uint32_t mwatt_flash_write_ref2 (void)
+{
+/* This is the data to write in flash.
+Because the fstorage interface is asynchrounous, the data must be kept in memory.
+ */
+	
+	flash_flag=false;
+static uint32_t number=0xD ;
+ret_code_t rc = nrf_fstorage_write
+	(
+    &flash_instance,   /* The instance to use. */
+    0x56084,     /* The address in flash where to store the data. */
+    &number,        /* A pointer to the data. */
+    sizeof(number), /* Lenght of the data, in bytes. */
+    NULL            /* Optional parameter, backend-dependent. */
+    );
+		WAIT_FLASH_OPS
+if (rc == NRF_SUCCESS)
+{
+    /* The operation was accepted.
+       Upon completion, the NRF_FSTORAGE_WRITE_RESULT event
+       is sent to the callback function registered by the instance. */
+	NRF_LOG_INFO("sucesso");
+	return rc;
+	
+}
+else
+{
+    /* Handle error.*/
+	NRF_LOG_INFO("falha");
+	return rc;
+}
+
 }

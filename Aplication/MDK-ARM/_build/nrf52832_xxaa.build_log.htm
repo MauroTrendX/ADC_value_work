@@ -27,6 +27,12 @@ Project File Date:  07/29/2021
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'nrf52832_xxaa'
+compiling flash_write.c...
+flash_write.c(245): warning:  #940-D: missing return statement at end of non-void function "mwatt_read_anything" 
+  }
+flash_write.c(167): warning:  #177-D: function "print_bootloader_start_addr"  was declared but never referenced
+  static void print_bootloader_start_addr(void)
+flash_write.c: 2 warnings, 0 errors
 compiling main.c...
 ..\Inc\biblioteca_phillips.h(8): warning:  #1-D: last line of file ends without a newline
   void reboot_biblioteca_phillips(void);
@@ -54,9 +60,23 @@ compiling main.c...
               nrf_drv_wdt_channel_feed(m_channel_id);
 ..\Src\main.c(2551): warning:  #550-D: variable "srdata"  was set but never used
   	  ble_advdata_t srdata;
+..\Src\main.c(2956): warning:  #223-D: function "mwatt_flash_init" declared implicitly
+  mwatt_flash_init();
+..\Src\main.c(2958): warning:  #223-D: function "mwatt_flash_erase" declared implicitly
+  mwatt_flash_erase();
+..\Src\main.c(2960): warning:  #223-D: function "mwatt_flash_write_zero" declared implicitly
+  mwatt_flash_write_zero();
+..\Src\main.c(2961): warning:  #223-D: function "mwatt_flash_write_ten" declared implicitly
+  mwatt_flash_write_ten();
+..\Src\main.c(2962): warning:  #223-D: function "mwatt_flash_write_ref" declared implicitly
+  mwatt_flash_write_ref();
+..\Src\main.c(2963): warning:  #223-D: function "mwatt_flash_write_ref2" declared implicitly
+  mwatt_flash_write_ref2();
+..\Src\main.c(2965): warning:  #223-D: function "mwatt_read_anything" declared implicitly
+  mwatt_read_anything(0x56024);
 ..\Src\main.c(2884): warning:  #177-D: variable "cscs_measurement"  was declared but never referenced
   	  ble_cscs_meas_t cscs_measurement;
-..\Src\main.c(3111): warning:  #1-D: last line of file ends without a newline
+..\Src\main.c(3123): warning:  #1-D: last line of file ends without a newline
   //ADS018_res_data.rotation (saída do Set_Mean).
 ..\Src\main.c(222): warning:  #177-D: variable "glob_cumulative_crank_revs"  was declared but never referenced
   static uint16_t   glob_cumulative_crank_revs = 0;
@@ -104,7 +124,7 @@ compiling main.c...
   static void maximum_recommended_heart_rate_write_handler(ble_uds_t *p_uds, uint32_t new_state){
 ..\Src\main.c(1953): warning:  #177-D: function "sleep_mybeat"  was declared but never referenced
   static void sleep_mybeat(void){
-..\Src\main.c: 38 warnings, 0 errors
+..\Src\main.c: 45 warnings, 0 errors
 linking...
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol pwr_mgmt_data2$$Base (referred from .\_build\nrf_pwr_mgmt.o). Unused section has been removed.
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol pwr_mgmt_data2$$Limit (referred from .\_build\nrf_pwr_mgmt.o). Unused section has been removed.
@@ -116,10 +136,10 @@ linking...
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol sdh_state_observers1$$Limit (referred from .\_build\nrf_sdh.o). Unused section has been removed.
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol sdh_ant_observers0$$Base (referred from .\_build\nrf_sdh_ant.o). Unused section has been removed.
 .\_build\nrf52832_xxaa.axf: Warning: L6330W: Undefined symbol sdh_ant_observers0$$Limit (referred from .\_build\nrf_sdh_ant.o). Unused section has been removed.
-Program Size: Code=123408 RO-data=21104 RW-data=1124 ZI-data=25380  
+Program Size: Code=124288 RO-data=21192 RW-data=1164 ZI-data=25380  
 Finished: 0 information, 10 warning and 0 error messages.
 FromELF: creating hex file...
-".\_build\nrf52832_xxaa.axf" - 0 Error(s), 48 Warning(s).
+".\_build\nrf52832_xxaa.axf" - 0 Error(s), 57 Warning(s).
 
 <h2>Software Packages used:</h2>
 

@@ -2953,7 +2953,19 @@ int main(void)
     dev_ctx.read_reg = platform_read;
     dev_ctx.handle = &spi_event_handler;
 			
+mwatt_flash_init();
 
+mwatt_flash_erase();
+
+mwatt_flash_write_zero();
+mwatt_flash_write_ten();
+mwatt_flash_write_ref();
+mwatt_flash_write_ref2();
+
+mwatt_read_anything(0x56024);
+mwatt_read_anything(0x56044);
+mwatt_read_anything(0x56064);
+mwatt_read_anything(0x56084);
 		
 //Enter main loop========================================================================================
 		for (;;){
