@@ -932,7 +932,45 @@ void get_direction(void)
 }
 
 
+//after this function we're completely capable to adjust the values read by the ADC
+void ADS018_Cal_Set(ADS018_cal_Type *ptab, float *pa, float *pb, int16_t *pix, int16_t *pd)
+{
 
+	//Aqui eh importante lembrar do ioio mixoxo y=m(x-x0)+y0
+	volatile float a;//
+ 	volatile float b;
+
+    if (     (    ptab->adc_value[1] == ptab->adc_value[0]    )  )
+			{
+    	ptab->adc_value[1] = ptab->adc_value[0] + 200; // fix to default
+    }
+
+    a = (ptab->eng_value[1]-ptab->eng_value[0]);//y-y0
+		//aqui dava 8
+    if ((a>-1.0) && (a<1.0)){
+    	ptab->eng_value[0] = 0.0;  // fix to default
+    	ptab->adc_value[1] = ADS018_LOAD_REF_DEFAULT;     // fix to default
+    	a = (ptab->eng_value[1]-ptab->eng_value[0]);
+    }
+
+    a = a/(1000.0*(ptab->adc_value[1]-ptab->adc_value[0]));//m//aqui dava 0,008 OU SEJA m/1000 que eh devido estar em gf e eu querer em kgf
+		b = (ptab->eng_value[0]/1000.0) - (ptab->adc_value[0]*a);//b esta dando 0.013 OU SEJA y0/1000
+			
+    *pa = a*1000;//alterado 14/06
+  	*pb = b*1000;
+
+	if (a!= 0.0){
+		 *pix = -b/a;
+		
+	}
+	else *pix = 0;
+
+	int16_t d = (ptab->adc_value[1]-ptab->adc_value[0]);
+	if (ptab->adc_value[1] < ptab->adc_value[0]) d = -1*d;
+
+	*pd = d;
+
+}
 
 
 //end for now

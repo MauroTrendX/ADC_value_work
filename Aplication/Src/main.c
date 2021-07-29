@@ -236,6 +236,7 @@ volatile int32_t transfer_rpm=0;
 //testes advertising=====================================================================================================================
 volatile uint32_t ADS018_ShowCounter_AdvQuit   = 2;
 volatile uint32_t ADS018_ShowCounter_SetMean   = 47;//originally 47.
+volatile ADS018_cal_Type teste;
 volatile int  i=0;//just for a tiny counter in function seno
 //MIXING THE DATA LIS2DW12
 volatile int16_t global_mixer ;
@@ -1397,388 +1398,100 @@ ble_scpt_response_t sc_ctrlpt_event_handler(ble_sc_ctrlpt_t     * p_sc_ctrlpt,
 
 
 
-
-static void aerobic_threshold_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = (uint8_t) new_state;// & 0xFF;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.aerobic_threshold.aerobic_threshold_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.aerobic_threshold = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void anaerobic_threshold_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = (uint8_t) new_state;// & 0xFF;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.anaerobic_threshold.anaerobic_threshold_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.anaerobic_threshold = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void sport_type_for_aerobic_and_anaerobic_thresholds_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.sport_type_for_aerobic_and_anaerobic_thresholds.sport_type_for_aerobic_and_anaerobic_thresholds_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.sport_type_for_aerobic_and_anaerobic_thresholds = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void date_of_threshold_assessment_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.date_of_threshold_assessment.date_of_threshold_assessment_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.date_of_threshold_assessment = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void waist_circumference_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.waist_circumference.waist_circumference_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.waist_circumference = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void fat_burn_heart_rate_lower_limit_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.fat_burn_heart_rate_lower_limit.fat_burn_heart_rate_lower_limit_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.fat_burn_heart_rate_lower_limit = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void fat_burn_heart_rate_upper_limit_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.fat_burn_heart_rate_upper_limit.fat_burn_heart_rate_upper_limit_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.fat_burn_heart_rate_upper_limit = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void aerobic_heart_rate_lower_limit_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.aerobic_heart_rate_lower_limit.aerobic_heart_rate_lower_limit_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.aerobic_heart_rate_lower_limit = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void aerobic_heart_rate_upper_limit_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.aerobic_heart_rate_upper_limit.aerobic_heart_rate_upper_limit_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.aerobic_heart_rate_upper_limit = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void anaerobic_heart_rate_lower_limit_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.anaerobic_heart_rate_lower_limit.anaerobic_heart_rate_lower_limit_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.anaerobic_heart_rate_lower_limit = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void five_zone_heart_rate_limits_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.five_zone_heart_rate_limits.five_zone_heart_rate_limits_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.five_zone_heart_rate_limits = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void three_zone_heart_rate_limits_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.three_zone_heart_rate_limits.three_zone_heart_rate_limits_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.three_zone_heart_rate_limits = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void two_zone_heart_rate_limits_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.two_zone_heart_rate_limit.two_zone_heart_rate_limit_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.two_zone_heart_rate_limit = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void language_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.language.language_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.language = true;
-	update_nv_mem_buf_request = true;
-}
-
-static void  fitnes_index_write_handler(ble_uds_t *p_uds, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state;// & 0xFF;
-
-/* Validação da idade que pode ser salva */
-	if( temp > 100 )
-		return;
-
-/* Altera valor da idade na variável temporária */
-	temporary_buff.fitnes_index.fitnes_index_value = temp;
-
-/* Solicita para o programa a atualização da idade na memória NV */
-	hr_module_nv_buf_update_flags.fitnes_index = true;
-	update_nv_mem_buf_request = true;
-}
-
-
-/******************************************************************************/
-
-
-/******************************************************************************/
-static void SPIVI_zone1_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
-
-/* Altera valor do SPIVI zona 1 na variável temporária */
-	temporary_buff.hr_SPIVI_zone_limits.zone1_threshold = temp;
-
-/* Solicita para o programa a atualização do SPIVI zona 1 na memória NV */
-	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
-	update_nv_mem_buf_request = true;
-}
-
 /******************************************************************************/
 /******************************************************************************/
-static void SPIVI_zone2_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
+//HANDLERS FOR CALIBRATION
 
-/* Altera valor do SPIVI zona 2 na variável temporária */
-	temporary_buff.hr_SPIVI_zone_limits.zone2_threshold = temp;
 
-/* Solicita para o programa a atualização do SPIVI zona 2 na memória NV */
-	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
-	update_nv_mem_buf_request = true;
+static void bike_id_write_handler(calib_serv_t * p_rcs, uint32_t new_state)
+{
+	
+uint16_t i = (((0x00ff & new_state)<<8) + ((0xff00 & new_state)>>8));
+teste.adc_value[0]=i;
+NRF_LOG_INFO("adc_value[0] %u",teste.adc_value[0]);
+				ADS018_Cal_Set((ADS018_cal_Type *)&(teste),
+																	(float *)&ADS018_Cal_A,//m
+																	(float *)&ADS018_Cal_B, //yo
+																	(int16_t *)&ADS018_Cal_ADC_Zero, //yo/m
+																	(int16_t *)&ADS018_Cal_ADC_Delta);//x-x0
+
 }
 
-/******************************************************************************/
-/******************************************************************************/
-static void SPIVI_zone3_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
 
-/* Altera valor do SPIVI zona 3 na variável temporária */
-	temporary_buff.hr_SPIVI_zone_limits.zone3_threshold = temp;
-
-/* Solicita para o programa a atualização do SPIVI zona 3 na memória NV */
-	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
-	update_nv_mem_buf_request = true;
+static void zero_write_handler(calib_serv_t * p_rcs, uint32_t new_state){
+//	read_gauge();
+	//uint16_t temp = (((0x00ff & new_state)<<8) + ((0xff00 & new_state)>>8));
+	teste.adc_value[1]=new_state;
+	NRF_LOG_INFO("adc_value[1] %d",teste.adc_value[1]);
+//	int16_t i = ADS018_Meas_Get_Mean();
+//	// new_state not uset
+//ADS018_Set_Cal_Adc_Zero(i);
+					ADS018_Cal_Set((ADS018_cal_Type *)&(teste),
+																	(float *)&ADS018_Cal_A,//m
+																	(float *)&ADS018_Cal_B, //yo
+																	(int16_t *)&ADS018_Cal_ADC_Zero, //yo/m
+																	(int16_t *)&ADS018_Cal_ADC_Delta);//x-x0
 }
 
-/******************************************************************************/
-/******************************************************************************/
-static void SPIVI_zone4_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
-
-/* Validação do minimo e máximo do SPIVI zona 4 que pode ser salva */
-
-/* Altera valor do SPIVI zona 4 na variável temporária */
-	temporary_buff.hr_SPIVI_zone_limits.zone4_threshold = temp;
-
-/* Solicita para o programa a atualização do SPIVI zona 4 na memória NV */
-	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
-	update_nv_mem_buf_request = true;
+static void ten_write_handler(calib_serv_t * p_rcs, uint32_t new_state){
+	//uint16_t temp = (((0x00ff & new_state)<<8) + ((0xff00 & new_state)>>8));
+	teste.eng_value[0]=new_state;
+	NRF_LOG_INFO("eng_value[0] %d",teste.eng_value[0]);
+//	int16_t i = ADS018_Meas_Get_Mean();
+//	uint16_t j = (((0x00ff & new_state)<<8) + ((0xff00 & new_state)>>8)); //adjust byte endian
+//	ADS018_Set_Cal_Adc_Ref(i);
+//	ADS018_Set_Cal_Eng_Ref(Hex_To_Int(j)*10); // value in 0,01Kgf
+					ADS018_Cal_Set((ADS018_cal_Type *)&(teste),
+																	(float *)&ADS018_Cal_A,//m
+																	(float *)&ADS018_Cal_B, //yo
+																	(int16_t *)&ADS018_Cal_ADC_Zero, //yo/m
+																	(int16_t *)&ADS018_Cal_ADC_Delta);//x-x0
 }
 
-/******************************************************************************/
-/******************************************************************************/
-static void SPIVI_zone5_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
-
-/* Validação do minimo e máximo do SPIVI zona 5 que pode ser salva */
-
-/* Altera valor do SPIVI zona 5 na variável temporária */
-	temporary_buff.hr_SPIVI_zone_limits.zone5_threshold = temp;
-
-/* Solicita para o programa a atualização do SPIVI zona 5 na memória NV */
-	hr_module_nv_buf_update_flags.hr_SPIVI_zone_limits = true;
-	update_nv_mem_buf_request = true;
+static void p_load_write_handler(calib_serv_t * p_rcs, uint32_t new_state){
+	//uint16_t temp = (((0x00ff & new_state)<<8) + ((0xff00 & new_state)>>8));
+	teste.eng_value[1]=new_state;
+	NRF_LOG_INFO("eng_value[1] %d",teste.eng_value[1]);
+//	uint16_t i = (((0x00ff & new_state)<<8) + ((0xff00 & new_state)>>8));
+//	ADS018_Set_Pload(Hex_To_Int(i));
 }
 
-/******************************************************************************/
-/******************************************************************************/
-static void rhr_zone1_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
 
-/* Validação do minimo e máximo do HRH zona 1 que pode ser salva */
-
-/* Altera valor do HRH zona 1 na variável temporária */
-	temporary_buff.hr_rhr_zone_limits.zone1_threshold = temp;
-
-/* Solicita para o programa a atualização do HRH zona 1 na memória NV */
-	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
-	update_nv_mem_buf_request = true;
+static void n_load_write_handler(calib_serv_t * p_rcs, uint32_t new_state){
+	if (new_state==2077){
+		  NRF_LOG_FINAL_FLUSH();
+//		  NRF_LOG_INFO("x-x0 %d",((int16_t)teste.adc_value[1]-(int16_t)teste.adc_value[0]));
+      SUPER_LOG(ADS018_Cal_A,"ADS018_Cal_A ");
+			SUPER_LOG(ADS018_Cal_B,"ADS018_Cal_B ");
+			SUPER_LOG(ADS018_Cal_ADC_Zero,"ADS018_Cal_ADC_Zero ");
+			SUPER_LOG(ADS018_Cal_ADC_Delta,"ADS018_Cal_ADC_Delta ");
+	}
+//	uint16_t i = (((0x00ff & new_state)<<8) + ((0xff00 & new_state)>>8));
+//	ADS018_Set_Nload(Hex_To_Int(i));
 }
 
-/******************************************************************************/
-/******************************************************************************/
-static void rhr_zone2_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
-
-/* Validação do minimo e máximo do HRH zona 2 que pode ser salva */
-
-/* Altera valor do HRH zona 2 na variável temporária */
-	temporary_buff.hr_rhr_zone_limits.zone2_threshold = temp;
-
-/* Solicita para o programa a atualização do HRH zona 2 na memória NV */
-	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
-	update_nv_mem_buf_request = true;
+static void serial_number_write_handler_2(calib_serv_t *p_rcs, uint32_t new_state){
+	uint16_t temp= new_state;
+//	ADC_sample=temp;
+//	ADS018_Set_Serial_Number(i);
 }
 
-/******************************************************************************/
-/******************************************************************************/
-static void rhr_zone3_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
-
-/* Altera valor do HRH zona 3 na variável temporária */
-	temporary_buff.hr_rhr_zone_limits.zone3_threshold = temp;
-
-/* Solicita para o programa a atualização do HRH zona 3 na memória NV */
-	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
-	update_nv_mem_buf_request = true;
+static void mode_write_handler(calib_serv_t *p_rcs, uint32_t new_state){
+	if (new_state==2077){
+  SUPER_LOG(ADS018_res_data.load,"pout>load");
+	}
+//	uint16_t i = (((0x00ff & new_state)<<8) + ((0xff00 & new_state)>>8));
+//	if (i>6) i = 0;  // enable all on fault
+//	ADS018_Set_Mode(i);
 }
 
-/******************************************************************************/
-/******************************************************************************/
-static void rhr_zone4_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
-
-/* Altera valor do HRH zona 4 na variável temporária */
-	temporary_buff.hr_rhr_zone_limits.zone4_threshold = temp;
-
-/* Solicita para o programa a atualização do HRH zona 4 na memória NV */
-	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
-	update_nv_mem_buf_request = true;
+static void mean_interval_write_handler(calib_serv_t *p_rcs, uint32_t new_state){
+//	__uint32_t i = (((0x000000ff & new_state)<<24) + ((0x0000ff00 & new_state)<<8) +
+//				  ((0x00ff0000 & new_state)>>8)  + ((0xff000000 & new_state)>>24));
+//	if (i>65536) i = 65536; //0x00010000
+//	ADS018_Set_Mean_Time(Hex_To_Int2(i));
 }
 
-/******************************************************************************/
-/******************************************************************************/
-static void rhr_zone5_threshold_write_handler(ble_rtcs_t *p_rtcs, uint32_t new_state){
-/* Conversão do valor de entrada para uint8_t */
-	uint8_t temp = new_state & 0xFF;
-
-/* Altera valor do HRH zona 5 na variável temporária */
-	temporary_buff.hr_rhr_zone_limits.zone5_threshold = temp;
-
-/* Solicita para o programa a atualização do HRH zona 5 na memória NV */
-	hr_module_nv_buf_update_flags.hr_rhr_zone_limits = true;
-	update_nv_mem_buf_request = true;
-}
-
-/******************************************************************************/
-/******************************************************************************/
 
 /**@brief Function for handling Queued Write Module errors.
  *
@@ -3162,10 +2875,6 @@ void normal_operation(void)
 
 
 }
-
-
-
-
 
 
 /**@brief Function for application main entry.

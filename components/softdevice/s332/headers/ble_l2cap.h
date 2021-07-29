@@ -129,6 +129,9 @@ enum BLE_L2CAP_EVTS
 /**@brief Invalid CID. */
 #define BLE_L2CAP_CID_INVALID     (0x0000)
 
+/**@brief Default L2CAP MTU. */
+#define BLE_L2CAP_MTU_DEF           (23)
+
 /**@brief Default number of credits for @ref sd_ble_l2cap_ch_flow_control. */
 #define BLE_L2CAP_CREDITS_DEFAULT (1)
 
