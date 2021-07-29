@@ -256,7 +256,9 @@ int16_t ADS018_Load_Balanced(int16_t load_adc);//prototype
 //filter ********************************************************
 void filter_init(int16_t inputy, int16_t input2);//protótipo
 void ADS018_IIR_Update(int16_t in, int16_t in2, ADS018_IIR_2ORDER_Type *p, int16_t *pout, int16_t *pout2);// protótipo
-void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2);
+void filter(int16_t inputy, int16_t input2, int16_t *outputy, int16_t *output2);//prototype
+int16_t Hex_To_Int(uint16_t new_state);//prototype
+uint32_t Hex_To_Int2(uint32_t new_state);//prototype
 //FUNCTIONS=============================================================================================================================================================================================================================
  //Cycle **********************************************
   void ADS018_Update_Factors(){//declaration
@@ -971,6 +973,18 @@ void ADS018_Cal_Set(ADS018_cal_Type *ptab, float *pa, float *pb, int16_t *pix, i
 	*pd = d;
 
 }
+
+int16_t Hex_To_Int(uint16_t new_state)
+{
+	return ((((new_state & 0xf000)>>12)*1000) + (((new_state & 0x0f00)>>8)*100) + (((new_state & 0x00f0)>>4)*10) + (new_state & 0x000f));
+}
+
+uint32_t Hex_To_Int2(uint32_t new_state){
+	return (((new_state & 0xf0000000)>>28)*10000000 + (((new_state & 0x0f000000)>>24)*1000000) + (((new_state & 0x00f00000)>>20)*100000)
+		  +(((new_state & 0x000f0000)>>16)*10000) +   (((new_state & 0x0000f000)>>12)*1000) +    (((new_state & 0x00000f00)>>8)*100)
+		  +(((new_state & 0x000000f0)>>4)*10) +       (((new_state & 0x0000000f)>>0)*1));
+}
+
 
 
 //end for now

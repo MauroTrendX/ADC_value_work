@@ -2952,12 +2952,9 @@ int main(void)
     dev_ctx.write_reg = platform_write;
     dev_ctx.read_reg = platform_read;
     dev_ctx.handle = &spi_event_handler;
-   
-		uint8_t tempo=0;
-		dadosBbPPG	amostrasPPG;
-		dadosBbACC	amostrasACC;
-    uint8_t indiceAmostraPPG=0;
-		uint8_t indiceAmostraACC=0;
+			
+
+		
 //Enter main loop========================================================================================
 		for (;;){
 #ifdef MAUROTESTE	
