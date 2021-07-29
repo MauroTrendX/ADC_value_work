@@ -47,7 +47,7 @@
  */
 
 #include "utills.h"
-
+#include "calib_serv.h"
 
 #include "nrf_dfu_ble_svci_bond_sharing.h"
 #include "nrf_svci_async_function.h"
@@ -424,11 +424,11 @@ APP_TIMER_DEF(m_adv_update);                           							/**< update adv da
 APP_TIMER_DEF(m_tick_timer);                       								  /**< Timer used to update cumulative operating time. */
 
 
-BLE_UDS_DEF(m_uds);                                                 /**< User data service instance. */
+BLE_UDS_DEF(m_uds);                                                /**< User data service instance. */
 BLE_RUS_DEF(m_rus);                                                 /**< RAE user service instance. */
-BLE_RTCS_DEF(m_rtcs);                                               /**< RAE treshhold calibration service instance. */
-BLE_CSCS_DEF(m_cscs);                                               /**< Cycling speed and cadence service instance. */
-
+BLE_RTCS_DEF(m_rtcs);                                              /**< RAE treshhold calibration service instance. */
+BLE_CSCS_DEF(m_cscs);                                            /**< Cycling speed and cadence service instance. */
+BLE_CUS_DEF(m_calib_serv);                                       /**< MyWatt custom service*/
 
 
 
@@ -436,9 +436,9 @@ BLE_CSCS_DEF(m_cscs);                                               /**< Cycling
 
 static ble_uuid_t m_adv_uuids[] =                                   /**< Universally unique service identifiers. */
 {
-    {BLE_UUID_HEART_RATE_SERVICE,           BLE_UUID_TYPE_BLE},
+//    {BLE_UUID_HEART_RATE_SERVICE,           BLE_UUID_TYPE_BLE},
 		{BLE_UUID_CYCLING_SPEED_AND_CADENCE,  BLE_UUID_TYPE_BLE},
-//    {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
+    {BLE_UUID_BATTERY_SERVICE,            BLE_UUID_TYPE_BLE},
 //    {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}
 };
 
@@ -1799,40 +1799,32 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
  */
 static void services_init(void)
 {
-    ret_code_t         err_code;
-    //ble_hrs_init_t     hrs_init;
+  volatile ret_code_t         err_code;
+
     ble_bas_init_t     bas_init;
     ble_dis_init_t     dis_init;
-	  ble_sensor_location_t sensor_location;
-	
-   //ble_uds_init_t uds_init;
-    ble_rus_init_t rus_init;
-    ble_rtcs_init_t rtcs_init;
-	  ble_cscs_init_t       cscs_init;
-	
+    ble_sensor_location_t sensor_location;
+
+    ble_cscs_init_t       cscs_init;
+    calib_serv_init_t     calib_serv_init;
+    
     ble_dfu_buttonless_init_t dfus_init = {0};
-	
+    
     nrf_ble_qwr_init_t qwr_init = {0};
-		
-    uint8_t            body_sensor_location;
 
     // Initialize Queued Write Module.
     qwr_init.error_handler = nrf_qwr_error_handler;
 
     err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
-
-		
-		
-		
-		// Initialize Cycling Speed and Cadence Service.
+        
+        // Initialize Cycling Speed and Cadence Service.
     memset(&cscs_init, 0, sizeof(cscs_init));
 
     cscs_init.evt_handler = NULL;
     cscs_init.feature     = BLE_CSCS_FEATURE_WHEEL_REV_BIT | BLE_CSCS_FEATURE_CRANK_REV_BIT |
                             BLE_CSCS_FEATURE_MULTIPLE_SENSORS_BIT;
-
-    // Here the sec level for the Cycling Speed and Cadence Service can be changed/increased.
+   // Here the sec level for the Cycling Speed and Cadence Service can be changed/increased.
     cscs_init.csc_meas_cccd_wr_sec  = SEC_OPEN;
     cscs_init.csc_feature_rd_sec    = SEC_OPEN;
     cscs_init.csc_location_rd_sec   = SEC_OPEN;
@@ -1847,12 +1839,13 @@ static void services_init(void)
     cscs_init.size_list_supported_locations = sizeof(supported_locations) /
                                               sizeof(ble_sensor_location_t);
 
-    sensor_location           = BLE_SENSOR_LOCATION_FRONT_WHEEL;                 // initializes the sensor location to add the sensor location characteristic.
+    sensor_location           = BLE_SENSOR_LOCATION_RIGHT_CRANK;                 // initializes the sensor location to add the sensor location characteristic.
     cscs_init.sensor_location = &sensor_location;
 
     err_code = ble_cscs_init(&m_cscs, &cscs_init);
     APP_ERROR_CHECK(err_code);
-   // Initialize Battery Service.
+        
+           // Initialize Battery Service.
     memset(&bas_init, 0, sizeof(bas_init));
 
     bas_init.evt_handler          = NULL;
@@ -1872,82 +1865,36 @@ static void services_init(void)
     memset(&dis_init, 0, sizeof(dis_init));
 
     ble_srv_ascii_to_utf8(&dis_init.manufact_name_str, (char *)MANUFACTURER_NAME);
-		
-		ble_srv_ascii_to_utf8(&dis_init.fw_rev_str, (char*)FIRMWARE_VERSION);
+        
+        ble_srv_ascii_to_utf8(&dis_init.fw_rev_str, (char*)FIRMWARE_VERSION);
 
-		dis_init.serial_num_str.length = (12);
-		dis_init.serial_num_str.p_str	= (uint8_t *) get_serial_number_metric();	
+        dis_init.serial_num_str.length = (12);
+        dis_init.serial_num_str.p_str   = (uint8_t *) get_serial_number_metric();   
  
-		dis_init.dis_char_rd_sec = SEC_OPEN;
+        dis_init.dis_char_rd_sec = SEC_OPEN;
 
-    err_code = ble_dis_init(&dis_init);
-    APP_ERROR_CHECK(err_code);
-
-////introduce RAE User Profile Service (ble_rus) here.
-//    memset(&uds_init, 0, sizeof(uds_init));
-
-//    uds_init.first_name_write_handler																				= first_name_write_handler;
-//    uds_init.last_name_write_handler																				= last_name_write_handler;
-//    uds_init.email_address_write_handler																		= email_address_write_handler;
-//    uds_init.age_write_handler																							= age_write_handler;
-//    uds_init.date_of_birth_write_handler																		= date_of_birth_write_handler;
-//    uds_init.gender_write_handler																						= gender_write_handler;
-//    uds_init.weight_write_handler																						= weight_write_handler;
-//    uds_init.height_write_handler																						= height_write_handler;
-//    uds_init.VO2_max_write_handler																					= VO2_max_write_handler;
-//    uds_init.heart_rate_max_write_handler																		= heart_rate_max_write_handler;
-//    uds_init.resting_heart_write_handler																		= resting_heart_rate_write_handler;   				//@Including USER ID
-//    uds_init.maximum_recommended_heart_rate_write_handler										= maximum_recommended_heart_rate_write_handler;		//@Including AEROBIC THRESHOLD
-//    uds_init.aerobic_threshold_write_handler																= aerobic_threshold_write_handler;	//@Including ANAEROBIC THRESHOLD
-//    uds_init.anaerobic_threshold_write_handler															= anaerobic_threshold_write_handler;  					//@Including NAME
-//    uds_init.sport_type_for_aerobic_and_anaerobic_thresholds_write_handler	= sport_type_for_aerobic_and_anaerobic_thresholds_write_handler;			//@Including FITNESS INDEX
-//    uds_init.date_of_threshold_assessment_write_handler				 				   		= date_of_threshold_assessment_write_handler;
-//    uds_init.waist_circumference_write_handler															= waist_circumference_write_handler;
-//    uds_init.fat_burn_heart_rate_lower_limit_write_handler									= fat_burn_heart_rate_lower_limit_write_handler;
-//    uds_init.fat_burn_heart_rate_upper_limit_write_handler									= fat_burn_heart_rate_upper_limit_write_handler;
-//    uds_init.aerobic_heart_rate_lower_limit_write_handler										= aerobic_heart_rate_lower_limit_write_handler;
-//    uds_init.aerobic_heart_rate_upper_limit_write_handler										= aerobic_heart_rate_upper_limit_write_handler;
-//    uds_init.anaerobic_heart_rate_lower_limit_write_handler									= anaerobic_heart_rate_lower_limit_write_handler;
-//    uds_init.five_zone_heart_rate_limits_write_handler											= five_zone_heart_rate_limits_write_handler;
-//    uds_init.three_zone_heart_rate_limits_write_handler											= three_zone_heart_rate_limits_write_handler;
-//    uds_init.two_zone_heart_rate_limits_write_handler												= two_zone_heart_rate_limits_write_handler;
-//    uds_init.language_write_handler																					= language_write_handler;
-//    uds_init.fitnes_index_write_handler																			= fitnes_index_write_handler;
-
-//		err_code = ble_uds_init(&m_uds, &uds_init);
-//		APP_ERROR_CHECK(err_code);
-
-    //introduce RAE User Profile Service (ble_rus) here.
-    memset(&rus_init, 0, sizeof(rus_init));
-
-		rus_init.user_id_write_handler											= user_id_write_handler;      //@Including USER ID
-		rus_init.hr_zone_preference_calc_write_handler			= hr_zone_preference_calc_write_handler;      //@Including FITNESS INDEX
-		rus_init.serial_number_write_handler								= serial_number_write_handler;
-		err_code = ble_rus_init(&m_rus, &rus_init);
-		APP_ERROR_CHECK(err_code);
-
-	//introduce rae threshold definition service
-
-		memset(&rtcs_init, 0, sizeof(rtcs_init));
-
-		rtcs_init.SPIVI_zone1_threshold_write_handler		= SPIVI_zone1_threshold_write_handler;
-		rtcs_init.SPIVI_zone2_threshold_write_handler		= SPIVI_zone2_threshold_write_handler;
-		rtcs_init.SPIVI_zone3_threshold_write_handler		= SPIVI_zone3_threshold_write_handler;
-		rtcs_init.SPIVI_zone4_threshold_write_handler		= SPIVI_zone4_threshold_write_handler;
-		rtcs_init.SPIVI_zone5_threshold_write_handler		= SPIVI_zone5_threshold_write_handler;
-		rtcs_init.rhr_zone1_threshold_write_handler			= rhr_zone1_threshold_write_handler;
-		rtcs_init.rhr_zone2_threshold_write_handler			= rhr_zone2_threshold_write_handler;
-		rtcs_init.rhr_zone3_threshold_write_handler			= rhr_zone3_threshold_write_handler;
-		rtcs_init.rhr_zone4_threshold_write_handler			= rhr_zone4_threshold_write_handler;
-		rtcs_init.rhr_zone5_threshold_write_handler			= rhr_zone5_threshold_write_handler;
-
-		err_code = ble_rtcs_init(&m_rtcs, &rtcs_init);
-		APP_ERROR_CHECK(err_code);
-		
-		dfus_init.evt_handler = ble_dfu_evt_handler;
+        dfus_init.evt_handler = ble_dfu_evt_handler;
     err_code = ble_dfu_buttonless_init(&dfus_init);
-    APP_ERROR_CHECK(err_code);		
-		
+    APP_ERROR_CHECK(err_code);      
+        
+        //initalize the calibration service
+    calib_serv_init.bike_id_write_handler   =   bike_id_write_handler;
+    calib_serv_init.zero_write_handler  =   zero_write_handler;
+    calib_serv_init.ten_write_handler       =   ten_write_handler;
+    calib_serv_init.p_load_write_handler    =   p_load_write_handler;
+    calib_serv_init.n_load_write_handler    =   n_load_write_handler;
+    calib_serv_init.serial_number_write_handler= serial_number_write_handler_2;
+    calib_serv_init.mode_write_handler          = mode_write_handler;
+    calib_serv_init.mean_interval_write_handler= mean_interval_write_handler;
+        
+    err_code = ble_calib_serv_init(&m_calib_serv, &calib_serv_init);
+        APP_ERROR_CHECK(err_code);      
+
+
+
+	
+	
+	
 }
 
 
