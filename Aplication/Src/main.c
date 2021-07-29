@@ -1512,7 +1512,7 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
  */
 static void services_init(void)
 {
-  volatile ret_code_t         err_code;
+    volatile ret_code_t         err_code;
 
     ble_bas_init_t     bas_init;
     ble_dis_init_t     dis_init;
